@@ -23,6 +23,7 @@ import Providers from "@/lib/react-query/provider";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import { createClient } from "@/lib/supabase/server";
+import { ToastProvider } from "@/context/ToastContext";
 
 export default async function RootLayout({
   children,
@@ -39,13 +40,15 @@ export default async function RootLayout({
     >
       <body className="min-h-full h-screen overflow-hidden flex bg-[#050505] text-white">
         <Providers>
-          <Sidebar user={user} />
-          <div className="flex-1 flex flex-col h-full overflow-hidden">
-            <Header user={user} />
-            <main className="flex-1 overflow-y-auto p-6 bg-[#050505]">
-              {children}
-            </main>
-          </div>
+          <ToastProvider>
+            <Sidebar user={user} />
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
+              <Header user={user} />
+              <main className="flex-1 overflow-y-auto p-6 bg-[#050505]">
+                {children}
+              </main>
+            </div>
+          </ToastProvider>
         </Providers>
       </body>
     </html>

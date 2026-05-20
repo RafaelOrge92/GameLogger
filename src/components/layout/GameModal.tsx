@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { getGameMarketData } from "@/features/market/actions";
 import { addGameToCollection } from "@/features/collection/actions";
 import DataPipelineDiagram from "@/components/layout/DataPipelineDiagram";
+import { useToast } from "@/context/ToastContext";
 
 interface GameModalProps {
   game: {
@@ -23,6 +24,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
     ebayListings: any[];
   }>({ cheapsharkDeals: [], ebayListings: [] });
   
+  const { showToast } = useToast();
   const [isLoadingMarket, setIsLoadingMarket] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState("");
   const [status, setStatus] = useState<"owned" | "playing" | "completed" | "plan_to_play" | "dropped">("owned");
@@ -90,15 +92,15 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
       );
 
       if (result.error) {
-        alert(`Error: ${result.error}`);
+        showToast(result.error, "error");
       } else {
-        alert(`¡${game.name} añadido correctamente a tu colección!`);
+        showToast(`¡${game.name} añadido correctamente a tu colección!`, "success");
         onSuccess();
         onClose();
       }
     } catch (error) {
       console.error(error);
-      alert("Ocurrió un error inesperado.");
+      showToast("Ocurrió un error inesperado al añadir el juego.", "error");
     } finally {
       setIsSubmitting(false);
     }

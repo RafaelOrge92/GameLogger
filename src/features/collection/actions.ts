@@ -45,3 +45,45 @@ export async function addGameToCollection(
 
   return { success: true };
 }
+
+export async function getCollection() {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "No autenticado", data: [] };
+  }
+
+  const { data, error } = await supabase
+    .from("collections")
+    .select("*")
+    .order("added_at", { ascending: false });
+
+  if (error) {
+    console.error("Error al obtener colección:", error);
+    return { error: error.message, data: [] };
+  }
+
+  return { success: true, data };
+}
+
+export async function removeGameFromCollection(id: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "No autenticado" };
+  }
+
+  const { error } = await supabase
+    .from("collections")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Error al eliminar juego:", error);
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
