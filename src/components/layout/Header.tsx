@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import { searchGamesIGDB } from "@/features/market/services/igdb";
-import { addGameToCollection } from "@/features/collection/actions";
 import { useDebounce } from "@/hooks/useDebounce";
+import GameModal from "@/components/layout/GameModal";
 
 export default function Header() {
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedGameForModal, setSelectedGameForModal] = useState<any | null>(null);
   
   const debouncedQuery = useDebounce(query, 500); // 500ms delay
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -48,25 +49,6 @@ export default function Header() {
     performSearch();
   }, [debouncedQuery]);
 
-  const handleAdd = async (game: any) => {
-    // Optimistic UI could be added here, but let's keep it simple
-    alert(`Añadiendo ${game.name} a tu colección...`);
-    const result = await addGameToCollection(
-      game.id, 
-      game.name, 
-      game.platforms?.[0] || "Desconocida", 
-      game.coverUrl
-    );
-
-    if (result.error) {
-      alert(result.error);
-    } else {
-      alert(`${game.name} añadido correctamente!`);
-      setShowDropdown(false);
-      setQuery("");
-    }
-  };
-
   return (
     <header className="h-16 bg-[#050505] border-b-2 border-[#ff6b00] flex items-center justify-between px-6 shrink-0 relative z-50">
       
@@ -104,7 +86,14 @@ export default function Header() {
             ) : (
               <ul className="divide-y divide-[#ff6b00]/30">
                 {results.map((game) => (
-                  <li key={game.id} className="p-3 flex items-center justify-between hover:bg-[#0f0f0f] transition-colors group">
+                  <li 
+                    key={game.id} 
+                    className="p-3 flex items-center justify-between hover:bg-[#0f0f0f] cursor-pointer transition-colors group"
+                    onClick={() => {
+                      setSelectedGameForModal(game);
+                      setShowDropdown(false);
+                    }}
+                  >
                     <div className="flex items-center gap-3">
                       {game.coverUrl ? (
                         <img src={game.coverUrl} alt={game.name} className="w-10 h-14 object-cover border border-[#ff6b00]" />
@@ -119,8 +108,12 @@ export default function Header() {
                       </div>
                     </div>
                     <button 
-                      onClick={() => handleAdd(game)}
-                      className="bg-[#ff6b00] text-black font-bold px-3 py-1 text-sm rounded-none hover:bg-white transition-colors uppercase font-retro"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Avoid triggering parent row click
+                        setSelectedGameForModal(game);
+                        setShowDropdown(false);
+                      }}
+                      className="bg-[#ff6b00] text-black font-bold px-3 py-1 text-sm rounded-none hover:bg-white transition-colors uppercase font-retro cursor-pointer"
                     >
                       Añadir
                     </button>
@@ -142,6 +135,19 @@ export default function Header() {
           A
         </div>
       </div>
+
+      {/* Game Details & Pricing Modal */}
+      {selectedGameForModal && (
+        <GameModal
+          game={selectedGameForModal}
+          onClose={() => setSelectedGameForModal(null)}
+          onSuccess={() => {
+            setQuery("");
+            setShowDropdown(false);
+            // In a real app, we might trigger a collection revalidation here
+          }}
+        />
+      )}
     </header>
   );
 }

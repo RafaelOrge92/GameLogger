@@ -2,7 +2,16 @@
 
 import { createClient } from "@/lib/supabase/server";
 
-export async function addGameToCollection(gameId: string, title: string, platform: string, coverUrl: string | null) {
+export async function addGameToCollection(
+  gameId: string,
+  title: string,
+  platform: string,
+  status: "owned" | "playing" | "completed" | "plan_to_play" | "dropped" = "owned",
+  condition: "sealed" | "cib" | "box_and_game" | "loose" | "digital" = "cib",
+  purchasePrice: number | null = null,
+  notes: string | null = null,
+  edition: string | null = null
+) {
   const supabase = await createClient();
 
   // Verificar sesión
@@ -21,8 +30,11 @@ export async function addGameToCollection(gameId: string, title: string, platfor
         game_id: gameId.toString(),
         title: title,
         platform: platform || "PC", // Default fallback
-        status: 'owned',
-        condition: 'cib'
+        status: status,
+        condition: condition,
+        purchase_price: purchasePrice,
+        notes: notes,
+        edition: edition
       }
     ]);
 
