@@ -22,12 +22,16 @@ export const metadata: Metadata = {
 import Providers from "@/lib/react-query/provider";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import { createClient } from "@/lib/supabase/server";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <html
       lang="en"
@@ -35,9 +39,9 @@ export default function RootLayout({
     >
       <body className="min-h-full h-screen overflow-hidden flex bg-[#050505] text-white">
         <Providers>
-          <Sidebar />
+          <Sidebar user={user} />
           <div className="flex-1 flex flex-col h-full overflow-hidden">
-            <Header />
+            <Header user={user} />
             <main className="flex-1 overflow-y-auto p-6 bg-[#050505]">
               {children}
             </main>

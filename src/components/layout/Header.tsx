@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import { searchGamesIGDB } from "@/features/market/services/igdb";
 import { useDebounce } from "@/hooks/useDebounce";
 import GameModal from "@/components/layout/GameModal";
+import Link from "next/link";
 
-export default function Header() {
+export default function Header({ user }: { user: any }) {
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<any[]>([]);
@@ -127,13 +128,26 @@ export default function Header() {
 
       {/* Profile Actions */}
       <div className="flex items-center gap-4 ml-4">
-        <div className="text-right hidden sm:block">
-          <p className="text-xs text-[#ff6b00] font-retro uppercase">Usuario</p>
-          <p className="text-sm font-bold">Admin Test</p>
-        </div>
-        <div className="w-10 h-10 bg-[#ff6b00] border-2 border-white rounded-none flex items-center justify-center text-black font-bold font-retro">
-          A
-        </div>
+        {user ? (
+          <>
+            <div className="text-right hidden sm:block">
+              <p className="text-xs text-[#ff6b00] font-retro uppercase">Usuario</p>
+              <p className="text-sm font-bold text-white">
+                {user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario"}
+              </p>
+            </div>
+            <div className="w-10 h-10 bg-[#ff6b00] border-2 border-white rounded-none flex items-center justify-center text-black font-bold font-retro uppercase" title={user.email}>
+              {user.user_metadata?.full_name?.[0] || user.email?.[0] || "U"}
+            </div>
+          </>
+        ) : (
+          <Link
+            href="/login"
+            className="px-4 py-2 border-2 border-[#ff6b00] text-[#ff6b00] font-retro text-sm hover:bg-[#ff6b00] hover:text-black transition-colors shadow-[2px_2px_0px_#ff6b00]"
+          >
+            INICIAR SESIÓN
+          </Link>
+        )}
       </div>
 
       {/* Game Details & Pricing Modal */}
