@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getGameMarketData } from "@/features/market/actions";
 import { addGameToCollection } from "@/features/collection/actions";
+import DataPipelineDiagram from "@/components/layout/DataPipelineDiagram";
 
 interface GameModalProps {
   game: {
@@ -30,6 +31,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
   const [edition, setEdition] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPipeline, setShowPipeline] = useState(false);
 
   // Initialize selected platform
   useEffect(() => {
@@ -240,6 +242,26 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                         </div>
                       )}
                     </div>
+
+                    {/* Toggle Diagram Button */}
+                    <div className="flex justify-end pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowPipeline(!showPipeline)}
+                        className="text-xs font-retro text-[#00ffff] hover:text-white bg-[#0f0f0f] hover:bg-cyan-950/40 border border-cyan-800 px-3 py-1.5 transition-all cursor-pointer shadow-[2px_2px_0px_#00ffff]"
+                      >
+                        {showPipeline ? "[OCULTAR ANALISIS IQR]" : "[VER PIPELINE DE OUTLIERS (IQR)]"}
+                      </button>
+                    </div>
+
+                    {showPipeline && (
+                      <div className="mt-4">
+                        {/* Calculate raw numeric prices from current search results */}
+                        <DataPipelineDiagram 
+                          rawPricesInput={marketData.ebayListings.map(item => parseFloat(item.price)).filter(p => !isNaN(p))} 
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
