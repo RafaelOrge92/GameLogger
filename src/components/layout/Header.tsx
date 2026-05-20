@@ -5,8 +5,10 @@ import { searchGamesIGDB } from "@/features/market/services/igdb";
 import { useDebounce } from "@/hooks/useDebounce";
 import GameModal from "@/components/layout/GameModal";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Header({ user }: { user: any }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<any[]>([]);
@@ -158,7 +160,7 @@ export default function Header({ user }: { user: any }) {
           onSuccess={() => {
             setQuery("");
             setShowDropdown(false);
-            // In a real app, we might trigger a collection revalidation here
+            router.refresh(); // Refresh layout and page server component data smoothly
           }}
         />
       )}
