@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+:root {
+  --background: #050505; /* Deep CRT dark */
+  --background-secondary: #0f0f0f;
+  --foreground: #e0e0e0;
+  --accent: #ff6b00; /* Neon Orange */
+  --border-color: #ff6b00; /* Neon Orange Borders */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-border-color: var(--border-color);
+  --font-sans: var(--font-space-mono), Arial, Helvetica, sans-serif;
+  --font-mono: var(--font-space-mono);
+  --font-retro: var(--font-vt323);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
