@@ -3,35 +3,49 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 
+// Status helpers
+const STATUS_META: Record<string, { label: string; color: string }> = {
+  playing:      { label: "Jugando",       color: "var(--status-playing)" },
+  completed:    { label: "Completado",    color: "var(--status-completed)" },
+  plan_to_play: { label: "Pendiente",     color: "var(--status-plan)" },
+  dropped:      { label: "Abandonado",    color: "var(--status-dropped)" },
+  owned:        { label: "En colección",  color: "var(--status-owned)" },
+};
+
+const CONDITION_LABEL: Record<string, string> = {
+  sealed:       "Precintado",
+  cib:          "CIB",
+  box_and_game: "Caja + Juego",
+  loose:        "Suelto",
+  digital:      "Digital",
+};
+
 export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return (
-      <div className="space-y-8 max-w-6xl mx-auto py-12">
-        <header className="border-b-2 border-red-500/30 pb-4 text-center">
-          <h2 className="text-4xl text-red-500 font-retro tracking-widest uppercase">ACCESO DENEGADO</h2>
-          <p className="text-gray-400 mt-2 font-mono">ESTADO: <span className="text-red-500">OFFLINE</span> // SISTEMA BLOQUEADO</p>
-        </header>
-
-        <div className="bg-[#0f0f0f] border-2 border-red-500 p-12 flex flex-col items-center justify-center text-center min-h-[400px] shadow-[8px_8px_0px_#ef4444] relative">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] pointer-events-none z-10"></div>
-          
-          <div className="w-20 h-20 bg-transparent border-4 border-red-500 flex items-center justify-center mb-6 animate-pulse">
-            <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0-8V7m0 0a3 3 0 100-6 3 3 0 000 6zm0 11a7 7 0 110-14 7 7 0 010 14z" />
-            </svg>
-          </div>
-          <h3 className="text-2xl text-white mb-4 font-retro tracking-widest">AUTENTICACIÓN REQUERIDA</h3>
-          <p className="text-gray-400 max-w-md mb-8 leading-relaxed font-mono text-xs">
-            DEBES INICIAR SESIÓN PARA PODER REGISTRAR JUEGOS Y VER TU INVENTARIO PERSONAL DE VIDEOJUEGOS RETRO Y DIGITALES.
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-6">
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl font-bold"
+          style={{ backgroundColor: 'var(--accent)', color: '#0d1117' }}
+        >
+          R
+        </div>
+        <div>
+          <h1 className="text-2xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+            Bienvenido a RetroLogger
+          </h1>
+          <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+            Lleva el control de tu colección de videojuegos y su valor de mercado.
           </p>
           <Link
             href="/login"
-            className="bg-red-500 hover:bg-[#00ff00] text-black font-retro text-2xl font-bold py-3 px-8 border-2 border-black shadow-[4px_4px_0px_#ef4444] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all cursor-pointer"
+            className="inline-block px-5 py-2.5 rounded-md text-sm font-semibold"
+            style={{ backgroundColor: 'var(--accent)', color: '#0d1117' }}
           >
-            [INICIAR_SESION]
+            Iniciar sesión
           </Link>
         </div>
       </div>
@@ -40,10 +54,13 @@ export default async function Home() {
 
   const { data: games = [] } = await getCollection();
 
-  // Statistics calculations
   const totalGames = games.length;
-  const totalValue = games.reduce((acc, g) => acc + (g.purchase_price ? parseFloat(g.purchase_price) : 0), 0);
+  const totalValue = games.reduce(
+    (acc, g) => acc + (g.purchase_price ? parseFloat(g.purchase_price) : 0),
+    0
+  );
   const completedGames = games.filter(g => g.status === "completed").length;
+  const playingGames = games.filter(g => g.status === "playing").length;
 
   async function deleteGameAction(formData: FormData) {
     "use server";
@@ -54,137 +71,184 @@ export default async function Home() {
     }
   }
 
-  // Formatting helpers
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "playing": return "bg-[#00ff00]";
-      case "completed": return "bg-cyan-400";
-      case "plan_to_play": return "bg-yellow-400";
-      case "dropped": return "bg-red-500";
-      default: return "bg-gray-400";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "playing": return "Jugando";
-      case "completed": return "Completado";
-      case "plan_to_play": return "Plan para Jugar";
-      case "dropped": return "Abandonado";
-      case "owned": return "En Colección";
-      default: return "Guardado";
-    }
-  };
-
-  const getConditionLabel = (condition: string) => {
-    switch (condition) {
-      case "sealed": return "Precintado";
-      case "cib": return "CIB (Completo)";
-      case "box_and_game": return "Caja y Cartucho";
-      case "loose": return "Loose (Suelto)";
-      case "digital": return "Digital";
-      default: return condition.toUpperCase();
-    }
-  };
+  const userName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario";
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      <header className="border-b-2 border-[#ff6b00]/30 pb-4">
-        <h2 className="text-4xl text-[#ff6b00] font-retro tracking-widest uppercase">Colección Principal</h2>
-        <p className="text-gray-400 mt-2 font-mono">
-          ESTADO: <span className="text-[#00ff00]">ONLINE</span> // 
-          USUARIO: <span className="text-white uppercase font-bold">{user.user_metadata?.full_name || user.email?.split("@")[0]}</span>
-        </p>
-      </header>
+    <div className="space-y-8">
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#0f0f0f] border-2 border-[#ff6b00] p-6 shadow-[4px_4px_0px_#ff6b00]">
-          <h3 className="text-sm font-bold text-[#ff6b00] mb-2 uppercase tracking-wider">Juegos Registrados</h3>
-          <p className="text-4xl font-retro text-white">{totalGames.toString().padStart(3, "0")}</p>
-        </div>
-        <div className="bg-[#0f0f0f] border-2 border-[#ff6b00] p-6 shadow-[4px_4px_0px_#ff6b00]">
-          <h3 className="text-sm font-bold text-[#ff6b00] mb-2 uppercase tracking-wider">Valor Estimado</h3>
-          <p className="text-4xl font-retro text-[#00ff00]">€{totalValue.toFixed(2)}</p>
-        </div>
-        <div className="bg-[#0f0f0f] border-2 border-[#ff6b00] p-6 shadow-[4px_4px_0px_#ff6b00]">
-          <h3 className="text-sm font-bold text-[#ff6b00] mb-2 uppercase tracking-wider">Juegos Completados</h3>
-          <p className="text-4xl font-retro text-[#ff6b00]">{completedGames.toString().padStart(3, "0")}</p>
+      {/* Page header */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+            Hola, {userName} 👋
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+            Tu colección personal de videojuegos
+          </p>
         </div>
       </div>
 
+      {/* Quick stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Total juegos",  value: totalGames,                         suffix: "" },
+          { label: "Valor total",   value: `€${totalValue.toFixed(2)}`,        suffix: "", raw: true },
+          { label: "Completados",   value: completedGames,                     suffix: "" },
+          { label: "Jugando",       value: playingGames,                       suffix: "" },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className="rounded-lg p-4"
+            style={{
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>
+              {stat.label}
+            </p>
+            <p className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {stat.raw ? stat.value : stat.value}
+              {stat.suffix}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Collection content */}
       {totalGames === 0 ? (
-        /* Empty State */
-        <div className="bg-[#0f0f0f] border-2 border-[#ff6b00] p-12 flex flex-col items-center justify-center text-center min-h-[400px] shadow-[8px_8px_0px_#ff6b00] relative">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] pointer-events-none z-10"></div>
-          
-          <div className="w-20 h-20 bg-transparent border-4 border-[#ff6b00] flex items-center justify-center mb-6 animate-pulse">
-            <svg className="w-10 h-10 text-[#ff6b00]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        /* Empty state */
+        <div
+          className="rounded-xl flex flex-col items-center justify-center text-center py-20 px-8"
+          style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+        >
+          <div
+            className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
+            style={{ backgroundColor: 'var(--bg-elevated)' }}
+          >
+            <svg className="w-7 h-7" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
           </div>
-          <h3 className="text-2xl text-white mb-4 font-retro tracking-widest">MEMORIA VACÍA</h3>
-          <p className="text-gray-400 max-w-md mb-8 leading-relaxed font-mono text-xs">
-            SISTEMA ESPERANDO ENTRADA DE DATOS. UTILIZA LA BARRA DE BÚSQUEDA SUPERIOR PARA INSERTAR UN NUEVO JUEGO EN LA BASE DE DATOS.
+          <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+            Tu colección está vacía
+          </h3>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            Usa la barra de búsqueda superior para añadir tu primer juego
           </p>
         </div>
       ) : (
-        /* Games Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {games.map((game: any) => (
-            <div 
-              key={game.id} 
-              className="bg-[#0f0f0f] border-2 border-[#ff6b00] p-5 shadow-[4px_4px_0px_#ff6b00] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex flex-col justify-between relative"
-            >
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] pointer-events-none z-10"></div>
-              
-              <div className="relative z-20">
-                {/* Card Title & Platform */}
-                <div className="flex items-start justify-between gap-2 border-b border-[#ff6b00]/20 pb-2 mb-3">
-                  <h4 className="text-white font-bold font-retro text-lg tracking-wide truncate" title={game.title}>
-                    {game.title}
-                  </h4>
-                  <span className="text-[10px] font-mono px-2 py-0.5 border border-[#ff6b00]/60 text-[#ff6b00] bg-[#050505] shrink-0 font-bold uppercase">
-                    {game.platform || "PC"}
-                  </span>
-                </div>
+        /* Games grid — cover-art focused like Backloggd */
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              {totalGames} {totalGames === 1 ? "juego" : "juegos"}
+            </p>
+          </div>
 
-                {/* Game Details */}
-                <div className="space-y-1.5 text-xs font-mono text-gray-400 mb-4">
-                  {game.edition && (
-                    <p><span className="text-[#ff6b00]/70">EDICIÓN:</span> <span className="text-gray-200">{game.edition}</span></p>
-                  )}
-                  <p><span className="text-[#ff6b00]/70">ESTADO FÍSICO:</span> <span className="text-gray-200">{getConditionLabel(game.condition)}</span></p>
-                  {game.purchase_price !== null && (
-                    <p><span className="text-[#ff6b00]/70">PRECIO PAGADO:</span> <span className="text-[#00ff00] font-bold">€{parseFloat(game.purchase_price).toFixed(2)}</span></p>
-                  )}
-                  {game.notes && (
-                    <p className="italic text-gray-500 mt-2 truncate"><span className="text-[#ff6b00]/70 not-italic">NOTAS:</span> "{game.notes}"</p>
-                  )}
-                </div>
-              </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3">
+            {games.map((game: any) => {
+              const status = STATUS_META[game.status] ?? { label: game.status, color: 'var(--text-muted)' };
+              return (
+                <div
+                  key={game.id}
+                  className="group relative rounded-lg overflow-hidden"
+                  style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    border: '1px solid var(--border)',
+                    transition: 'border-color 0.15s, transform 0.15s',
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-hover)';
+                    (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+                    (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+                  }}
+                >
+                  {/* Cover image */}
+                  <div className="aspect-[3/4] relative bg-[var(--bg-elevated)] overflow-hidden">
+                    {game.cover_url ? (
+                      <img
+                        src={game.cover_url}
+                        alt={game.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center text-[10px] text-center p-2 font-medium"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
+                        {game.title}
+                      </div>
+                    )}
 
-              {/* Card Footer Actions */}
-              <div className="flex items-center justify-between border-t border-[#ff6b00]/10 pt-3 mt-2 relative z-20">
-                {/* Status indicator */}
-                <div className="flex items-center gap-1.5 text-[10px] font-mono text-gray-300">
-                  <span className={`w-2 h-2 rounded-full ${getStatusColor(game.status)}`}></span>
-                  <span>{getStatusLabel(game.status)}</span>
-                </div>
+                    {/* Hover overlay */}
+                    <div
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 flex flex-col justify-between p-2"
+                      style={{
+                        background: 'linear-gradient(to top, rgba(13,17,23,0.95) 0%, rgba(13,17,23,0.3) 60%, transparent 100%)',
+                        transition: 'opacity 0.2s',
+                      }}
+                    >
+                      {/* Delete button top-right */}
+                      <form action={deleteGameAction} className="flex justify-end">
+                        <input type="hidden" name="id" value={game.id} />
+                        <button
+                          type="submit"
+                          className="w-6 h-6 rounded flex items-center justify-center text-xs opacity-70 hover:opacity-100"
+                          style={{ backgroundColor: 'rgba(248,113,113,0.2)', color: '#f87171' }}
+                          title="Eliminar de la colección"
+                        >
+                          ×
+                        </button>
+                      </form>
 
-                {/* Delete Form Action */}
-                <form action={deleteGameAction}>
-                  <input type="hidden" name="id" value={game.id} />
-                  <button
-                    type="submit"
-                    className="text-[10px] font-retro px-2 py-1 bg-[#150a05] border border-red-500/40 text-red-500 hover:bg-red-950/20 hover:border-red-500 transition-colors cursor-pointer"
-                  >
-                    [ELIMINAR]
-                  </button>
-                </form>
-              </div>
-            </div>
-          ))}
+                      {/* Info bottom */}
+                      <div>
+                        <p className="text-[11px] font-semibold leading-tight line-clamp-2 mb-1"
+                          style={{ color: 'var(--text-primary)' }}>
+                          {game.title}
+                        </p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            className="text-[10px] font-medium"
+                            style={{ color: status.color }}
+                          >
+                            {status.label}
+                          </span>
+                          {game.purchase_price && (
+                            <span className="text-[10px]" style={{ color: 'var(--accent)' }}>
+                              €{parseFloat(game.purchase_price).toFixed(0)}
+                            </span>
+                          )}
+                        </div>
+                        {game.platform && (
+                          <span
+                            className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded"
+                            style={{
+                              backgroundColor: 'var(--bg-elevated)',
+                              color: 'var(--text-muted)',
+                            }}
+                          >
+                            {game.platform}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status dot indicator bottom */}
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-0.5"
+                    style={{ backgroundColor: status.color }}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
