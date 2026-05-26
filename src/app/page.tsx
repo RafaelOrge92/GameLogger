@@ -34,8 +34,7 @@ export default async function Home() {
           </p>
           <Link
             href="/login"
-            className="inline-block px-5 py-2.5 rounded-md text-sm font-semibold"
-            style={{ backgroundColor: 'var(--accent)', color: '#0d1117' }}
+            className="inline-block px-5 py-2.5 rounded-md text-sm font-semibold btn-primary"
           >
             Iniciar sesión
           </Link>
@@ -160,11 +159,7 @@ export default async function Home() {
                       <input type="hidden" name="id" value={game.id} />
                       <button
                         type="submit"
-                        className="w-6 h-6 rounded flex items-center justify-center text-sm font-medium"
-                        style={{
-                          backgroundColor: 'rgba(248,113,113,0.2)',
-                          color: '#f87171',
-                        }}
+                        className="w-6 h-6 rounded flex items-center justify-center text-sm font-medium btn-danger-dim"
                         title="Eliminar de la colección"
                       >
                         ×
