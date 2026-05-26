@@ -12,14 +12,6 @@ const STATUS_META: Record<string, { label: string; color: string }> = {
   owned:        { label: "En colección",  color: "var(--status-owned)" },
 };
 
-const CONDITION_LABEL: Record<string, string> = {
-  sealed:       "Precintado",
-  cib:          "CIB",
-  box_and_game: "Caja + Juego",
-  loose:        "Suelto",
-  digital:      "Digital",
-};
-
 export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -60,7 +52,7 @@ export default async function Home() {
     0
   );
   const completedGames = games.filter(g => g.status === "completed").length;
-  const playingGames = games.filter(g => g.status === "playing").length;
+  const playingGames  = games.filter(g => g.status === "playing").length;
 
   async function deleteGameAction(formData: FormData) {
     "use server";
@@ -73,43 +65,35 @@ export default async function Home() {
 
   const userName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario";
 
+  const STATS = [
+    { label: "Total juegos",  value: String(totalGames) },
+    { label: "Valor total",   value: `€${totalValue.toFixed(2)}` },
+    { label: "Completados",   value: String(completedGames) },
+    { label: "Jugando",       value: String(playingGames) },
+  ];
+
   return (
     <div className="space-y-8">
 
       {/* Page header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Hola, {userName} 👋
-          </h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-            Tu colección personal de videojuegos
-          </p>
-        </div>
+      <div>
+        <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+          Hola, {userName} 👋
+        </h1>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+          Tu colección personal de videojuegos
+        </p>
       </div>
 
-      {/* Quick stats */}
+      {/* Quick stats — CSS hover via .stat-card class */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: "Total juegos",  value: totalGames,                         suffix: "" },
-          { label: "Valor total",   value: `€${totalValue.toFixed(2)}`,        suffix: "", raw: true },
-          { label: "Completados",   value: completedGames,                     suffix: "" },
-          { label: "Jugando",       value: playingGames,                       suffix: "" },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-lg p-4"
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              border: '1px solid var(--border)',
-            }}
-          >
+        {STATS.map((stat) => (
+          <div key={stat.label} className="stat-card">
             <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>
               {stat.label}
             </p>
             <p className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-              {stat.raw ? stat.value : stat.value}
-              {stat.suffix}
+              {stat.value}
             </p>
           </div>
         ))}
@@ -141,35 +125,18 @@ export default async function Home() {
       ) : (
         /* Games grid — cover-art focused like Backloggd */
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              {totalGames} {totalGames === 1 ? "juego" : "juegos"}
-            </p>
-          </div>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+            {totalGames} {totalGames === 1 ? "juego" : "juegos"}
+          </p>
 
+          {/* CSS-only hover via .game-card and .game-card-overlay — no JS handlers needed */}
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3">
             {games.map((game: any) => {
               const status = STATUS_META[game.status] ?? { label: game.status, color: 'var(--text-muted)' };
               return (
-                <div
-                  key={game.id}
-                  className="group relative rounded-lg overflow-hidden"
-                  style={{
-                    backgroundColor: 'var(--bg-surface)',
-                    border: '1px solid var(--border)',
-                    transition: 'border-color 0.15s, transform 0.15s',
-                  }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-hover)';
-                    (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
-                    (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
-                  }}
-                >
+                <div key={game.id} className="game-card">
                   {/* Cover image */}
-                  <div className="aspect-[3/4] relative bg-[var(--bg-elevated)] overflow-hidden">
+                  <div className="aspect-[3/4]" style={{ backgroundColor: 'var(--bg-elevated)' }}>
                     {game.cover_url ? (
                       <img
                         src={game.cover_url}
@@ -184,63 +151,65 @@ export default async function Home() {
                         {game.title}
                       </div>
                     )}
+                  </div>
 
-                    {/* Hover overlay */}
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 flex flex-col justify-between p-2"
-                      style={{
-                        background: 'linear-gradient(to top, rgba(13,17,23,0.95) 0%, rgba(13,17,23,0.3) 60%, transparent 100%)',
-                        transition: 'opacity 0.2s',
-                      }}
-                    >
-                      {/* Delete button top-right */}
-                      <form action={deleteGameAction} className="flex justify-end">
-                        <input type="hidden" name="id" value={game.id} />
-                        <button
-                          type="submit"
-                          className="w-6 h-6 rounded flex items-center justify-center text-xs opacity-70 hover:opacity-100"
-                          style={{ backgroundColor: 'rgba(248,113,113,0.2)', color: '#f87171' }}
-                          title="Eliminar de la colección"
-                        >
-                          ×
-                        </button>
-                      </form>
+                  {/* Hover overlay — controlled entirely by CSS (.game-card:hover .game-card-overlay) */}
+                  <div className="game-card-overlay">
+                    {/* Delete button top-right */}
+                    <form action={deleteGameAction} className="flex justify-end">
+                      <input type="hidden" name="id" value={game.id} />
+                      <button
+                        type="submit"
+                        className="w-6 h-6 rounded flex items-center justify-center text-sm font-medium"
+                        style={{
+                          backgroundColor: 'rgba(248,113,113,0.2)',
+                          color: '#f87171',
+                        }}
+                        title="Eliminar de la colección"
+                      >
+                        ×
+                      </button>
+                    </form>
 
-                      {/* Info bottom */}
-                      <div>
-                        <p className="text-[11px] font-semibold leading-tight line-clamp-2 mb-1"
-                          style={{ color: 'var(--text-primary)' }}>
-                          {game.title}
-                        </p>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span
-                            className="text-[10px] font-medium"
-                            style={{ color: status.color }}
-                          >
-                            {status.label}
-                          </span>
-                          {game.purchase_price && (
-                            <span className="text-[10px]" style={{ color: 'var(--accent)' }}>
-                              €{parseFloat(game.purchase_price).toFixed(0)}
-                            </span>
-                          )}
-                        </div>
-                        {game.platform && (
-                          <span
-                            className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded"
-                            style={{
-                              backgroundColor: 'var(--bg-elevated)',
-                              color: 'var(--text-muted)',
-                            }}
-                          >
-                            {game.platform}
+                    {/* Info bottom */}
+                    <div>
+                      <p
+                        className="text-[11px] font-semibold leading-tight mb-1"
+                        style={{
+                          color: 'var(--text-primary)',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {game.title}
+                      </p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] font-medium" style={{ color: status.color }}>
+                          {status.label}
+                        </span>
+                        {game.purchase_price && (
+                          <span className="text-[10px]" style={{ color: 'var(--accent)' }}>
+                            €{parseFloat(game.purchase_price).toFixed(0)}
                           </span>
                         )}
                       </div>
+                      {game.platform && (
+                        <span
+                          className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded"
+                          style={{
+                            backgroundColor: 'var(--bg-elevated)',
+                            color: 'var(--text-muted)',
+                          }}
+                        >
+                          {game.platform}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Status dot indicator bottom */}
+                  {/* Status indicator strip */}
                   <div
                     className="absolute bottom-0 left-0 right-0 h-0.5"
                     style={{ backgroundColor: status.color }}
