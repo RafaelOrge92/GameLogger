@@ -6,9 +6,12 @@ import { useDebounce } from "@/hooks/useDebounce";
 import GameModal from "@/components/layout/GameModal";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { addGameToCollection } from "@/features/collection/actions";
+import { useToast } from "@/context/ToastContext";
 
 export default function Header({ user }: { user: any }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<any[]>([]);
@@ -110,16 +113,52 @@ export default function Header({ user }: { user: any }) {
                         </p>
                       </div>
                     </div>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation(); // Avoid triggering parent row click
-                        setSelectedGameForModal(game);
-                        setShowDropdown(false);
-                      }}
-                      className="bg-[#ff6b00] text-black font-bold px-3 py-1 text-sm rounded-none hover:bg-white transition-colors uppercase font-retro cursor-pointer"
-                    >
-                      Añadir
-                    </button>
+                    <div className="flex gap-2 shrink-0">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation(); // Avoid triggering parent row click
+                          setSelectedGameForModal(game);
+                          setShowDropdown(false);
+                        }}
+                        className="bg-[#ff6b00] text-black font-bold px-2 py-1 text-xs rounded-none hover:bg-white transition-colors uppercase font-retro cursor-pointer"
+                      >
+                        Detalles
+                      </button>
+                      {user && (
+                        <button 
+                          onClick={async (e) => {
+                            e.stopPropagation(); // Avoid triggering parent row click
+                            try {
+                              const platform = game.platforms && game.platforms.length > 0 ? game.platforms[0] : "PC";
+                              const result = await addGameToCollection(
+                                game.id,
+                                game.name,
+                                platform,
+                                "owned",
+                                "cib",
+                                null,
+                                null,
+                                null
+                              );
+                              if (result.error) {
+                                showToast(result.error, "error");
+                              } else {
+                                showToast(`¡${game.name} añadido a secas correctamente!`, "success");
+                                setQuery("");
+                                setShowDropdown(false);
+                                router.refresh();
+                              }
+                            } catch (err) {
+                              console.error(err);
+                              showToast("Error inesperado al añadir el juego.", "error");
+                            }
+                          }}
+                          className="bg-gray-800 text-white font-bold px-2 py-1 text-xs rounded-none hover:bg-[#00ff00] hover:text-black transition-colors uppercase font-retro cursor-pointer border border-[#ff6b00]/40"
+                        >
+                          A secas
+                        </button>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
