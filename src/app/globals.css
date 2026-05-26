@@ -153,7 +153,7 @@ a, button {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.97);
+    transform: translateY(-8px) scale(0.97);
   }
   to {
     opacity: 1;

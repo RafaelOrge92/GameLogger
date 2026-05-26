@@ -31,8 +31,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
 
-      {/* Toast stack — bottom-right, Backloggd-style */}
-      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2 max-w-xs w-full pointer-events-none">
+      {/* Toast stack — top-right, Backloggd-style */}
+      <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-2 max-w-xs w-full pointer-events-none">
         {toasts.map((toast) => {
           const isSuccess = toast.type === "success";
           return (
