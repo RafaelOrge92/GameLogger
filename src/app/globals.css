@@ -93,3 +93,58 @@ a, button {
 .status-plan      { color: var(--status-plan); }
 .status-dropped   { color: var(--status-dropped); }
 .status-owned     { color: var(--status-owned); }
+
+/* Game card — CSS-only hover (used in Server Components) */
+.game-card {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: default;
+}
+.game-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.game-card-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  background: linear-gradient(
+    to top,
+    rgba(13, 17, 23, 0.95) 0%,
+    rgba(13, 17, 23, 0.3) 60%,
+    transparent 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.5rem;
+}
+.game-card:hover .game-card-overlay {
+  opacity: 1;
+}
+
+/* Stat card hover */
+.stat-card {
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s ease;
+}
+.stat-card:hover {
+  border-color: var(--border-hover);
+}
+
+/* Nav link hover */
+.nav-link {
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+.nav-link:hover {
+  color: var(--text-primary);
+}
