@@ -344,8 +344,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                                 <button
                                   type="button"
                                   onClick={() => setPurchasePrice(item.price)}
-                                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded cursor-pointer"
-                                  style={{ backgroundColor: 'var(--accent-dim)', color: 'var(--accent)', border: '1px solid var(--border-accent)' }}
+                                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded cursor-pointer btn-accent-dim"
                                 >
                                   €{item.price} — usar
                                 </button>
@@ -373,10 +372,9 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                             <span className="truncate pr-2" style={{ color: 'var(--text-secondary)' }}>{game.name}</span>
                             <div className="flex items-center gap-2 shrink-0">
                               <button
-                                type="button"
-                                onClick={() => setPurchasePrice(deal.cheapest)}
-                                className="font-semibold px-1.5 py-0.5 rounded cursor-pointer text-[10px]"
-                                style={{ backgroundColor: 'var(--accent-dim)', color: 'var(--accent)', border: '1px solid var(--border-accent)' }}
+                                  type="button"
+                                  onClick={() => setPurchasePrice(deal.cheapest)}
+                                  className="font-semibold px-1.5 py-0.5 rounded cursor-pointer text-[10px] btn-accent-dim"
                               >
                                 ${deal.cheapest} — usar
                               </button>
@@ -384,8 +382,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                                 href={`https://www.cheapshark.com/redirect?dealID=${deal.cheapestDealID}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[10px] font-medium px-2 py-0.5 rounded"
-                                style={{ backgroundColor: 'var(--accent-cyan)', color: '#0d1117' }}
+                                className="text-[10px] font-medium px-2 py-0.5 rounded btn-cyan"
                               >
                                 Ver deal
                               </a>
@@ -406,11 +403,9 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                             key={m}
                             type="button"
                             onClick={() => setSelectedRange(m)}
-                            className="text-[10px] px-2 py-0.5 rounded cursor-pointer"
-                            style={selectedRange === m
-                              ? { backgroundColor: 'var(--accent)', color: '#0d1117', fontWeight: 600 }
-                              : { backgroundColor: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }
-                            }
+                            className={`text-[10px] px-2 py-0.5 rounded cursor-pointer transition-all ${
+                              selectedRange === m ? "btn-primary" : "btn-secondary"
+                            }`}
                           >
                             {m === 12 ? "1 año" : `${m}m`}
                           </button>
@@ -453,8 +448,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                             <button
                               type="button"
                               onClick={() => setPurchasePrice(sale.price.toString())}
-                              className="text-[9px] px-1.5 py-0.5 rounded cursor-pointer font-medium"
-                              style={{ backgroundColor: 'var(--accent-dim)', color: 'var(--accent)' }}
+                              className="text-[9px] px-1.5 py-0.5 rounded cursor-pointer font-medium btn-accent-dim"
                             >
                               usar
                             </button>
@@ -472,10 +466,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                     <button
                       type="button"
                       onClick={() => setShowPipeline(!showPipeline)}
-                      className="text-xs px-3 py-1.5 rounded-md cursor-pointer font-medium"
-                      style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
-                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'}
-                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'}
+                      className="text-xs px-3 py-1.5 rounded-md cursor-pointer font-medium btn-secondary"
                     >
                       {showPipeline ? "Ocultar análisis IQR" : "Ver pipeline outliers (IQR)"}
                     </button>
@@ -611,8 +602,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2.5 rounded-md text-sm font-semibold transition-opacity disabled:opacity-50 cursor-pointer"
-                  style={{ backgroundColor: 'var(--accent)', color: '#0d1117' }}
+                  className="w-full py-2.5 rounded-md text-sm font-semibold transition-opacity disabled:opacity-50 cursor-pointer btn-primary"
                 >
                   {isSubmitting ? "Guardando..." : "Registrar en colección"}
                 </button>
@@ -620,10 +610,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                   type="button"
                   onClick={handleQuickAdd}
                   disabled={isSubmitting}
-                  className="w-full py-2.5 rounded-md text-sm font-medium transition-opacity disabled:opacity-50 cursor-pointer"
-                  style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-hover)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
+                  className="w-full py-2.5 rounded-md text-sm font-medium transition-opacity disabled:opacity-50 cursor-pointer btn-secondary"
                 >
                   {isSubmitting ? "Guardando..." : "Añadir rápido"}
                 </button>
