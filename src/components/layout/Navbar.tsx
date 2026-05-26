@@ -255,12 +255,7 @@ export default function Navbar({ user }: { user: any }) {
                                 showToast("Error al añadir el juego", "error");
                               }
                             }}
-                            className="shrink-0 px-2 py-1 rounded text-xs font-medium"
-                            style={{
-                              backgroundColor: 'var(--accent-dim)',
-                              color: 'var(--accent)',
-                              border: '1px solid var(--border-accent)',
-                            }}
+                            className="shrink-0 px-2 py-1 rounded text-xs font-medium btn-accent-dim"
                             title="Añadir a colección"
                           >
                             + Añadir
@@ -296,11 +291,7 @@ export default function Navbar({ user }: { user: any }) {
             ) : (
               <Link
                 href="/login"
-                className="text-sm font-medium px-3 py-1.5 rounded-md shrink-0"
-                style={{
-                  backgroundColor: 'var(--accent)',
-                  color: '#0d1117',
-                }}
+                className="text-sm font-medium px-3 py-1.5 rounded-md shrink-0 btn-primary"
               >
                 Iniciar sesión
               </Link>
