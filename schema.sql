@@ -35,6 +35,7 @@ CREATE TABLE public.collections (
   -- Game Identifiers
   game_id TEXT NOT NULL, -- Stored as text to support different APIs (IGDB uses numbers, others might use UUIDs)
   title TEXT NOT NULL,   -- Cached title so we don't always need to query the API to show the list
+  cover_url TEXT,        -- Cached cover URL to display in collection list
   platform TEXT,         -- Platform the user owns it on
   
   -- Collection Metadata

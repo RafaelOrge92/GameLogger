@@ -10,7 +10,8 @@ export async function addGameToCollection(
   condition: "sealed" | "cib" | "box_and_game" | "loose" | "digital" = "cib",
   purchasePrice: number | null = null,
   notes: string | null = null,
-  edition: string | null = null
+  edition: string | null = null,
+  coverUrl: string | null = null
 ) {
   const supabase = await createClient();
 
@@ -34,7 +35,8 @@ export async function addGameToCollection(
         condition: condition,
         purchase_price: purchasePrice,
         notes: notes,
-        edition: edition
+        edition: edition,
+        cover_url: coverUrl
       }
     ]);
 
