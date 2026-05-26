@@ -229,50 +229,58 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}>
       {/* Modal Card */}
-      <div 
-        className="w-full max-w-4xl bg-[#050505] border-4 border-[#ff6b00] shadow-[8px_8px_0px_#ff6b00] overflow-hidden flex flex-col max-h-[90vh]"
-        style={{ imageRendering: "pixelated" }}
+      <div
+        className="w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] rounded-xl"
+        style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-hover)', boxShadow: '0 25px 50px rgba(0,0,0,0.6)' }}
       >
         {/* Header */}
-        <div className="bg-[#ff6b00] text-black px-4 py-3 flex items-center justify-between">
-          <h3 className="font-retro text-xl tracking-wider uppercase font-bold">[DETALLES_DEL_JUEGO]</h3>
-          <button 
+        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
+          <h3 className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>Detalles del juego</h3>
+          <button
             onClick={onClose}
-            className="text-black hover:text-white font-retro font-bold text-lg bg-black/10 px-2 py-0.5 border border-transparent hover:border-white transition-all cursor-pointer"
+            className="w-8 h-8 rounded-md flex items-center justify-center text-lg font-medium cursor-pointer"
+            style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-elevated)' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'}
           >
-            [X_CERRAR]
+            ×
           </button>
         </div>
 
         {/* Modal Content */}
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden p-6 gap-6 min-h-0">
-          
-          {/* Column 1: Cover & IGDB Details (Static on desktop) */}
-          <div className="w-full md:w-1/3 flex flex-col space-y-4 shrink-0">
-            <div className="aspect-[3/4] bg-[#0f0f0f] border-2 border-[#ff6b00] flex items-center justify-center overflow-hidden relative shadow-[4px_4px_0px_#ff6b00]">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden p-5 gap-5 min-h-0">
+
+          {/* Column 1: Cover & IGDB Details */}
+          <div className="w-full md:w-56 flex flex-col space-y-4 shrink-0">
+            <div
+              className="aspect-[3/4] rounded-lg overflow-hidden flex items-center justify-center"
+              style={{ backgroundColor: 'var(--bg-elevated)' }}
+            >
               {game.coverUrl ? (
-                <img 
-                  src={game.coverUrl} 
-                  alt={game.name} 
+                <img
+                  src={game.coverUrl}
+                  alt={game.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="font-retro text-[#ff6b00] text-center p-4">NO COVER</div>
+                <div className="text-sm text-center p-4" style={{ color: 'var(--text-muted)' }}>Sin portada</div>
               )}
-              {/* Scanline overlay for retro effect */}
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] pointer-events-none"></div>
             </div>
 
             <div>
-              <h4 className="text-xl font-bold text-white uppercase tracking-wide leading-tight">{game.name}</h4>
-              <p className="text-[#ff6b00] font-retro text-xs mt-1">
-                Lanzamiento: {game.releaseDate ? game.releaseDate.substring(0, 10) : "Desconocido"}
+              <h4 className="text-sm font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>{game.name}</h4>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                {game.releaseDate ? game.releaseDate.substring(0, 4) : "Año desconocido"}
               </p>
-              <div className="mt-3 flex flex-wrap gap-1.5">
+              <div className="mt-2 flex flex-wrap gap-1">
                 {game.platforms.map((p) => (
-                  <span key={p} className="text-[10px] font-mono px-2 py-0.5 bg-[#0f0f0f] border border-gray-600 text-gray-300">
+                  <span
+                    key={p}
+                    className="text-[10px] px-1.5 py-0.5 rounded"
+                    style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                  >
                     {p}
                   </span>
                 ))}
@@ -281,48 +289,53 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
           </div>
 
           {/* Column 2: Market Prices & Form (Scrollable on desktop) */}
-          <div className="w-full md:w-2/3 overflow-y-auto pr-2 space-y-6 min-h-0 border-t-2 md:border-t-0 md:border-l-2 border-[#ff6b00]/30 pt-6 md:pt-0 md:pl-6">
+          <div className="flex-1 overflow-y-auto space-y-5 min-h-0" style={{ borderLeft: '1px solid var(--border)', paddingLeft: '1.25rem' }}>
             <div>
-              <h4 className="text-[#ff6b00] font-retro text-lg tracking-wider uppercase mb-3 flex items-center gap-2">
-                <span className="inline-block w-2.5 h-2.5 bg-[#00ff00] animate-pulse"></span>
-                Precios de Mercado
-              </h4>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent)' }} />
+                <h4 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Precios de Mercado</h4>
+              </div>
 
               {isLoadingMarket ? (
-                <div className="p-8 text-center text-[#ff6b00] font-retro animate-pulse border border-[#ff6b00]/30 bg-[#0f0f0f]">
-                  CONECTANDO CON APIS DE MERCADO...
+                <div
+                  className="p-6 text-center text-sm rounded-lg"
+                  style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
+                >
+                  Cargando precios...
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {/* eBay Listings */}
-                  <div className="bg-[#0f0f0f] border border-[#ff6b00]/40 p-4">
-                    <div className="flex items-center justify-between border-b border-[#ff6b00]/30 pb-2 mb-3">
-                      <span className="font-bold text-white text-sm font-retro tracking-wider">eBay (Mercado Físico)</span>
-                      <span className="text-[10px] font-mono text-gray-400">MARKETPLACE: {process.env.NEXT_PUBLIC_EBAY_MARKETPLACE || "EBAY_ES"}</span>
+                  <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                    <div className="flex items-center justify-between mb-3" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                      <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>eBay — Mercado Físico</span>
+                      <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{process.env.NEXT_PUBLIC_EBAY_MARKETPLACE || "EBAY_ES"}</span>
                     </div>
 
                     {marketData.ebayListings.length === 0 ? (
-                      <div className="text-xs text-gray-500 font-mono py-2">
-                        No se encontraron artículos en eBay o no están configuradas las credenciales de la API.
-                      </div>
+                      <p className="text-xs py-1" style={{ color: 'var(--text-muted)' }}>
+                        No se encontraron artículos en eBay.
+                      </p>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {marketData.ebayListings.slice(0, 4).map((item) => (
-                          <div 
+                          <div
                             key={item.id}
-                            className="flex gap-2 p-2 bg-[#050505] border border-gray-800 hover:border-[#ff6b00] transition-colors group relative"
+                            className="flex gap-2 p-2 rounded-md"
+                            style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
                           >
                             {item.imageUrl ? (
-                              <img src={item.imageUrl} alt={item.title} className="w-10 h-10 object-cover border border-gray-800 shrink-0" />
+                              <img src={item.imageUrl} alt={item.title} className="w-9 h-9 object-cover rounded shrink-0" />
                             ) : (
-                              <div className="w-10 h-10 bg-gray-900 border border-gray-800 flex items-center justify-center text-[8px] text-gray-500 font-retro shrink-0">N/A</div>
+                              <div className="w-9 h-9 rounded shrink-0 flex items-center justify-center text-[8px]" style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>?</div>
                             )}
                             <div className="min-w-0 flex-1 flex flex-col justify-between">
-                              <a 
+                              <a
                                 href={item.itemUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[10px] text-gray-300 font-mono truncate hover:text-[#ff6b00] transition-colors"
+                                className="text-[10px] truncate"
+                                style={{ color: 'var(--text-secondary)' }}
                                 title={item.title}
                               >
                                 {item.title}
@@ -331,12 +344,12 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                                 <button
                                   type="button"
                                   onClick={() => setPurchasePrice(item.price)}
-                                  className="text-[10px] text-[#00ff00] font-bold hover:bg-[#00ff00] hover:text-black px-1.5 py-0.5 border border-[#00ff00]/40 transition-colors cursor-pointer"
-                                  title="Haz clic para usar este precio"
+                                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded cursor-pointer"
+                                  style={{ backgroundColor: 'var(--accent-dim)', color: 'var(--accent)', border: '1px solid var(--border-accent)' }}
                                 >
-                                  €{item.price} [USAR]
+                                  €{item.price} — usar
                                 </button>
-                                <span className="text-[9px] text-gray-500 bg-[#0f0f0f] px-1 border border-gray-800 uppercase">{item.condition}</span>
+                                <span className="text-[9px] uppercase" style={{ color: 'var(--text-muted)' }}>{item.condition}</span>
                               </div>
                             </div>
                           </div>
@@ -346,36 +359,35 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                   </div>
 
                   {/* CheapShark (Digital PC Deals) */}
-                  <div className="bg-[#0f0f0f] border border-[#ff6b00]/40 p-4">
-                    <div className="border-b border-[#ff6b00]/30 pb-2 mb-3">
-                      <span className="font-bold text-white text-sm font-retro tracking-wider">CheapShark (Mercado Digital PC)</span>
+                  <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                    <div className="mb-3" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                      <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>CheapShark — Digital PC</span>
                     </div>
 
                     {marketData.cheapsharkDeals.length === 0 ? (
-                      <div className="text-xs text-gray-500 font-mono py-2">
-                        No se encontraron ofertas digitales para PC.
-                      </div>
+                      <p className="text-xs py-1" style={{ color: 'var(--text-muted)' }}>No se encontraron ofertas digitales para PC.</p>
                     ) : (
                       <div className="space-y-2">
                         {marketData.cheapsharkDeals.slice(0, 3).map((deal) => (
-                          <div key={deal.gameID} className="flex items-center justify-between p-2 bg-[#050505] border border-gray-800 text-xs font-mono">
-                            <span className="text-gray-300 truncate pr-2">{game.name}</span>
-                            <div className="flex items-center gap-3 shrink-0">
+                          <div key={deal.gameID} className="flex items-center justify-between p-2 rounded-md text-xs" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+                            <span className="truncate pr-2" style={{ color: 'var(--text-secondary)' }}>{game.name}</span>
+                            <div className="flex items-center gap-2 shrink-0">
                               <button
                                 type="button"
                                 onClick={() => setPurchasePrice(deal.cheapest)}
-                                className="text-[#00ff00] font-bold hover:bg-[#00ff00] hover:text-black px-1.5 py-0.5 border border-[#00ff00]/40 transition-colors cursor-pointer"
-                                title="Haz clic para usar este precio"
+                                className="font-semibold px-1.5 py-0.5 rounded cursor-pointer text-[10px]"
+                                style={{ backgroundColor: 'var(--accent-dim)', color: 'var(--accent)', border: '1px solid var(--border-accent)' }}
                               >
-                                ${deal.cheapest} [USAR]
+                                ${deal.cheapest} — usar
                               </button>
-                              <a 
+                              <a
                                 href={`https://www.cheapshark.com/redirect?dealID=${deal.cheapestDealID}`}
-                                target="_blank" 
+                                target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-black bg-[#ff6b00] px-2 py-0.5 font-bold hover:bg-white text-[10px] transition-colors"
+                                className="text-[10px] font-medium px-2 py-0.5 rounded"
+                                style={{ backgroundColor: 'var(--accent-cyan)', color: '#0d1117' }}
                               >
-                                VER DEALS
+                                Ver deal
                               </a>
                             </div>
                           </div>
@@ -385,88 +397,87 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                   </div>
 
                   {/* Historical Sales Analysis */}
-                  <div className="bg-[#0f0f0f] border border-[#ff6b00]/40 p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ff6b00]/30 pb-2 mb-3 gap-2">
-                      <span className="font-bold text-white text-sm font-retro tracking-wider">Historial de Ventas</span>
-                      
-                      {/* Range Buttons */}
-                      <div className="flex gap-1.5">
+                  <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                      <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Historial de Ventas</span>
+                      <div className="flex gap-1">
                         {[1, 3, 6, 12].map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setSelectedRange(m)}
-                            className={`text-[10px] font-retro px-2 py-0.5 border transition-all cursor-pointer ${
-                              selectedRange === m
-                                ? "bg-[#ff6b00] text-black border-[#ff6b00] font-bold"
-                                : "bg-transparent text-gray-400 border-gray-700 hover:text-white"
-                            }`}
+                            className="text-[10px] px-2 py-0.5 rounded cursor-pointer"
+                            style={selectedRange === m
+                              ? { backgroundColor: 'var(--accent)', color: '#0d1117', fontWeight: 600 }
+                              : { backgroundColor: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }
+                            }
                           >
-                            {m === 12 ? "1 AÑO" : `${m} ${m === 1 ? "MES" : "MESES"}`}
+                            {m === 12 ? "1 año" : `${m}m`}
                           </button>
                         ))}
                       </div>
                     </div>
 
                     {/* Stats summary */}
-                    <div className="grid grid-cols-2 gap-3 mb-4 bg-[#050505] p-3 border border-gray-800 font-mono text-center">
+                    <div className="grid grid-cols-2 gap-2 mb-3 p-3 rounded-md text-center" style={{ backgroundColor: 'var(--bg-surface)' }}>
                       <div>
-                        <p className="text-[9px] text-gray-500 uppercase">Ventas Encontradas</p>
-                        <p className="text-lg font-bold text-white">{filteredSales.length}</p>
+                        <p className="text-[9px] uppercase mb-0.5" style={{ color: 'var(--text-muted)' }}>Ventas</p>
+                        <p className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>{filteredSales.length}</p>
                       </div>
                       <div>
-                        <p className="text-[9px] text-[#00ff00] uppercase font-bold">Precio Medio (Media)</p>
-                        <p className="text-lg font-bold text-[#00ff00]">€{salesAverage.toFixed(2)}</p>
+                        <p className="text-[9px] uppercase mb-0.5" style={{ color: 'var(--text-muted)' }}>Precio medio</p>
+                        <p className="text-base font-semibold" style={{ color: 'var(--accent)' }}>€{salesAverage.toFixed(2)}</p>
                       </div>
                     </div>
 
                     {/* Sales List */}
-                    <div className="max-h-48 overflow-y-auto space-y-2 pr-1 scrollbar-thin scrollbar-thumb-[#ff6b00] scrollbar-track-black">
+                    <div className="max-h-40 overflow-y-auto space-y-1.5">
                       {filteredSales.map((sale) => (
-                        <div key={sale.id} className="flex items-center justify-between p-2 bg-[#050505] border border-gray-900 text-xs font-mono">
+                        <div key={sale.id} className="flex items-center justify-between p-2 rounded text-xs" style={{ backgroundColor: 'var(--bg-surface)' }}>
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-500">
+                            <span style={{ color: 'var(--text-muted)' }}>
                               {sale.date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })}
                             </span>
-                            <span className={`text-[9px] px-1 border uppercase font-bold ${
-                              sale.condition === "sealed" 
-                                ? "border-amber-500/60 text-amber-500 bg-amber-950/10" 
-                                : sale.condition === "loose"
-                                  ? "border-red-500/60 text-red-500 bg-red-950/10"
-                                  : "border-cyan-500/60 text-cyan-500 bg-cyan-950/10"
-                            }`}>
+                            <span
+                              className="text-[9px] px-1 py-0.5 rounded uppercase font-medium"
+                              style={{
+                                backgroundColor: sale.condition === "sealed" ? 'rgba(251,191,36,0.1)' : sale.condition === "loose" ? 'rgba(248,113,113,0.1)' : 'rgba(76,168,212,0.1)',
+                                color: sale.condition === "sealed" ? '#fbbf24' : sale.condition === "loose" ? '#f87171' : '#4ca8d4',
+                              }}
+                            >
                               {sale.condition === "sealed" ? "Precintado" : sale.condition === "loose" ? "Loose" : "CIB"}
                             </span>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-[#00ff00] font-bold">€{sale.price.toFixed(2)}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold" style={{ color: 'var(--accent)' }}>€{sale.price.toFixed(2)}</span>
                             <button
                               type="button"
                               onClick={() => setPurchasePrice(sale.price.toString())}
-                              className="text-[9px] text-black bg-[#ff6b00] hover:bg-[#00ff00] px-1.5 py-0.5 font-bold transition-colors cursor-pointer"
-                              title="Hacer clic para usar este precio"
+                              className="text-[9px] px-1.5 py-0.5 rounded cursor-pointer font-medium"
+                              style={{ backgroundColor: 'var(--accent-dim)', color: 'var(--accent)' }}
                             >
-                              [USAR]
+                              usar
                             </button>
                           </div>
                         </div>
                       ))}
                       {filteredSales.length === 0 && (
-                        <div className="text-center text-xs text-gray-500 py-4">
-                          No hay ventas registradas en este período.
-                        </div>
+                        <p className="text-center text-xs py-3" style={{ color: 'var(--text-muted)' }}>No hay ventas en este período.</p>
                       )}
                     </div>
                   </div>
 
                   {/* Toggle Diagram Button */}
-                  <div className="flex justify-end pt-2">
+                  <div className="flex justify-end">
                     <button
                       type="button"
                       onClick={() => setShowPipeline(!showPipeline)}
-                      className="text-xs font-retro text-[#00ffff] hover:text-white bg-[#0f0f0f] hover:bg-cyan-950/40 border border-cyan-800 px-3 py-1.5 transition-all cursor-pointer shadow-[2px_2px_0px_#00ffff]"
+                      className="text-xs px-3 py-1.5 rounded-md cursor-pointer font-medium"
+                      style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'}
                     >
-                      {showPipeline ? "[OCULTAR ANALISIS IQR]" : "[VER PIPELINE DE OUTLIERS (IQR)]"}
+                      {showPipeline ? "Ocultar análisis IQR" : "Ver pipeline outliers (IQR)"}
                     </button>
                   </div>
 
@@ -483,17 +494,20 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
             </div>
 
             {/* Form Input for saving */}
-            <form onSubmit={handleSubmit} className="border-t border-[#ff6b00]/20 pt-4 space-y-4">
-              <h4 className="text-white font-bold uppercase tracking-wider text-sm">Registrar en Inventario</h4>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-4" style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+              <h4 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Registrar en colección</h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Platform */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Plataforma</label>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Plataforma</label>
                   <select
                     value={selectedPlatform}
                     onChange={(e) => setSelectedPlatform(e.target.value)}
-                    className="w-full bg-[#0f0f0f] border border-[#ff6b00]/60 text-white p-2 font-mono text-xs focus:outline-none focus:border-[#ff6b00]"
+                    className="w-full px-3 py-2 rounded-md text-sm focus:outline-none"
+                    style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
                     {game.platforms.map((p) => (
                       <option key={p} value={p}>{p}</option>
@@ -507,27 +521,33 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
 
                 {/* Edition */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Edición</label>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Edición</label>
                   <input
                     type="text"
-                    placeholder="e.g. Standard, Coleccionista"
+                    placeholder="Standard, Coleccionista..."
                     value={edition}
                     onChange={(e) => setEdition(e.target.value)}
-                    className="w-full bg-[#0f0f0f] border border-[#ff6b00]/60 text-white p-2 font-mono text-xs focus:outline-none focus:border-[#ff6b00] placeholder-gray-600"
+                    className="w-full px-3 py-2 rounded-md text-sm focus:outline-none"
+                    style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {/* Status */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Estado de Juego</label>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Estado</label>
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as any)}
-                    className="w-full bg-[#0f0f0f] border border-[#ff6b00]/60 text-white p-2 font-mono text-xs focus:outline-none focus:border-[#ff6b00]"
+                    className="w-full px-3 py-2 rounded-md text-sm focus:outline-none"
+                    style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
-                    <option value="owned">En Colección</option>
+                    <option value="owned">En colección</option>
                     <option value="playing">Jugando</option>
                     <option value="completed">Completado</option>
                     <option value="plan_to_play">Pendiente</option>
@@ -537,62 +557,75 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
 
                 {/* Condition */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Condición Física</label>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Condición</label>
                   <select
                     value={condition}
                     onChange={(e) => setCondition(e.target.value as any)}
-                    className="w-full bg-[#0f0f0f] border border-[#ff6b00]/60 text-white p-2 font-mono text-xs focus:outline-none focus:border-[#ff6b00]"
+                    className="w-full px-3 py-2 rounded-md text-sm focus:outline-none"
+                    style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
-                    <option value="cib">CIB (Completo en Caja)</option>
-                    <option value="sealed">Precintado (Nuevo)</option>
-                    <option value="box_and_game">Caja y Juego (Sin Manual)</option>
-                    <option value="loose">Suelto (Solo Cartucho/Disco)</option>
+                    <option value="cib">CIB (Completo)</option>
+                    <option value="sealed">Precintado</option>
+                    <option value="box_and_game">Caja y juego</option>
+                    <option value="loose">Suelto</option>
                     <option value="digital">Digital</option>
                   </select>
                 </div>
 
                 {/* Purchase Price */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Precio de Compra (€)</label>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Precio (€)</label>
                   <input
                     type="number"
                     step="0.01"
                     placeholder="0.00"
                     value={purchasePrice}
                     onChange={(e) => setPurchasePrice(e.target.value)}
-                    className="w-full bg-[#0f0f0f] border border-[#ff6b00]/60 text-white p-2 font-mono text-xs focus:outline-none focus:border-[#ff6b00]"
+                    className="w-full px-3 py-2 rounded-md text-sm focus:outline-none"
+                    style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   />
                 </div>
               </div>
 
               {/* Notes */}
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Notas Personales</label>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Notas personales</label>
                 <textarea
                   rows={2}
                   placeholder="Detalles de la compra, estado físico, opinión..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full bg-[#0f0f0f] border border-[#ff6b00]/60 text-white p-2 font-mono text-xs focus:outline-none focus:border-[#ff6b00] placeholder-gray-600 resize-none"
+                  className="w-full px-3 py-2 rounded-md text-sm focus:outline-none resize-none"
+                  style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                  onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                  onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                 />
               </div>
 
-              {/* Submit Action */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              {/* Submit */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#ff6b00] hover:bg-[#00ff00] text-black font-retro text-xl font-bold py-3 px-4 border-2 border-black shadow-[4px_4px_0px_#ff6b00] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all disabled:opacity-50 cursor-pointer"
+                  className="w-full py-2.5 rounded-md text-sm font-semibold transition-opacity disabled:opacity-50 cursor-pointer"
+                  style={{ backgroundColor: 'var(--accent)', color: '#0d1117' }}
                 >
-                  {isSubmitting ? "REGISTRANDO..." : "[+ REGISTRAR DETALLES]"}
+                  {isSubmitting ? "Guardando..." : "Registrar en colección"}
                 </button>
                 <button
                   type="button"
                   onClick={handleQuickAdd}
                   disabled={isSubmitting}
-                  className="w-full bg-gray-800 hover:bg-[#00ff00] text-white hover:text-black font-retro text-xl font-bold py-3 px-4 border-2 border-black shadow-[4px_4px_0px_#ff6b00] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all disabled:opacity-50 cursor-pointer"
+                  className="w-full py-2.5 rounded-md text-sm font-medium transition-opacity disabled:opacity-50 cursor-pointer"
+                  style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-hover)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
                 >
-                  {isSubmitting ? "REGISTRANDO..." : "[AÑADIR A SECAS]"}
+                  {isSubmitting ? "Guardando..." : "Añadir rápido"}
                 </button>
               </div>
             </form>

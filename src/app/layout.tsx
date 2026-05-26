@@ -15,13 +15,12 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GameTracker Retro",
+  title: "RetroLogger — Tu colección de videojuegos",
   description: "Plataforma de gestión de colecciones de videojuegos y seguimiento de precios en tiempo real.",
 };
 
 import Providers from "@/lib/react-query/provider";
-import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
+import Navbar from "@/components/layout/Navbar";
 import { createClient } from "@/lib/supabase/server";
 import { ToastProvider } from "@/context/ToastContext";
 
@@ -35,19 +34,16 @@ export default async function RootLayout({
 
   return (
     <html
-      lang="en"
-      className={`${vt323.variable} ${spaceMono.variable} h-full antialiased font-mono`}
+      lang="es"
+      className={`${vt323.variable} ${spaceMono.variable} h-full`}
     >
-      <body className="min-h-full h-screen overflow-hidden flex bg-[#050505] text-white">
+      <body className="min-h-full flex flex-col" style={{ backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }}>
         <Providers>
           <ToastProvider>
-            <Sidebar user={user} />
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
-              <Header user={user} />
-              <main className="flex-1 overflow-y-auto p-6 bg-[#050505]">
-                {children}
-              </main>
-            </div>
+            <Navbar user={user} />
+            <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              {children}
+            </main>
           </ToastProvider>
         </Providers>
       </body>

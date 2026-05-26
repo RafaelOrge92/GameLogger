@@ -1,26 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #050505; /* Deep CRT dark */
-  --background-secondary: #0f0f0f;
-  --foreground: #e0e0e0;
-  --accent: #ff6b00; /* Neon Orange */
-  --border-color: #ff6b00; /* Neon Orange Borders */
+  /* Backloggd-inspired dark palette */
+  --bg-base:       #16181c;
+  --bg-surface:    #1e2028;
+  --bg-elevated:   #252830;
+  --bg-card:       #1a1d24;
+  --bg-input:      #12141a;
+
+  --accent:        #43b94f;
+  --accent-hover:  #52d460;
+  --accent-dim:    rgba(67, 185, 79, 0.15);
+  --accent-cyan:   #4ca8d4;
+
+  --text-primary:  #cbd4dc;
+  --text-secondary:#8f9ca7;
+  --text-muted:    #596672;
+
+  --border:        #2a2d35;
+  --border-hover:  #3a3d48;
+  --border-accent: #43b94f;
+
+  --rating-star:   #f5c518;
+  --status-playing:    #4ca8d4;
+  --status-completed:  #43b94f;
+  --status-plan:       #a78bfa;
+  --status-dropped:    #f87171;
+  --status-owned:      #fb923c;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-background-secondary: var(--background-secondary);
-  --color-foreground: var(--foreground);
-  --color-accent: var(--accent);
-  --color-border-color: var(--border-color);
-  --font-sans: var(--font-space-mono), Arial, Helvetica, sans-serif;
-  --font-mono: var(--font-space-mono);
+  --color-bg-base:      var(--bg-base);
+  --color-bg-surface:   var(--bg-surface);
+  --color-bg-elevated:  var(--bg-elevated);
+  --color-bg-card:      var(--bg-card);
+  --color-accent:       var(--accent);
+  --color-accent-cyan:  var(--accent-cyan);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted:   var(--text-muted);
+  --color-border:       var(--border);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-space-mono), 'Courier New', monospace;
   --font-retro: var(--font-vt323);
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
+*, *::before, *::after {
+  box-sizing: border-box;
 }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Utility: card surface */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* Smooth transitions globally */
+a, button {
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+/* Status badge colors */
+.status-playing   { color: var(--status-playing); }
+.status-completed { color: var(--status-completed); }
+.status-plan      { color: var(--status-plan); }
+.status-dropped   { color: var(--status-dropped); }
+.status-owned     { color: var(--status-owned); }
