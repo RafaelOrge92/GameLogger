@@ -234,32 +234,6 @@ export default function Navbar({ user }: { user: any }) {
                               {game.platforms?.length > 0 && ` · ${game.platforms.slice(0, 2).join(", ")}`}
                             </p>
                           </div>
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (!user) return;
-                              try {
-                                const platform = game.platforms?.[0] || "PC";
-                                const result = await addGameToCollection(
-                                  game.id, game.name, platform, "owned", "cib", null, null, null
-                                );
-                                if (result.error) {
-                                  showToast(result.error, "error");
-                                } else {
-                                  showToast(`${game.name} añadido a tu colección`, "success");
-                                  setQuery("");
-                                  setShowDropdown(false);
-                                  router.refresh();
-                                }
-                              } catch (err) {
-                                showToast("Error al añadir el juego", "error");
-                              }
-                            }}
-                            className="shrink-0 px-2 py-1 rounded text-xs font-medium btn-accent-dim"
-                            title="Añadir a colección"
-                          >
-                            + Añadir
-                          </button>
                         </li>
                       ))}
                     </ul>

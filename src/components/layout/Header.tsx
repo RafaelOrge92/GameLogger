@@ -124,40 +124,6 @@ export default function Header({ user }: { user: any }) {
                       >
                         Detalles
                       </button>
-                      {user && (
-                        <button 
-                          onClick={async (e) => {
-                            e.stopPropagation(); // Avoid triggering parent row click
-                            try {
-                              const platform = game.platforms && game.platforms.length > 0 ? game.platforms[0] : "PC";
-                              const result = await addGameToCollection(
-                                game.id,
-                                game.name,
-                                platform,
-                                "owned",
-                                "cib",
-                                null,
-                                null,
-                                null
-                              );
-                              if (result.error) {
-                                showToast(result.error, "error");
-                              } else {
-                                showToast(`¡${game.name} añadido a secas correctamente!`, "success");
-                                setQuery("");
-                                setShowDropdown(false);
-                                router.refresh();
-                              }
-                            } catch (err) {
-                              console.error(err);
-                              showToast("Error inesperado al añadir el juego.", "error");
-                            }
-                          }}
-                          className="bg-gray-800 text-white font-bold px-2 py-1 text-xs rounded-none hover:bg-[#00ff00] hover:text-black transition-colors uppercase font-retro cursor-pointer border border-[#ff6b00]/40"
-                        >
-                          A secas
-                        </button>
-                      )}
                     </div>
                   </li>
                 ))}

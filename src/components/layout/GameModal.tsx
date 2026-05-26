@@ -181,7 +181,8 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
         condition,
         priceVal,
         notes,
-        edition
+        edition,
+        game.coverUrl
       );
 
       if (result.error) {
@@ -199,34 +200,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
     }
   };
 
-  const handleQuickAdd = async () => {
-    setIsSubmitting(true);
-    try {
-      const result = await addGameToCollection(
-        game.id,
-        game.name,
-        selectedPlatform || (game.platforms && game.platforms[0]) || "PC",
-        "owned",
-        "cib",
-        null,
-        null,
-        null
-      );
 
-      if (result.error) {
-        showToast(result.error, "error");
-      } else {
-        showToast(`¡${game.name} añadido a secas correctamente!`, "success");
-        onSuccess();
-        onClose();
-      }
-    } catch (error) {
-      console.error(error);
-      showToast("Ocurrió un error inesperado al añadir el juego.", "error");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}>
@@ -598,21 +572,13 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
               </div>
 
               {/* Submit */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="w-full py-2.5 rounded-md text-sm font-semibold transition-opacity disabled:opacity-50 cursor-pointer btn-primary"
                 >
                   {isSubmitting ? "Guardando..." : "Registrar en colección"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleQuickAdd}
-                  disabled={isSubmitting}
-                  className="w-full py-2.5 rounded-md text-sm font-medium transition-opacity disabled:opacity-50 cursor-pointer btn-secondary"
-                >
-                  {isSubmitting ? "Guardando..." : "Añadir rápido"}
                 </button>
               </div>
             </form>
