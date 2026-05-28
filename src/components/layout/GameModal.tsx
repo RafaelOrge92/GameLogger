@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { getGameMarketData } from "@/features/market/actions";
+import { getGameMarketData, getGamePriceHistory } from "@/features/market/actions";
 import { addGameToCollection } from "@/features/collection/actions";
 import DataPipelineDiagram from "@/components/layout/DataPipelineDiagram";
 import { useToast } from "@/context/ToastContext";
@@ -56,63 +56,66 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
   const [showPipeline, setShowPipeline] = useState(false);
   const [selectedRange, setSelectedRange] = useState<number>(6); // Range in months: 1, 3, 6, 12
 
-  // Generate deterministic historical sales based on game ID, name, and live price averages
-  const sales = useMemo(() => {
-    if (!game) return [];
-    
-    // Calculate a base price from active eBay listings or CheapShark or fallback
-    const ebayPrices = marketData.ebayListings.map(item => parseFloat(item.price)).filter(p => !isNaN(p));
-    const cheapsharkPrices = marketData.cheapsharkDeals.map(deal => parseFloat(deal.cheapest)).filter(p => !isNaN(p));
-    
-    let basePrice = 50; // default fallback
-    if (ebayPrices.length > 0) {
-      basePrice = ebayPrices.reduce((acc, p) => acc + p, 0) / ebayPrices.length;
-    } else if (cheapsharkPrices.length > 0) {
-      basePrice = cheapsharkPrices.reduce((acc, p) => acc + p, 0) / cheapsharkPrices.length;
-    } else {
-      // Deterministic base price between 20 and 100 based on game name hash
-      const rand = seedRandom(game.name)();
-      basePrice = Math.floor(rand * 80) + 20;
-    }
-    
-    const rand = seedRandom(game.id + game.name);
+  const [sales, setSales] = useState<HistoricalSale[]>([]);
+  const [isLoadingSales, setIsLoadingSales] = useState(false);
+
+  // Load real price history when game or selected platform changes
+  useEffect(() => {
+    if (!game) return;
+
+    const gameId = game.id;
+    const gameName = game.name;
     const platform = selectedPlatform || (game.platforms && game.platforms[0]) || "PC";
-    
-    const list: HistoricalSale[] = [];
-    // Generate 12 sales over the last 12 months (roughly 1 per month)
-    for (let i = 0; i < 12; i++) {
-      // Days ago: from 5 days ago to 350 days ago
-      const daysAgo = Math.floor(i * 30 + rand() * 25 + 5);
-      const date = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-      
-      // Determine condition with probabilities: 40% loose, 50% cib, 10% sealed
-      const r = rand();
-      let cond: "loose" | "cib" | "sealed" = "cib";
-      let priceMultiplier = 1.0;
-      if (r < 0.4) {
-        cond = "loose";
-        priceMultiplier = 0.7; // loose copy is cheaper
-      } else if (r > 0.9) {
-        cond = "sealed";
-        priceMultiplier = 1.8; // sealed copy is more expensive
+
+    async function loadHistory() {
+      setIsLoadingSales(true);
+      try {
+        const query = `${gameName} ${platform}`;
+        const data = await getGamePriceHistory(gameId, query, platform);
+        
+        // Map ISO string dates back to Date objects for UI calculations
+        const mappedSales = data.map((item: any) => ({
+          ...item,
+          date: new Date(item.date)
+        }));
+        
+        setSales(mappedSales);
+      } catch (error) {
+        console.error("Error loading price history:", error);
+      } finally {
+        setIsLoadingSales(false);
       }
-      
-      // Add price variation +/- 15%
-      const variation = 0.85 + rand() * 0.3;
-      const price = parseFloat((basePrice * priceMultiplier * variation).toFixed(2));
-      
-      list.push({
-        id: `sale-${i}`,
-        date,
-        price,
-        condition: cond,
-        platform
-      });
     }
-    
-    // Sort by date descending (most recent first)
-    return list.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [game, marketData, selectedPlatform]);
+
+    loadHistory();
+  }, [game, selectedPlatform]);
+
+  // Determine available range options dynamically based on the age of the oldest sale
+  const availableRanges = useMemo(() => {
+    if (sales.length === 0) {
+      return [1, 3]; // default to 1 and 3 months while there's no data
+    }
+
+    const oldestDate = new Date(Math.min(...sales.map(s => s.date.getTime())));
+    const ageInMs = Date.now() - oldestDate.getTime();
+    const ageInMonths = ageInMs / (1000 * 60 * 60 * 24 * 30.43);
+
+    const ranges = [1, 3];
+    if (ageInMonths >= 6) {
+      ranges.push(6);
+    }
+    if (ageInMonths >= 12) {
+      ranges.push(12);
+    }
+    return ranges;
+  }, [sales]);
+
+  // Sync selected range with available ranges
+  useEffect(() => {
+    if (!availableRanges.includes(selectedRange)) {
+      setSelectedRange(Math.max(...availableRanges));
+    }
+  }, [availableRanges, selectedRange]);
 
   // Filter sales based on the selected range of months
   const filteredSales = useMemo(() => {
@@ -372,7 +375,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
                       <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Historial de Ventas</span>
                       <div className="flex gap-1">
-                        {[1, 3, 6, 12].map((m) => (
+                        {availableRanges.map((m) => (
                           <button
                             key={m}
                             type="button"
@@ -387,52 +390,60 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                       </div>
                     </div>
 
-                    {/* Stats summary */}
-                    <div className="grid grid-cols-2 gap-2 mb-3 p-3 rounded-md text-center" style={{ backgroundColor: 'var(--bg-surface)' }}>
-                      <div>
-                        <p className="text-[9px] uppercase mb-0.5" style={{ color: 'var(--text-muted)' }}>Ventas</p>
-                        <p className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>{filteredSales.length}</p>
+                    {isLoadingSales ? (
+                      <div className="text-center py-8 text-xs" style={{ color: 'var(--text-muted)' }}>
+                        Cargando historial de ventas...
                       </div>
-                      <div>
-                        <p className="text-[9px] uppercase mb-0.5" style={{ color: 'var(--text-muted)' }}>Precio medio</p>
-                        <p className="text-base font-semibold" style={{ color: 'var(--accent)' }}>€{salesAverage.toFixed(2)}</p>
-                      </div>
-                    </div>
-
-                    {/* Sales List */}
-                    <div className="max-h-40 overflow-y-auto space-y-1.5">
-                      {filteredSales.map((sale) => (
-                        <div key={sale.id} className="flex items-center justify-between p-2 rounded text-xs" style={{ backgroundColor: 'var(--bg-surface)' }}>
-                          <div className="flex items-center gap-2">
-                            <span style={{ color: 'var(--text-muted)' }}>
-                              {sale.date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })}
-                            </span>
-                            <span
-                              className="text-[9px] px-1 py-0.5 rounded uppercase font-medium"
-                              style={{
-                                backgroundColor: sale.condition === "sealed" ? 'rgba(251,191,36,0.1)' : sale.condition === "loose" ? 'rgba(248,113,113,0.1)' : 'rgba(76,168,212,0.1)',
-                                color: sale.condition === "sealed" ? '#fbbf24' : sale.condition === "loose" ? '#f87171' : '#4ca8d4',
-                              }}
-                            >
-                              {sale.condition === "sealed" ? "Precintado" : sale.condition === "loose" ? "Loose" : "CIB"}
-                            </span>
+                    ) : (
+                      <>
+                        {/* Stats summary */}
+                        <div className="grid grid-cols-2 gap-2 mb-3 p-3 rounded-md text-center" style={{ backgroundColor: 'var(--bg-surface)' }}>
+                          <div>
+                            <p className="text-[9px] uppercase mb-0.5" style={{ color: 'var(--text-muted)' }}>Ventas</p>
+                            <p className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>{filteredSales.length}</p>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold" style={{ color: 'var(--accent)' }}>€{sale.price.toFixed(2)}</span>
-                            <button
-                              type="button"
-                              onClick={() => setPurchasePrice(sale.price.toString())}
-                              className="text-[9px] px-1.5 py-0.5 rounded cursor-pointer font-medium btn-accent-dim"
-                            >
-                              usar
-                            </button>
+                          <div>
+                            <p className="text-[9px] uppercase mb-0.5" style={{ color: 'var(--text-muted)' }}>Precio medio</p>
+                            <p className="text-base font-semibold" style={{ color: 'var(--accent)' }}>€{salesAverage.toFixed(2)}</p>
                           </div>
                         </div>
-                      ))}
-                      {filteredSales.length === 0 && (
-                        <p className="text-center text-xs py-3" style={{ color: 'var(--text-muted)' }}>No hay ventas en este período.</p>
-                      )}
-                    </div>
+
+                        {/* Sales List */}
+                        <div className="max-h-40 overflow-y-auto space-y-1.5">
+                          {filteredSales.map((sale) => (
+                            <div key={sale.id} className="flex items-center justify-between p-2 rounded text-xs" style={{ backgroundColor: 'var(--bg-surface)' }}>
+                              <div className="flex items-center gap-2">
+                                <span style={{ color: 'var(--text-muted)' }}>
+                                  {sale.date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })}
+                                </span>
+                                <span
+                                  className="text-[9px] px-1 py-0.5 rounded uppercase font-medium"
+                                  style={{
+                                    backgroundColor: sale.condition === "sealed" ? 'rgba(251,191,36,0.1)' : sale.condition === "loose" ? 'rgba(248,113,113,0.1)' : 'rgba(76,168,212,0.1)',
+                                    color: sale.condition === "sealed" ? '#fbbf24' : sale.condition === "loose" ? '#f87171' : '#4ca8d4',
+                                  }}
+                                >
+                                  {sale.condition === "sealed" ? "Precintado" : sale.condition === "loose" ? "Loose" : "CIB"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold" style={{ color: 'var(--accent)' }}>€{sale.price.toFixed(2)}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setPurchasePrice(sale.price.toString())}
+                                  className="text-[9px] px-1.5 py-0.5 rounded cursor-pointer font-medium btn-accent-dim"
+                                >
+                                  usar
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          {filteredSales.length === 0 && (
+                            <p className="text-center text-xs py-3" style={{ color: 'var(--text-muted)' }}>No hay ventas en este período.</p>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Toggle Diagram Button */}

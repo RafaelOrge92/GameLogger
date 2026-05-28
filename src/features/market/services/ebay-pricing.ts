@@ -28,6 +28,7 @@ export type ConditionState = 'loose' | 'cib' | 'sealed';
 export interface EbayRawListing {
   title: string;
   price: number; // EUR
+  date?: string; // ISO Date string of the sale
 }
 
 export interface ClassifiedListing extends EbayRawListing {
@@ -196,10 +197,11 @@ export async function fetchSoldListings(
       const title: string = item.title?.[0] ?? '';
       const priceRaw = item.sellingStatus?.[0]?.convertedCurrentPrice?.[0];
       const price = parseFloat(priceRaw?.['__value__'] ?? '0');
+      const date = item.listingInfo?.[0]?.endTime?.[0] ?? new Date().toISOString();
 
       if (!title || isNaN(price) || price <= 0) continue;
 
-      listings.push({ title, price });
+      listings.push({ title, price, date });
     }
 
     return listings;
