@@ -16,63 +16,63 @@ const TRENDING_GAMES = [
   {
     title: "Chrono Trigger",
     platform: "SNES",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1t92.jpg",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co87df.jpg",
     trend: "Valor: +24.8% (Ene)",
     value: "€320.00"
   },
   {
     title: "Super Mario Sunshine",
     platform: "GameCube",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co204b.jpg",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co68sg.jpg",
     trend: "Valor: +12.5% (Ene)",
     value: "€34.00"
   },
   {
     title: "Metal Gear Solid",
     platform: "PlayStation",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1r7f.jpg",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/cobpao.jpg",
     trend: "Valor: +8.3% (Ene)",
     value: "€55.00"
   },
   {
     title: "Zelda: Ocarina of Time",
     platform: "Nintendo 64",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1yca.jpg",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co3nnx.jpg",
     trend: "Valor: +15.2% (Ene)",
     value: "€120.00"
   },
   {
     title: "Castlevania: SotN",
     platform: "PlayStation",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1r0k.jpg",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co53m8.jpg",
     trend: "Valor: +31.4% (Ene)",
     value: "€350.00"
   },
   {
     title: "Pokémon Stadium",
     platform: "Nintendo 64",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1x82.jpg",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1yyd.jpg",
     trend: "Valor: +5.1% (Ene)",
     value: "€85.00"
   },
   {
     title: "Terranigma",
     platform: "SNES",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1yby.jpg",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co26g4.jpg",
     trend: "Valor: +19.7% (Ene)",
     value: "€320.00"
   },
   {
     title: "Final Fantasy VII",
     platform: "PlayStation",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co25sz.jpg",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/cobn9o.jpg",
     trend: "Valor: +11.6% (Ene)",
     value: "€65.00"
   },
   {
     title: "Metroid Prime",
     platform: "GameCube",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1vcf.jpg",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co6m4m.jpg",
     trend: "Valor: +9.4% (Ene)",
     value: "€45.00"
   }
