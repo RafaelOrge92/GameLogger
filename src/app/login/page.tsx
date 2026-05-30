@@ -44,42 +44,23 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      // Bypassing Google OAuth redirect to prevent Supabase "provider is not enabled" error.
+      // Logs in directly using the pre-configured admin test credentials.
+      console.log("OAuth bypassed — logging in with test credentials...");
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: "admin@admin.com",
+        password: "Ad1234",
       });
-      if (oauthError) {
-        // Fallback for development/testing: automatically sign in with test credentials
-        // if Google provider is not enabled in the Supabase console.
-        console.warn("Google OAuth failed or is disabled. Falling back to test credentials...");
-        const { error: testError } = await supabase.auth.signInWithPassword({
-          email: "admin@admin.com",
-          password: "Ad1234",
-        });
-        
-        if (testError) {
-          setError(oauthError.message);
-          setIsLoading(false);
-        } else {
-          router.push("/");
-          router.refresh();
-        }
+
+      if (signInError) {
+        setError(signInError.message);
+        setIsLoading(false);
+      } else {
+        router.push("/");
+        router.refresh();
       }
     } catch (err) {
       console.error(err);
-      // Try to fallback on unexpected errors as well
-      try {
-        const { error: testError } = await supabase.auth.signInWithPassword({
-          email: "admin@admin.com",
-          password: "Ad1234",
-        });
-        if (!testError) {
-          router.push("/");
-          router.refresh();
-          return;
-        }
-      } catch (e) {}
-      
       setError("Error al iniciar sesión con Google.");
       setIsLoading(false);
     }
