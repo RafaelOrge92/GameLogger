@@ -12,6 +12,72 @@ const STATUS_META: Record<string, { label: string; color: string }> = {
   owned:        { label: "En colección",  color: "var(--status-owned)" },
 };
 
+const TRENDING_GAMES = [
+  {
+    title: "Chrono Trigger",
+    platform: "SNES",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1t92.jpg",
+    trend: "Valor: +24.8% (Ene)",
+    value: "€320.00"
+  },
+  {
+    title: "Super Mario Sunshine",
+    platform: "GameCube",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co204b.jpg",
+    trend: "Valor: +12.5% (Ene)",
+    value: "€34.00"
+  },
+  {
+    title: "Metal Gear Solid",
+    platform: "PlayStation",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1r7f.jpg",
+    trend: "Valor: +8.3% (Ene)",
+    value: "€55.00"
+  },
+  {
+    title: "Zelda: Ocarina of Time",
+    platform: "Nintendo 64",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1yca.jpg",
+    trend: "Valor: +15.2% (Ene)",
+    value: "€120.00"
+  },
+  {
+    title: "Castlevania: SotN",
+    platform: "PlayStation",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1r0k.jpg",
+    trend: "Valor: +31.4% (Ene)",
+    value: "€350.00"
+  },
+  {
+    title: "Pokémon Stadium",
+    platform: "Nintendo 64",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1x82.jpg",
+    trend: "Valor: +5.1% (Ene)",
+    value: "€85.00"
+  },
+  {
+    title: "Terranigma",
+    platform: "SNES",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1yby.jpg",
+    trend: "Valor: +19.7% (Ene)",
+    value: "€320.00"
+  },
+  {
+    title: "Final Fantasy VII",
+    platform: "PlayStation",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co25sz.jpg",
+    trend: "Valor: +11.6% (Ene)",
+    value: "€65.00"
+  },
+  {
+    title: "Metroid Prime",
+    platform: "GameCube",
+    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1vcf.jpg",
+    trend: "Valor: +9.4% (Ene)",
+    value: "€45.00"
+  }
+];
+
 export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -41,6 +107,99 @@ export default async function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </Link>
+          </div>
+        </div>
+
+        {/* Trending Section (Top Buscados) */}
+        <div className="max-w-5xl mx-auto px-4 space-y-6 overflow-hidden">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">📈</span>
+              <h3 className="text-lg font-bold text-white tracking-tight font-sans">
+                Tendencias de Mercado (Top Buscados)
+              </h3>
+            </div>
+            <span className="text-xs text-[var(--text-muted)] font-medium">Posa el ratón para pausar</span>
+          </div>
+
+          {/* Marquee Train */}
+          <div className="relative w-full overflow-hidden">
+            {/* Fade Out Edge Overlays */}
+            <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[var(--bg-base)] to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[var(--bg-base)] to-transparent z-10 pointer-events-none" />
+
+            <div className="animate-marquee py-2 select-none">
+              {/* Set 1 */}
+              {TRENDING_GAMES.map((game, i) => (
+                <div 
+                  key={`set1-${i}`}
+                  className="w-36 sm:w-44 shrink-0 group relative rounded-xl overflow-hidden border border-[var(--border)] transition-all duration-300 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(6,182,212,0.25)] hover:-translate-y-1"
+                  style={{ backgroundColor: 'var(--bg-card)' }}
+                >
+                  {/* Cover */}
+                  <div className="aspect-[3/4] relative w-full overflow-hidden bg-[var(--bg-elevated)]">
+                    <img 
+                      src={game.coverUrl} 
+                      alt={game.title}
+                      className="w-full h-full object-cover select-none pointer-events-none" 
+                    />
+                    {/* Floating Trend Tag */}
+                    <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                      {game.trend}
+                    </div>
+                    {/* Hover Value Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+                      <p className="text-[10px] text-cyan-400 font-bold tracking-wide uppercase">Valor medio</p>
+                      <p className="text-sm font-black text-white">{game.value}</p>
+                    </div>
+                  </div>
+                  {/* Title area (below cover) */}
+                  <div className="p-2.5 space-y-0.5">
+                    <p className="text-[11px] font-semibold text-white truncate leading-tight group-hover:text-cyan-400 transition-colors" title={game.title}>
+                      {game.title}
+                    </p>
+                    <p className="text-[9px] text-[var(--text-muted)] font-medium">
+                      {game.platform}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {/* Set 2 (Duplicate for infinite seamless loop) */}
+              {TRENDING_GAMES.map((game, i) => (
+                <div 
+                  key={`set2-${i}`}
+                  className="w-36 sm:w-44 shrink-0 group relative rounded-xl overflow-hidden border border-[var(--border)] transition-all duration-300 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(6,182,212,0.25)] hover:-translate-y-1"
+                  style={{ backgroundColor: 'var(--bg-card)' }}
+                >
+                  {/* Cover */}
+                  <div className="aspect-[3/4] relative w-full overflow-hidden bg-[var(--bg-elevated)]">
+                    <img 
+                      src={game.coverUrl} 
+                      alt={game.title}
+                      className="w-full h-full object-cover select-none pointer-events-none" 
+                    />
+                    {/* Floating Trend Tag */}
+                    <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                      {game.trend}
+                    </div>
+                    {/* Hover Value Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+                      <p className="text-[10px] text-cyan-400 font-bold tracking-wide uppercase">Valor medio</p>
+                      <p className="text-sm font-black text-white">{game.value}</p>
+                    </div>
+                  </div>
+                  {/* Title area (below cover) */}
+                  <div className="p-2.5 space-y-0.5">
+                    <p className="text-[11px] font-semibold text-white truncate leading-tight group-hover:text-cyan-400 transition-colors" title={game.title}>
+                      {game.title}
+                    </p>
+                    <p className="text-[9px] text-[var(--text-muted)] font-medium">
+                      {game.platform}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
