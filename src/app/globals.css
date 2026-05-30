@@ -2,12 +2,12 @@
 @import "tailwindcss";
 
 :root {
-  /* Backloggd-inspired dark palette */
-  --bg-base:       #16181c;
-  --bg-surface:    #1e2028;
-  --bg-elevated:   #252830;
-  --bg-card:       #1a1d24;
-  --bg-input:      #12141a;
+  /* Backloggd-inspired dark palette - Fintech slate variation */
+  --bg-base:       #18191b;
+  --bg-surface:    #202226;
+  --bg-elevated:   #2a2c31;
+  --bg-card:       #1f2125;
+  --bg-input:      #141517;
 
   --accent:        #43b94f;
   --accent-hover:  #52d460;
@@ -236,6 +236,32 @@ a, button {
 }
 .btn-cyan:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+/* Infinite Marquee Slider for Trending Game Cards */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-50% - 0.5rem)); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 45s linear infinite;
+  gap: 1rem;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Scrollbar-none utility */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 

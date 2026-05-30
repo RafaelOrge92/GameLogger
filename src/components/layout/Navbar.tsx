@@ -79,6 +79,45 @@ export default function Navbar({ user }: { user: any }) {
   const getUserName = (u: any) =>
     u?.user_metadata?.full_name || u?.email?.split("@")[0] || "Usuario";
 
+  if (!user) {
+    return (
+      <nav
+        style={{
+          backgroundColor: 'var(--bg-surface)',
+          borderBottom: '1px solid var(--border)',
+        }}
+        className="sticky top-0 z-50 w-full"
+      >
+        <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-black transition-transform group-hover:scale-105"
+              style={{ backgroundColor: 'var(--accent)', color: '#0d1117' }}
+            >
+              R
+            </div>
+            <span
+              className="font-bold text-lg tracking-tight font-sans transition-colors"
+              style={{ color: 'var(--accent)' }}
+            >
+              RetroLogger
+            </span>
+          </Link>
+
+          {/* Sign In Button */}
+          <Link
+            href="/login"
+            className="text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 border border-transparent hover:border-emerald-500/20 hover:bg-emerald-950/20"
+            style={{ color: 'var(--accent)' }}
+          >
+            Sign In
+          </Link>
+        </div>
+      </nav>
+    );
+  }
+
   return (
     <>
       <nav
