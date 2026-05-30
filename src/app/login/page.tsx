@@ -44,20 +44,13 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
     try {
-      // Bypassing Google OAuth redirect to prevent Supabase "provider is not enabled" error.
-      // Logs in directly using the pre-configured admin test credentials.
-      console.log("OAuth bypassed — logging in with test credentials...");
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: "admin@admin.com",
-        password: "Ad1234",
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
-
-      if (signInError) {
-        setError(signInError.message);
+      if (oauthError) {
+        setError(oauthError.message);
         setIsLoading(false);
-      } else {
-        router.push("/");
-        router.refresh();
       }
     } catch (err) {
       console.error(err);
