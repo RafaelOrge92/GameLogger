@@ -18,26 +18,181 @@ export default async function Home() {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-6">
-        <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl font-bold"
-          style={{ backgroundColor: 'var(--accent)', color: '#0d1117' }}
-        >
-          R
-        </div>
-        <div>
-          <h1 className="text-2xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-            Bienvenido a RetroLogger
+      <div className="py-12 md:py-24 space-y-20 md:space-y-32">
+        {/* Hero Section */}
+        <div className="max-w-4xl mx-auto text-center space-y-8 px-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase border border-emerald-500/30 bg-emerald-950/20 text-emerald-400">
+            📊 El control financiero de tu colección
+          </div>
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1] font-sans">
+            RetroLogger: Indexa, Tasa y Evoluciona tu Colección Retro
           </h1>
-          <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
-            Lleva el control de tu colección de videojuegos y su valor de mercado.
+          <p className="text-base sm:text-xl text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
+            El primer portafolio financiero de activos coleccionables impulsado por datos reales de mercado.
           </p>
-          <Link
-            href="/login"
-            className="inline-block px-5 py-2.5 rounded-md text-sm font-semibold btn-primary"
+          <div className="pt-4">
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl text-base font-bold transition-all duration-200 shadow-[0_0_20px_rgba(67,185,79,0.3)] hover:shadow-[0_0_30px_rgba(67,185,79,0.5)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              style={{ backgroundColor: 'var(--accent)', color: '#0d1117' }}
+            >
+              <span>Iniciar Sesión con Google (Es Gratis)</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+
+        {/* Dashboard Preview / Mockup Section */}
+        <div className="max-w-5xl mx-auto px-4">
+          <div 
+            className="rounded-2xl border p-6 md:p-8 space-y-6 md:space-y-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+            style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}
           >
-            Iniciar sesión
-          </Link>
+            {/* Fake Dashboard Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[var(--border)]">
+              <div>
+                <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Dashboard Resumen</p>
+                <h3 className="text-xl font-bold text-white mt-1">Tu Portafolio de Coleccionables</h3>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-[10px] px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-secondary)]">EUR €</span>
+                <span className="text-[10px] px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">Pal-ES Región</span>
+              </div>
+            </div>
+
+            {/* Fake Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: "Total Juegos", value: "142", sub: "+5 este mes" },
+                { label: "Valor de Mercado", value: "€5,280.00", sub: "▲ +12.4% vs adquis.", highlight: true },
+                { label: "Completados", value: "84", sub: "59.1% del total" },
+                { label: "Alertas de Caza", value: "3 Activas", sub: "Precios de ganga" }
+              ].map((stat, i) => (
+                <div 
+                  key={i} 
+                  className="p-4 rounded-xl border" 
+                  style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }}
+                >
+                  <p className="text-xs text-[var(--text-secondary)] font-medium">{stat.label}</p>
+                  <p className={`text-xl sm:text-2xl font-bold mt-1 ${stat.highlight ? 'text-emerald-400' : 'text-white'}`}>{stat.value}</p>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1.5">{stat.sub}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Interactive/Visual Section: Market Trends & Items Mockup */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Fake Trend Graph */}
+              <div 
+                className="md:col-span-2 p-5 rounded-xl border space-y-4 flex flex-col justify-between"
+                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Evolución Histórica (1 año)</h4>
+                    <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Super Mario Sunshine (CIB, PAL-ES)</p>
+                  </div>
+                  <span className="text-[10px] font-semibold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">Media: €34.00</span>
+                </div>
+                
+                {/* Simulated SVG Chart */}
+                <div className="h-40 w-full flex items-end">
+                  <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#43b94f" stopOpacity="0.4"/>
+                        <stop offset="100%" stopColor="#43b94f" stopOpacity="0.0"/>
+                      </linearGradient>
+                    </defs>
+                    {/* Area under the curve */}
+                    <path 
+                      d="M0 40 L0 30 L15 28 L30 32 L45 25 L60 20 L75 24 L90 14 L100 12 L100 40 Z" 
+                      fill="url(#chartGrad)" 
+                    />
+                    {/* Line */}
+                    <path 
+                      d="M0 30 L15 28 L30 32 L45 25 L60 20 L75 24 L90 14 L100 12" 
+                      fill="none" 
+                      stroke="#43b94f" 
+                      strokeWidth="1.5" 
+                      strokeLinecap="round"
+                    />
+                    {/* Circles on peak points */}
+                    <circle cx="60" cy="20" r="1.5" fill="#43b94f" />
+                    <circle cx="100" cy="12" r="1.5" fill="#43b94f" />
+                  </svg>
+                </div>
+                <div className="flex justify-between text-[9px] text-[var(--text-muted)] pt-2 border-t border-[var(--border)]">
+                  <span>Jun 2025</span>
+                  <span>Dic 2025</span>
+                  <span>May 2026</span>
+                </div>
+              </div>
+
+              {/* Fake Recent Items */}
+              <div 
+                className="p-5 rounded-xl border space-y-4"
+                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }}
+              >
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">Últimas Tasaciones</h4>
+                <div className="space-y-3">
+                  {[
+                    { title: "Chrono Trigger", platform: "SNES", price: "€320.00", cond: "CIB", color: "#4ca8d4" },
+                    { title: "Pokemon Stadium", platform: "N64", price: "€105.00", cond: "Sealed", color: "#fbbf24" },
+                    { title: "Metroid Prime", platform: "GC", price: "€18.00", cond: "Loose", color: "#f87171" }
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center justify-between p-2.5 rounded bg-[var(--bg-elevated)] text-xs border border-[var(--border)]">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="font-semibold text-white truncate">{item.title}</p>
+                        <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{item.platform} • <span style={{ color: item.color }}>{item.cond}</span></p>
+                      </div>
+                      <span className="font-bold text-emerald-400 shrink-0">{item.price}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Grid */}
+        <div className="max-w-5xl mx-auto px-4 space-y-12">
+          <div className="text-center space-y-2">
+            <h3 className="text-2xl md:text-3xl font-bold text-white">Diseñado para Coleccionistas Exigentes</h3>
+            <p className="text-sm text-[var(--text-secondary)]">La precisión analítica que tu colección de videojuegos se merece.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                title: "Valuación Real del Mercado",
+                desc: "Consultamos los precios de mercado en tiempo real y ventas recientes para ofrecerte estimaciones limpias y realistas de tus juegos.",
+                icon: "📈"
+              },
+              {
+                title: "Limpieza IQR de Outliers",
+                desc: "Filtramos anuncios anómalos o sospechosos (lotes vacíos, reproducciones baratas) para obtener valores fiables basados en datos puros.",
+                icon: "⚙️"
+              },
+              {
+                title: "Indexación por Estado y Región",
+                desc: "Registra tus piezas especificando si son cartuchos sueltos (Loose), completos (CIB) o precintados (Sealed), adaptados a su región original.",
+                icon: "🎮"
+              }
+            ].map((feat, i) => (
+              <div 
+                key={i} 
+                className="p-6 rounded-xl border space-y-3 transition-colors hover:border-emerald-500/20"
+                style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}
+              >
+                <span className="text-3xl block">{feat.icon}</span>
+                <h4 className="text-base font-bold text-white">{feat.title}</h4>
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{feat.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
