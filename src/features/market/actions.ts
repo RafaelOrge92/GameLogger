@@ -240,6 +240,51 @@ function generateMockHistory(config: MockGameConfig, platform: string): Historic
   return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
+function generateDynamicHistory(title: string, basePrice: number, platform: string): HistoricalSale[] {
+  const list: HistoricalSale[] = [];
+  
+  // Stable seed based on title
+  let seed = title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  function rand() {
+    const x = Math.sin(seed++) * 10000;
+    return x - Math.floor(x);
+  }
+
+  // Generate 25 sales over the last 12 months (roughly 2 per month)
+  for (let i = 0; i < 25; i++) {
+    const daysAgo = Math.floor(i * 14 + rand() * 10 + 2); // sales from 2 days ago up to ~360 days ago
+    const date = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+    
+    // Condition probabilities: 35% loose, 55% cib, 10% sealed
+    const r = rand();
+    let condition: "loose" | "cib" | "sealed" = "cib";
+    let price = basePrice;
+
+    if (r < 0.35) {
+      condition = "loose";
+      price = basePrice * 0.45; // loose is ~45% of CIB
+    } else if (r > 0.9) {
+      condition = "sealed";
+      price = basePrice * 3.0; // sealed is ~3x CIB
+    }
+
+    // Add price variation +/- 15%
+    const variation = 0.85 + rand() * 0.30;
+    const finalPrice = parseFloat((price * variation).toFixed(2));
+
+    list.push({
+      id: `dynamic-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${i}`,
+      date,
+      price: finalPrice,
+      condition,
+      platform,
+      isRealEbay: false
+    });
+  }
+
+  return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
 /**
  * Fetches historical and real-time sold prices for a game.
  * Combines database historical clean prices and live eBay sold listings.
@@ -301,7 +346,7 @@ export async function getGamePriceHistory(
     console.error("eBay sold listings real-time fetch failed:", ebayErr);
   }
 
-  // 3. Fallback to mock data for the 10 specific retro games if we got absolutely nothing
+  // 3. Fallback to mock/dynamic data if we got absolutely nothing (due to Finding API deprecation)
   if (sales.length === 0) {
     const lowerTitle = title.toLowerCase();
     const matchedConfig = MOCK_GAMES.find(cfg => 
@@ -310,6 +355,30 @@ export async function getGamePriceHistory(
     if (matchedConfig) {
       const mockSales = generateMockHistory(matchedConfig, selectedPlatform);
       sales.push(...mockSales);
+    } else {
+      // Fetch active listings to get a realistic base price
+      try {
+        const activeListings = await searchEbayListings(title).catch(() => []);
+        let basePrice = 50; // default fallback
+        if (activeListings && activeListings.length > 0) {
+          const prices = activeListings.map(item => parseFloat(item.price)).filter(p => !isNaN(p) && p > 0);
+          if (prices.length > 0) {
+            basePrice = prices.reduce((acc, p) => acc + p, 0) / prices.length;
+          }
+        } else {
+          // Deterministic stable price based on title characters
+          let hash = 0;
+          for (let i = 0; i < title.length; i++) {
+            hash = title.charCodeAt(i) + ((hash << 5) - hash);
+          }
+          basePrice = 20 + (Math.abs(hash) % 120);
+        }
+        
+        const dynamicSales = generateDynamicHistory(title, basePrice, selectedPlatform);
+        sales.push(...dynamicSales);
+      } catch (err) {
+        console.error("Failed to generate dynamic price history:", err);
+      }
     }
   }
 
