@@ -334,7 +334,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                     )}
                   </div>
 
-                  {/* CheapShark (Digital PC Deals) */}
+                  {/* CheapShark (Digital PC Deals) - Desactivado en el modal
                   <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
                     <div className="mb-3" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
                       <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>CheapShark — Digital PC</span>
@@ -358,7 +358,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                               <a
                                 href={`https://www.cheapshark.com/redirect?dealID=${deal.cheapestDealID}`}
                                 target="_blank"
-                                rel="noopener noreferrer"
+                                  rel="noopener noreferrer"
                                 className="text-[10px] font-medium px-2 py-0.5 rounded btn-cyan"
                               >
                                 Ver deal
@@ -369,6 +369,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                       </div>
                     )}
                   </div>
+                  */}
 
                   {/* Historical Sales Analysis */}
                   <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
