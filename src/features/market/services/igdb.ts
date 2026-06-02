@@ -12,8 +12,8 @@ export async function searchGamesIGDB(query: string) {
       "Authorization": `Bearer ${process.env.IGDB_ACCESS_TOKEN!}`,
       "Accept": "application/json",
     },
-    // Traemos datos básicos: ID, nombre, carátula, plataformas y fecha de lanzamiento
-    body: `search "${query}"; fields name, cover.url, platforms.name, first_release_date; limit 10;`,
+    // Traemos datos básicos de juegos retro principales (generación <= 7 o lanzados antes de 2013, excluyendo hacks/mods)
+    body: `search "${query}"; where (platforms.generation <= 7 | first_release_date < 1356998400) & parent_game = null; fields name, cover.url, platforms.name, first_release_date; limit 10;`,
     // Añadimos revalidate para cachear las búsquedas por 1 hora y no gastar cuota de API
     next: { revalidate: 3600 }
   });
