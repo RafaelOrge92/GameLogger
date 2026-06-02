@@ -22,7 +22,7 @@ export async function addGameToCollection(
     return { error: "Debes iniciar sesión para añadir juegos." };
   }
 
-  // Insertar en la base de datos
+  // Insertar en la base de datos (collections)
   const { error } = await supabase
     .from('collections')
     .insert([
@@ -43,6 +43,34 @@ export async function addGameToCollection(
   if (error) {
     console.error("Error al añadir juego:", error);
     return { error: "Hubo un error al guardar el juego en tu colección." };
+  }
+
+  // Insertar en user_collection para que alimente las estadísticas del Dashboard
+  const gameIdInt = parseInt(gameId);
+  if (!isNaN(gameIdInt)) {
+    let conditionState = 'cib';
+    if (condition === 'sealed') {
+      conditionState = 'sealed';
+    } else if (condition === 'loose') {
+      conditionState = 'loose';
+    }
+
+    const { error: userColError } = await supabase
+      .from('user_collection')
+      .insert([
+        {
+          user_id: user.id,
+          game_id: gameIdInt,
+          condition_state: conditionState,
+          region: 'PAL-ES', // Default region
+          purchase_price: purchasePrice,
+          acquired_at: new Date().toISOString()
+        }
+      ]);
+
+    if (userColError) {
+      console.error("Error al insertar en user_collection:", userColError);
+    }
   }
 
   return { success: true };
@@ -76,6 +104,13 @@ export async function removeGameFromCollection(id: string) {
     return { error: "No autenticado" };
   }
 
+  // Obtener el game_id antes de eliminar para borrar también de user_collection
+  const { data: gameToDelete } = await supabase
+    .from("collections")
+    .select("game_id")
+    .eq("id", id)
+    .single();
+
   const { error } = await supabase
     .from("collections")
     .delete()
@@ -85,6 +120,18 @@ export async function removeGameFromCollection(id: string) {
   if (error) {
     console.error("Error al eliminar juego:", error);
     return { error: error.message };
+  }
+
+  // Eliminar también de user_collection
+  if (gameToDelete) {
+    const gameIdInt = parseInt(gameToDelete.game_id);
+    if (!isNaN(gameIdInt)) {
+      await supabase
+        .from("user_collection")
+        .delete()
+        .eq("game_id", gameIdInt)
+        .eq("user_id", user.id);
+    }
   }
 
   return { success: true };
