@@ -51,11 +51,15 @@ async function handleUpdate(req: NextRequest) {
       );
     }
 
-    // Also update raw user metadata in auth.users if username changes
-    // This keeps the profile sync state clean for Navbar initials, etc.
-    if (username) {
+    // Also update raw user metadata in auth.users if username or avatar_url changes
+    // This keeps the profile sync state clean for Navbar initials and avatar image.
+    if (username || avatar_url !== undefined) {
+      const updateData: Record<string, any> = {};
+      if (username) updateData.full_name = username;
+      if (avatar_url !== undefined) updateData.avatar_url = avatar_url;
+
       await supabase.auth.updateUser({
-        data: { full_name: username }
+        data: updateData
       });
     }
 
