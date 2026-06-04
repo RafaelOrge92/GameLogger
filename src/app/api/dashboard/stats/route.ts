@@ -16,10 +16,11 @@ export async function GET(req: NextRequest) {
 
     const userId = user.id;
 
-    // Get optional query filters
+    // Get optional query filters and range
     const { searchParams } = new URL(req.url);
     const regionFilter = searchParams.get("region");
     const platformFilter = searchParams.get("platform");
+    const range = searchParams.get("range") || "1y";
 
     // 1. Fetch user's inventory
     const { data: items, error: itemsError } = await supabase
@@ -85,29 +86,53 @@ export async function GET(req: NextRequest) {
     const pricesList = prices || [];
 
     // --- CHART A: evolucion ---
-    const monthsList: Array<{ label: string; year: number; month: number; endOfDate: Date }> = [];
+    const dataPointsList: Array<{ label: string; year: number; month: number; date: number; endOfDate: Date }> = [];
     const today = new Date();
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - i, 1));
-      const monthIdx = d.getUTCMonth();
-      const year = d.getUTCFullYear();
-      const label = MONTH_NAMES[monthIdx];
-      const lastDay = new Date(Date.UTC(year, monthIdx + 1, 0, 23, 59, 59, 999));
-      monthsList.push({
-        label,
-        year,
-        month: monthIdx,
-        endOfDate: lastDay
-      });
+
+    if (range === "30d") {
+      // Generate last 30 calendar days
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i));
+        const day = d.getUTCDate();
+        const monthIdx = d.getUTCMonth();
+        const year = d.getUTCFullYear();
+        const label = `${day} ${MONTH_NAMES[monthIdx]}`;
+        const endOfDay = new Date(Date.UTC(year, monthIdx, day, 23, 59, 59, 999));
+        
+        dataPointsList.push({
+          label,
+          year,
+          month: monthIdx,
+          date: day,
+          endOfDate: endOfDay
+        });
+      }
+    } else {
+      // Default to 12 months (1y)
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - i, 1));
+        const monthIdx = d.getUTCMonth();
+        const year = d.getUTCFullYear();
+        const label = MONTH_NAMES[monthIdx];
+        const lastDay = new Date(Date.UTC(year, monthIdx + 1, 0, 23, 59, 59, 999));
+        
+        dataPointsList.push({
+          label,
+          year,
+          month: monthIdx,
+          date: 1,
+          endOfDate: lastDay
+        });
+      }
     }
 
-    const evolucion = monthsList.map(month => {
-      const itemsOwnedInMonth = filteredItems.filter(item => new Date(item.acquired_at) <= month.endOfDate);
+    const evolucion = dataPointsList.map(point => {
+      const itemsOwnedAtPoint = filteredItems.filter(item => new Date(item.acquired_at) <= point.endOfDate);
       
       let valorTotal = 0;
       let inversionTotal = 0;
 
-      for (const ownedItem of itemsOwnedInMonth) {
+      for (const ownedItem of itemsOwnedAtPoint) {
         inversionTotal += ownedItem.purchase_price ? Number(ownedItem.purchase_price) : 0;
         
         let itemPrice = ownedItem.purchase_price ? Number(ownedItem.purchase_price) : 0;
@@ -117,7 +142,7 @@ export async function GET(req: NextRequest) {
             p.game_id === ownedItem.game_id &&
             p.condition_state === ownedItem.condition_state &&
             p.region === ownedItem.region &&
-            new Date(p.recorded_date + "T23:59:59Z") <= month.endOfDate
+            new Date(p.recorded_date + "T23:59:59Z") <= point.endOfDate
           ) {
             itemPrice = Number(p.market_price_cleaned);
             break;
@@ -127,7 +152,7 @@ export async function GET(req: NextRequest) {
       }
 
       return {
-        fecha: month.label,
+        fecha: point.label,
         valorTotal: parseFloat(valorTotal.toFixed(2)),
         inversionTotal: parseFloat(inversionTotal.toFixed(2))
       };
