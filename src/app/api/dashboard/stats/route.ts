@@ -89,9 +89,14 @@ export async function GET(req: NextRequest) {
     const dataPointsList: Array<{ label: string; year: number; month: number; date: number; endOfDate: Date }> = [];
     const today = new Date();
 
-    if (range === "30d") {
-      // Generate last 30 calendar days
-      for (let i = 29; i >= 0; i--) {
+    let numDays = 0;
+    if (range === "30d") numDays = 30;
+    else if (range === "60d") numDays = 60;
+    else if (range === "90d") numDays = 90;
+
+    if (numDays > 0) {
+      // Generate last numDays calendar days
+      for (let i = numDays - 1; i >= 0; i--) {
         const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i));
         const day = d.getUTCDate();
         const monthIdx = d.getUTCMonth();
@@ -243,12 +248,55 @@ export async function GET(req: NextRequest) {
       .map(([name, value]) => ({ name, value }))
       .filter(item => item.value > 0);
 
+    // --- COMPARATIVA STATS ---
+    let sumCurrent = 0;
+    let sumAverage = 0;
+    let sumMaximum = 0;
+
+    for (const item of filteredItems) {
+      const dailyPrices: number[] = [];
+      
+      for (const point of dataPointsList) {
+        let itemPrice = item.purchase_price ? Number(item.purchase_price) : 0;
+        for (let pIdx = pricesList.length - 1; pIdx >= 0; pIdx--) {
+          const p = pricesList[pIdx];
+          if (
+            p.game_id === item.game_id &&
+            p.condition_state === item.condition_state &&
+            p.region === item.region &&
+            new Date(p.recorded_date + "T23:59:59Z") <= point.endOfDate
+          ) {
+            itemPrice = Number(p.market_price_cleaned);
+            break;
+          }
+        }
+        dailyPrices.push(itemPrice);
+      }
+
+      if (dailyPrices.length > 0) {
+        const current = dailyPrices[dailyPrices.length - 1];
+        const avg = dailyPrices.reduce((a, b) => a + b, 0) / dailyPrices.length;
+        const max = Math.max(...dailyPrices);
+        
+        sumCurrent += current;
+        sumAverage += avg;
+        sumMaximum += max;
+      }
+    }
+
+    const comparativa = {
+      precioActual: parseFloat(sumCurrent.toFixed(2)),
+      precioMedio: parseFloat(sumAverage.toFixed(2)),
+      precioMaximo: parseFloat(sumMaximum.toFixed(2))
+    };
+
     return NextResponse.json({
       evolucion,
       region,
       sistemas,
       estado,
-      backlog
+      backlog,
+      comparativa
     });
 
   } catch (error) {
@@ -263,6 +311,11 @@ function getEmptyResponse() {
     region: [],
     sistemas: [],
     estado: [],
-    backlog: []
+    backlog: [],
+    comparativa: {
+      precioActual: 0,
+      precioMedio: 0,
+      precioMaximo: 0
+    }
   };
 }
