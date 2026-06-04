@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getGameByIdIGDB } from "@/features/market/services/igdb";
 import { checkFollowStatus } from "@/features/social/actions";
 import ProfileClient from "./ProfileClient";
@@ -15,10 +16,14 @@ export async function generateMetadata({ params }) {
 export default async function UserProfilePage({ params }) {
   const { username } = await params;
   const decodedUsername = decodeURIComponent(username);
-  const supabase = await createClient();
 
-  // 1. Fetch user profile by username
-  const { data: profile, error: profileError } = await supabase
+  // Admin client: bypasses RLS to read any user's public data
+  const adminSupabase = createAdminClient();
+  // Cookie client: only used to identify the current visitor's session
+  const sessionSupabase = await createClient();
+
+  // 1. Fetch user profile by username (public, via admin)
+  const { data: profile, error: profileError } = await adminSupabase
     .from("profiles")
     .select("*")
     .eq("username", decodedUsername)
@@ -32,8 +37,8 @@ export default async function UserProfilePage({ params }) {
   let isFollowing = false;
   let currentUser = null;
 
-  // Fetch current session for checking edit permissions / following relationship
-  const { data: { user: sessionUser } } = await supabase.auth.getUser();
+  // Fetch current visitor session (does NOT expose collection data, just identity)
+  const { data: { user: sessionUser } } = await sessionSupabase.auth.getUser();
   currentUser = sessionUser;
 
   if (profileError || !profile) {
@@ -99,15 +104,15 @@ export default async function UserProfilePage({ params }) {
       isFollowing = await checkFollowStatus(profile.id);
     }
 
-    // 2. Fetch collections (status, platform, title, cover_url)
-    const { data: colls } = await supabase
+    // 2. Fetch collections (status, platform, title, cover_url) — admin bypass for public view
+    const { data: colls } = await adminSupabase
       .from("collections")
       .select("*")
       .eq("user_id", profile.id)
       .order("added_at", { ascending: false });
 
-    // 3. Fetch user_collection (condition_state, region, purchase_price)
-    const { data: userItems } = await supabase
+    // 3. Fetch user_collection (condition_state, region, purchase_price) — admin bypass
+    const { data: userItems } = await adminSupabase
       .from("user_collection")
       .select("*")
       .eq("user_id", profile.id);
