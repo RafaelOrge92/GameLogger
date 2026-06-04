@@ -284,12 +284,15 @@ export default function Navbar({ user }: { user: any }) {
             {/* User area */}
             {user ? (
               <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  href="/dashboard/settings"
+                  className="hidden sm:block text-xs font-semibold px-2.5 py-1.5 rounded border border-gray-800 bg-[#0f0f10]/40 transition-all hover:bg-emerald-950/20 hover:border-emerald-500/20 text-gray-400 hover:text-white"
+                >
+                  Ajustes
+                </Link>
                 <button
                   onClick={handleSignOut}
-                  className="hidden sm:block text-sm px-3 py-1.5 rounded-md"
-                  style={{ color: 'var(--text-secondary)' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'}
+                  className="hidden sm:block text-xs font-semibold px-2.5 py-1.5 rounded text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
                   Salir
                 </button>
