@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getGamePriceHistory } from "@/features/market/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -37,10 +38,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(getEmptyResponse());
     }
 
-    // 2. Fetch supporting data from collections table (platform, status)
+    // 2. Fetch supporting data from collections table (platform, status, title)
     const { data: colls, error: collsError } = await supabase
       .from("collections")
-      .select("game_id, platform, status")
+      .select("game_id, platform, status, title")
       .eq("user_id", userId);
 
     if (collsError) {
@@ -55,6 +56,7 @@ export async function GET(req: NextRequest) {
       const collItem = collMap.get(String(item.game_id));
       return {
         ...item,
+        title: collItem?.title || "Desconocido",
         platform: collItem?.platform || "Desconocido",
         status: collItem?.status || "owned"
       };
@@ -249,45 +251,76 @@ export async function GET(req: NextRequest) {
       .filter(item => item.value > 0);
 
     // --- COMPARATIVA STATS ---
-    let sumCurrent = 0;
-    let sumAverage = 0;
-    let sumMaximum = 0;
+    const itemsPriceHistories = await Promise.all(
+      filteredItems.map(async (item) => {
+        try {
+          const sales = await getGamePriceHistory(
+            String(item.game_id),
+            item.title || "",
+            item.platform
+          );
+          return { item, sales };
+        } catch (err) {
+          console.error(`Failed to get price history for game ${item.game_id}:`, err);
+          return { item, sales: [] };
+        }
+      })
+    );
 
-    for (const item of filteredItems) {
-      const dailyPrices: number[] = [];
-      
-      for (const point of dataPointsList) {
+    const comparativaEvolucion = dataPointsList.map(point => {
+      let valorTotal = 0;
+
+      for (const { item, sales } of itemsPriceHistories) {
+        // Sort sales by date ascending
+        const sortedSales = sales
+          .filter(s => s.condition === item.condition_state)
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
         let itemPrice = item.purchase_price ? Number(item.purchase_price) : 0;
-        for (let pIdx = pricesList.length - 1; pIdx >= 0; pIdx--) {
-          const p = pricesList[pIdx];
-          if (
-            p.game_id === item.game_id &&
-            p.condition_state === item.condition_state &&
-            p.region === item.region &&
-            new Date(p.recorded_date + "T23:59:59Z") <= point.endOfDate
-          ) {
-            itemPrice = Number(p.market_price_cleaned);
+
+        // Find the last sale before or on point.endOfDate
+        let foundSale = null;
+        for (let sIdx = sortedSales.length - 1; sIdx >= 0; sIdx--) {
+          const sale = sortedSales[sIdx];
+          if (new Date(sale.date) <= point.endOfDate) {
+            foundSale = sale;
             break;
           }
         }
-        dailyPrices.push(itemPrice);
+
+        if (foundSale) {
+          itemPrice = foundSale.price;
+        } else if (sortedSales.length > 0) {
+          // Backward-fill: take the first sale in the future if none in the past
+          itemPrice = sortedSales[0].price;
+        }
+
+        valorTotal += itemPrice;
       }
 
-      if (dailyPrices.length > 0) {
-        const current = dailyPrices[dailyPrices.length - 1];
-        const avg = dailyPrices.reduce((a, b) => a + b, 0) / dailyPrices.length;
-        const max = Math.max(...dailyPrices);
-        
-        sumCurrent += current;
-        sumAverage += avg;
-        sumMaximum += max;
-      }
-    }
+      return {
+        fecha: point.label,
+        valorTotal: parseFloat(valorTotal.toFixed(2))
+      };
+    });
+
+    const precioActual = comparativaEvolucion.length > 0 
+      ? comparativaEvolucion[comparativaEvolucion.length - 1].valorTotal 
+      : 0;
+
+    const precioMedio = comparativaEvolucion.length > 0
+      ? parseFloat((comparativaEvolucion.reduce((sum, p) => sum + p.valorTotal, 0) / comparativaEvolucion.length).toFixed(2))
+      : 0;
+
+    const precioMaximo = comparativaEvolucion.length > 0
+      ? parseFloat(Math.max(...comparativaEvolucion.map(p => p.valorTotal)).toFixed(2))
+      : 0;
 
     const comparativa = {
-      precioActual: parseFloat(sumCurrent.toFixed(2)),
-      precioMedio: parseFloat(sumAverage.toFixed(2)),
-      precioMaximo: parseFloat(sumMaximum.toFixed(2))
+      chartData: comparativaEvolucion,
+      precioActual,
+      precioMedio,
+      precioMaximo
     };
 
     return NextResponse.json({
@@ -313,6 +346,7 @@ function getEmptyResponse() {
     estado: [],
     backlog: [],
     comparativa: {
+      chartData: [],
       precioActual: 0,
       precioMedio: 0,
       precioMaximo: 0

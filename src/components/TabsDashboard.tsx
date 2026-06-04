@@ -375,7 +375,7 @@ export default function TabsDashboard() {
                 {/* LineChart with toggleable ReferenceLines */}
                 <div className="w-full">
                   <ResponsiveContainer width="100%" height={260}>
-                    <LineChart data={statsData.evolucion} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
+                    <LineChart data={statsData.comparativa?.chartData || []} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
                       <XAxis dataKey="fecha" stroke="#4b5563" fontSize={10} tickLine={false} />
                       <YAxis stroke="#4b5563" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `€${val}`} />
