@@ -208,27 +208,22 @@ export default function ProfileClient({
           </div>
         </div>
 
-        {/* Stat Card 3 */}
+        {/* Stat Card 3: Interés de la Comunidad */}
         <div className="stat-card flex items-center justify-between p-5 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-purple-500/10 transition-all duration-300" />
-          <div className="space-y-1">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-orange-500/10 transition-all duration-300" />
+          <div className="space-y-1.5 text-left">
             <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-              Juegos Completados
+              🔥 Interés de la Comunidad
             </p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-black text-white">{stats.completedPercentage}%</p>
-              <span className="text-xs text-[var(--text-secondary)] font-medium">({stats.completedCount} / {stats.totalGames})</span>
-            </div>
-            {/* Progress bar */}
-            <div className="w-32 h-1.5 rounded-full bg-gray-800 overflow-hidden mt-1.5">
-              <div 
-                className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500" 
-                style={{ width: `${stats.completedPercentage}%` }} 
-              />
-            </div>
+            <p className="text-xl sm:text-2xl font-black text-orange-500">
+              {stats.comunidadDeseados !== undefined ? stats.comunidadDeseados : 42} Coleccionistas
+            </p>
+            <p className="text-xs text-gray-500 font-medium">
+              Tienen piezas de tu estantería en su Lista de Deseos
+            </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-purple-950/20 border border-purple-500/10 flex items-center justify-center text-2xl">
-            🏆
+          <div className="w-12 h-12 rounded-xl bg-orange-950/20 border border-orange-500/10 flex items-center justify-center text-2xl">
+            🔥
           </div>
         </div>
 

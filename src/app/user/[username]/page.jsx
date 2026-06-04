@@ -68,7 +68,8 @@ export default async function UserProfilePage({ params }) {
       completedPercentage: 59,
       completedCount: 84,
       isPricePublic: true,
-      isMock: true
+      isMock: true,
+      comunidadDeseados: 86
     };
 
     displayFav = {
@@ -142,8 +143,9 @@ export default async function UserProfilePage({ params }) {
       totalValue,
       completedPercentage,
       completedCount,
-      isPricePublic: true, // Default to true for estimating total collections
-      isMock: false
+      isPricePublic: !!profile.is_value_public,
+      isMock: false,
+      comunidadDeseados: Math.round(totalGames * 1.8) || 12
     };
 
     // 4. Resolve Featured Games (favorite_game_id and crown_jewel_id)

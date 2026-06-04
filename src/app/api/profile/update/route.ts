@@ -11,7 +11,7 @@ async function handleUpdate(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { username, avatar_url, favorite_console, bio, favorite_game_id, crown_jewel_id } = body;
+    const { username, avatar_url, favorite_console, bio, favorite_game_id, crown_jewel_id, is_value_public } = body;
 
     // Validate username is not empty
     if (!username || typeof username !== "string" || !username.trim()) {
@@ -40,6 +40,7 @@ async function handleUpdate(req: NextRequest) {
         bio,
         favorite_game_id: favorite_game_id ? Number(favorite_game_id) : null,
         crown_jewel_id: crown_jewel_id ? Number(crown_jewel_id) : null,
+        is_value_public: is_value_public !== undefined ? !!is_value_public : false,
       })
       .eq("id", user.id);
 

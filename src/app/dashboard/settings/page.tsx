@@ -46,6 +46,7 @@ export default function SettingsPage() {
   const [profileId, setProfileId] = useState("");
   const [profileCreatedAt, setProfileCreatedAt] = useState("");
   const [currentUserState, setCurrentUserState] = useState<any>(null);
+  const [isValuePublic, setIsValuePublic] = useState(false);
 
   // Debounced values for search queries
   const debouncedFavQuery = useDebounce(searchFavQuery, 500);
@@ -86,6 +87,7 @@ export default function SettingsPage() {
           setAvatarUrl(profile.avatar_url || "");
           setFavoriteConsole(profile.favorite_console || "");
           setBio(profile.bio || "");
+          setIsValuePublic(profile.is_value_public || false);
 
           // Resolve game highlights from IGDB in parallel
           const promises = [];
@@ -226,6 +228,7 @@ export default function SettingsPage() {
           bio,
           favorite_game_id: favoriteGame ? favoriteGame.id : null,
           crown_jewel_id: crownJewel ? crownJewel.id : null,
+          is_value_public: isValuePublic,
         }),
       });
 
@@ -260,8 +263,9 @@ export default function SettingsPage() {
     totalValue,
     completedPercentage,
     completedCount,
-    isPricePublic: true,
-    isMock: false
+    isPricePublic: isValuePublic,
+    isMock: false,
+    comunidadDeseados: Math.round(totalGames * 1.8) || 12
   };
 
   const displayProfile = {
@@ -569,6 +573,21 @@ export default function SettingsPage() {
                   </div>
                 )}
               </div>
+
+            {/* Is Value Public Checkbox */}
+            <div className="flex items-center gap-3 bg-[#0f0f10] border border-gray-800 rounded-lg p-3">
+              <input
+                type="checkbox"
+                id="is_value_public"
+                checked={isValuePublic}
+                onChange={(e) => setIsValuePublic(e.target.checked)}
+                className="w-4.5 h-4.5 rounded text-emerald-400 bg-gray-900 border-gray-800 focus:ring-emerald-500 focus:ring-opacity-25 focus:ring-2 accent-emerald-400 cursor-pointer"
+              />
+              <label htmlFor="is_value_public" className="text-xs text-gray-300 font-bold select-none cursor-pointer flex flex-col text-left">
+                <span>Hacer público el valor estimado de mi colección</span>
+                <span className="text-[10px] text-gray-500 font-medium mt-0.5">Si está desactivado, otros usuarios no verán la tasación en euros en tu perfil público.</span>
+              </label>
+            </div>
 
             </div>
 
