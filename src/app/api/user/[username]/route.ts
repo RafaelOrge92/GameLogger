@@ -14,13 +14,14 @@ export async function GET(
 ) {
   try {
     const { username } = await params;
+    const decodedUsername = decodeURIComponent(username);
     const supabase = await createClient();
 
     // 1. Fetch user profile by username
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("*")
-      .eq("username", username)
+      .eq("username", decodedUsername)
       .maybeSingle();
 
     if (profileError || !profile) {

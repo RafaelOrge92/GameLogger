@@ -5,21 +5,23 @@ import ProfileClient from "./ProfileClient";
 
 export async function generateMetadata({ params }) {
   const { username } = await params;
+  const decodedUsername = decodeURIComponent(username);
   return {
-    title: `${username} - Colección de Videojuegos en RetroLogger`,
-    description: `Explora la biblioteca, vitrina de destacados y valoración de la colección de videojuegos retro de ${username}.`,
+    title: `${decodedUsername} - Colección de Videojuegos en RetroLogger`,
+    description: `Explora la biblioteca, vitrina de destacados y valoración de la colección de videojuegos retro de ${decodedUsername}.`,
   };
 }
 
 export default async function UserProfilePage({ params }) {
   const { username } = await params;
+  const decodedUsername = decodeURIComponent(username);
   const supabase = await createClient();
 
   // 1. Fetch user profile by username
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("*")
-    .eq("username", username)
+    .eq("username", decodedUsername)
     .maybeSingle();
 
   let displayProfile = null;
@@ -36,11 +38,11 @@ export default async function UserProfilePage({ params }) {
 
   if (profileError || !profile) {
     // FALLBACK TO MOCK DATA (For local environment or not found profiles)
-    console.log(`Profile for user '${username}' not found or error occurred, using mock data.`);
+    console.log(`Profile for user '${decodedUsername}' not found or error occurred, using mock data.`);
     
     displayProfile = {
       id: "mock-user-uuid",
-      username: username,
+      username: decodedUsername,
       avatar_url: "/retro_avatar.png",
       bio: "¡Hola! Soy un coleccionista apasionado de los sistemas de 8 y 16 bits. Me encanta restaurar cartuchos y buscar rarezas Complete-In-Box (CIB). Bienvenido a mi estantería retro.",
       favorite_console: "Super Nintendo (SNES)",
