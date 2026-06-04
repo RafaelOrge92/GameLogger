@@ -28,6 +28,7 @@ export default function TabsDashboard() {
   const [activeTab, setActiveTab] = useState("evolucion");
   const [filtroPlataforma, setFiltroPlataforma] = useState("");
   const [filtroRegion, setFiltroRegion] = useState("");
+  const [rangoEvolucion, setRangoEvolucion] = useState("1y");
   const [statsData, setStatsData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
@@ -45,7 +46,7 @@ export default function TabsDashboard() {
     setIsMounted(true);
   }, []);
 
-  // Fetch stats when filters change
+  // Fetch stats when filters or range changes
   useEffect(() => {
     async function fetchStats() {
       setIsLoading(true);
@@ -53,6 +54,7 @@ export default function TabsDashboard() {
         const queryParams = new URLSearchParams();
         if (filtroPlataforma) queryParams.append("platform", filtroPlataforma);
         if (filtroRegion) queryParams.append("region", filtroRegion);
+        if (rangoEvolucion) queryParams.append("range", rangoEvolucion);
 
         const response = await fetch(`/api/dashboard/stats?${queryParams.toString()}`);
         if (response.ok) {
@@ -73,7 +75,7 @@ export default function TabsDashboard() {
     if (isMounted) {
       fetchStats();
     }
-  }, [filtroPlataforma, filtroRegion, isMounted]);
+  }, [filtroPlataforma, filtroRegion, rangoEvolucion, isMounted]);
 
   if (!isMounted) {
     return <SkeletonLoader />;
@@ -201,6 +203,30 @@ export default function TabsDashboard() {
                           Inversión: €{statsData.evolucion[statsData.evolucion.length - 1].inversionTotal.toFixed(2)}
                         </span>
                       </div>
+                    </div>
+
+                    {/* Range Selector Button Group */}
+                    <div className="flex bg-[#0f0f10] p-0.5 rounded border border-gray-800/80">
+                      <button
+                        onClick={() => setRangoEvolucion("30d")}
+                        className={`px-2.5 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+                          rangoEvolucion === "30d"
+                            ? "bg-emerald-950/40 text-emerald-400 border border-emerald-500/20"
+                            : "text-gray-500 hover:text-gray-300 border border-transparent"
+                        }`}
+                      >
+                        30 días
+                      </button>
+                      <button
+                        onClick={() => setRangoEvolucion("1y")}
+                        className={`px-2.5 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+                          rangoEvolucion === "1y"
+                            ? "bg-emerald-950/40 text-emerald-400 border border-emerald-500/20"
+                            : "text-gray-500 hover:text-gray-300 border border-transparent"
+                        }`}
+                      >
+                        1 Año
+                      </button>
                     </div>
                   </div>
                 )}
