@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getGamePriceHistory } from "@/features/market/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -37,10 +38,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(getEmptyResponse());
     }
 
-    // 2. Fetch supporting data from collections table (platform, status)
+    // 2. Fetch supporting data from collections table (platform, status, title)
     const { data: colls, error: collsError } = await supabase
       .from("collections")
-      .select("game_id, platform, status")
+      .select("game_id, platform, status, title")
       .eq("user_id", userId);
 
     if (collsError) {
@@ -55,6 +56,7 @@ export async function GET(req: NextRequest) {
       const collItem = collMap.get(String(item.game_id));
       return {
         ...item,
+        title: collItem?.title || "Desconocido",
         platform: collItem?.platform || "Desconocido",
         status: collItem?.status || "owned"
       };
@@ -89,9 +91,14 @@ export async function GET(req: NextRequest) {
     const dataPointsList: Array<{ label: string; year: number; month: number; date: number; endOfDate: Date }> = [];
     const today = new Date();
 
-    if (range === "30d") {
-      // Generate last 30 calendar days
-      for (let i = 29; i >= 0; i--) {
+    let numDays = 0;
+    if (range === "30d") numDays = 30;
+    else if (range === "60d") numDays = 60;
+    else if (range === "90d") numDays = 90;
+
+    if (numDays > 0) {
+      // Generate last numDays calendar days
+      for (let i = numDays - 1; i >= 0; i--) {
         const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i));
         const day = d.getUTCDate();
         const monthIdx = d.getUTCMonth();
@@ -243,12 +250,86 @@ export async function GET(req: NextRequest) {
       .map(([name, value]) => ({ name, value }))
       .filter(item => item.value > 0);
 
+    // --- COMPARATIVA STATS ---
+    const itemsPriceHistories = await Promise.all(
+      filteredItems.map(async (item) => {
+        try {
+          const sales = await getGamePriceHistory(
+            String(item.game_id),
+            item.title || "",
+            item.platform
+          );
+          return { item, sales };
+        } catch (err) {
+          console.error(`Failed to get price history for game ${item.game_id}:`, err);
+          return { item, sales: [] };
+        }
+      })
+    );
+
+    const comparativaEvolucion = dataPointsList.map(point => {
+      let valorTotal = 0;
+
+      for (const { item, sales } of itemsPriceHistories) {
+        // Sort sales by date ascending
+        const sortedSales = sales
+          .filter(s => s.condition === item.condition_state)
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        let itemPrice = item.purchase_price ? Number(item.purchase_price) : 0;
+
+        // Find the last sale before or on point.endOfDate
+        let foundSale = null;
+        for (let sIdx = sortedSales.length - 1; sIdx >= 0; sIdx--) {
+          const sale = sortedSales[sIdx];
+          if (new Date(sale.date) <= point.endOfDate) {
+            foundSale = sale;
+            break;
+          }
+        }
+
+        if (foundSale) {
+          itemPrice = foundSale.price;
+        } else if (sortedSales.length > 0) {
+          // Backward-fill: take the first sale in the future if none in the past
+          itemPrice = sortedSales[0].price;
+        }
+
+        valorTotal += itemPrice;
+      }
+
+      return {
+        fecha: point.label,
+        valorTotal: parseFloat(valorTotal.toFixed(2))
+      };
+    });
+
+    const precioActual = comparativaEvolucion.length > 0 
+      ? comparativaEvolucion[comparativaEvolucion.length - 1].valorTotal 
+      : 0;
+
+    const precioMedio = comparativaEvolucion.length > 0
+      ? parseFloat((comparativaEvolucion.reduce((sum, p) => sum + p.valorTotal, 0) / comparativaEvolucion.length).toFixed(2))
+      : 0;
+
+    const precioMaximo = comparativaEvolucion.length > 0
+      ? parseFloat(Math.max(...comparativaEvolucion.map(p => p.valorTotal)).toFixed(2))
+      : 0;
+
+    const comparativa = {
+      chartData: comparativaEvolucion,
+      precioActual,
+      precioMedio,
+      precioMaximo
+    };
+
     return NextResponse.json({
       evolucion,
       region,
       sistemas,
       estado,
-      backlog
+      backlog,
+      comparativa
     });
 
   } catch (error) {
@@ -263,6 +344,12 @@ function getEmptyResponse() {
     region: [],
     sistemas: [],
     estado: [],
-    backlog: []
+    backlog: [],
+    comparativa: {
+      chartData: [],
+      precioActual: 0,
+      precioMedio: 0,
+      precioMaximo: 0
+    }
   };
 }

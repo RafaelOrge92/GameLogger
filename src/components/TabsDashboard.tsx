@@ -18,7 +18,10 @@ import {
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
-  Radar
+  Radar,
+  LineChart,
+  Line,
+  ReferenceLine
 } from "recharts";
 
 const PIE_COLORS = ["#10b981", "#06b6d4", "#8b5cf6", "#fbbf24", "#f43f5e", "#ec4899", "#3b82f6"];
@@ -29,12 +32,16 @@ export default function TabsDashboard() {
   const [filtroPlataforma, setFiltroPlataforma] = useState("");
   const [filtroRegion, setFiltroRegion] = useState("");
   const [rangoEvolucion, setRangoEvolucion] = useState("1y");
+  const [rangoComparativa, setRangoComparativa] = useState("30d");
+  const [showMedio, setShowMedio] = useState(true);
+  const [showMaximo, setShowMaximo] = useState(true);
   const [statsData, setStatsData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
 
   const tabs = [
     { id: "evolucion", label: "Evolución" },
+    { id: "comparativa", label: "Comparativa" },
     { id: "region", label: "Región" },
     { id: "sistemas", label: "Sistemas" },
     { id: "estado", label: "Estado" },
@@ -46,6 +53,8 @@ export default function TabsDashboard() {
     setIsMounted(true);
   }, []);
 
+  const activeRange = activeTab === "comparativa" ? rangoComparativa : rangoEvolucion;
+
   // Fetch stats when filters or range changes
   useEffect(() => {
     async function fetchStats() {
@@ -54,7 +63,7 @@ export default function TabsDashboard() {
         const queryParams = new URLSearchParams();
         if (filtroPlataforma) queryParams.append("platform", filtroPlataforma);
         if (filtroRegion) queryParams.append("region", filtroRegion);
-        if (rangoEvolucion) queryParams.append("range", rangoEvolucion);
+        if (activeRange) queryParams.append("range", activeRange);
 
         const response = await fetch(`/api/dashboard/stats?${queryParams.toString()}`);
         if (response.ok) {
@@ -75,7 +84,7 @@ export default function TabsDashboard() {
     if (isMounted) {
       fetchStats();
     }
-  }, [filtroPlataforma, filtroRegion, rangoEvolucion, isMounted]);
+  }, [filtroPlataforma, filtroRegion, activeRange, isMounted]);
 
   if (!isMounted) {
     return <SkeletonLoader />;
@@ -264,6 +273,175 @@ export default function TabsDashboard() {
               </div>
             )}
 
+            {/* Pestaña: Comparativa */}
+            {activeTab === "comparativa" && (
+              <div className="space-y-6 animate-[fadeIn_0.3s_ease-out] w-full">
+                
+                {/* Top Interactive Metric Cards + Range Selector */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  
+                  {/* Metric Cards */}
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4 flex-1">
+                    
+                    {/* Precio Actual Card */}
+                    <div className="bg-[#0f0f10] border border-emerald-500/20 rounded-xl p-3 sm:p-4 text-left shadow-lg">
+                      <span className="text-[10px] sm:text-xs font-bold text-emerald-400 tracking-wider uppercase">Actual</span>
+                      <h3 className="text-sm sm:text-xl md:text-2xl font-black text-white mt-1">
+                        €{statsData.comparativa?.precioActual?.toFixed(2) || "0.00"}
+                      </h3>
+                      <p className="text-[9px] text-gray-500 mt-1 hidden sm:block">Valor total hoy</p>
+                    </div>
+
+                    {/* Precio Medio Card (Toggleable) */}
+                    <button
+                      onClick={() => setShowMedio(!showMedio)}
+                      className={`group border transition-all duration-300 rounded-xl p-3 sm:p-4 text-left shadow-lg cursor-pointer ${
+                        showMedio 
+                          ? "bg-amber-950/10 border-amber-500/40 hover:border-amber-500/60" 
+                          : "bg-[#0f0f10]/40 border-gray-800/80 hover:border-gray-700 opacity-60 hover:opacity-85"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <span className={`text-[10px] sm:text-xs font-bold tracking-wider uppercase ${showMedio ? "text-amber-400" : "text-gray-400"}`}>Media</span>
+                        <span className={`w-1.5 h-1.5 rounded-full transition-transform duration-300 group-hover:scale-125 ${showMedio ? "bg-amber-400 shadow-[0_0_6px_#fbbf24]" : "bg-gray-600"}`} />
+                      </div>
+                      <h3 className="text-sm sm:text-xl md:text-2xl font-black text-white mt-1">
+                        €{statsData.comparativa?.precioMedio?.toFixed(2) || "0.00"}
+                      </h3>
+                      <p className="text-[9px] text-gray-500 mt-1 hidden sm:block">
+                        {showMedio ? "Línea visible" : "Click para mostrar"}
+                      </p>
+                    </button>
+
+                    {/* Precio Máximo Card (Toggleable) */}
+                    <button
+                      onClick={() => setShowMaximo(!showMaximo)}
+                      className={`group border transition-all duration-300 rounded-xl p-3 sm:p-4 text-left shadow-lg cursor-pointer ${
+                        showMaximo 
+                          ? "bg-rose-950/10 border-rose-500/40 hover:border-rose-500/60" 
+                          : "bg-[#0f0f10]/40 border-gray-800/80 hover:border-gray-700 opacity-60 hover:opacity-85"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <span className={`text-[10px] sm:text-xs font-bold tracking-wider uppercase ${showMaximo ? "text-rose-400" : "text-gray-400"}`}>Máximo</span>
+                        <span className={`w-1.5 h-1.5 rounded-full transition-transform duration-300 group-hover:scale-125 ${showMaximo ? "bg-rose-500 shadow-[0_0_6px_#f43f5e]" : "bg-gray-600"}`} />
+                      </div>
+                      <h3 className="text-sm sm:text-xl md:text-2xl font-black text-white mt-1">
+                        €{statsData.comparativa?.precioMaximo?.toFixed(2) || "0.00"}
+                      </h3>
+                      <p className="text-[9px] text-gray-500 mt-1 hidden sm:block">
+                        {showMaximo ? "Línea visible" : "Click para mostrar"}
+                      </p>
+                    </button>
+
+                  </div>
+
+                  {/* Range Selector Button Group */}
+                  <div className="flex bg-[#0f0f10] p-0.5 rounded border border-gray-800/80 self-end lg:self-center">
+                    <button
+                      onClick={() => setRangoComparativa("30d")}
+                      className={`px-3 py-1.5 rounded text-[10px] font-bold tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+                        rangoComparativa === "30d"
+                          ? "bg-emerald-950/40 text-emerald-400 border border-emerald-500/20"
+                          : "text-gray-500 hover:text-gray-300 border border-transparent"
+                      }`}
+                    >
+                      1 Mes
+                    </button>
+                    <button
+                      onClick={() => setRangoComparativa("60d")}
+                      className={`px-3 py-1.5 rounded text-[10px] font-bold tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+                        rangoComparativa === "60d"
+                          ? "bg-emerald-950/40 text-emerald-400 border border-emerald-500/20"
+                          : "text-gray-500 hover:text-gray-300 border border-transparent"
+                      }`}
+                    >
+                      2 Meses
+                    </button>
+                    <button
+                      onClick={() => setRangoComparativa("90d")}
+                      className={`px-3 py-1.5 rounded text-[10px] font-bold tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+                        rangoComparativa === "90d"
+                          ? "bg-emerald-950/40 text-emerald-400 border border-emerald-500/20"
+                          : "text-gray-500 hover:text-gray-300 border border-transparent"
+                      }`}
+                    >
+                      3 Meses
+                    </button>
+                  </div>
+
+                </div>
+
+                {/* LineChart with toggleable ReferenceLines */}
+                <div className="w-full">
+                  <ResponsiveContainer width="100%" height={260}>
+                    <LineChart data={statsData.comparativa?.chartData || []} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
+                      <XAxis dataKey="fecha" stroke="#4b5563" fontSize={10} tickLine={false} />
+                      <YAxis stroke="#4b5563" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `€${val}`} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#18191b", borderColor: "#374151", borderRadius: "8px" }}
+                        labelStyle={{ color: "#9ca3af", fontWeight: "bold", fontSize: "11px" }}
+                        itemStyle={{ fontSize: "12px" }}
+                        formatter={(value: any, name: any) => [
+                          `€${parseFloat(value).toFixed(2)}`,
+                          name === "valorTotal" ? "Valor de Colección" : name
+                        ]}
+                      />
+                      
+                      {/* Price Evolution Line */}
+                      <Line 
+                        type="monotone" 
+                        dataKey="valorTotal" 
+                        stroke="#10b981" 
+                        strokeWidth={2.5} 
+                        dot={false} 
+                        activeDot={{ r: 6 }} 
+                        name="Valor de Mercado" 
+                      />
+                      
+                      {/* Average Reference Line */}
+                      {showMedio && statsData.comparativa && (
+                        <ReferenceLine 
+                          y={statsData.comparativa.precioMedio} 
+                          stroke="#fbbf24" 
+                          strokeWidth={1.5}
+                          strokeDasharray="4 4" 
+                          label={{ 
+                            value: `Media: €${statsData.comparativa.precioMedio.toFixed(2)}`, 
+                            fill: '#fbbf24', 
+                            position: 'insideTopLeft',
+                            fontSize: 9,
+                            fontWeight: 'bold',
+                            offset: 10
+                          }} 
+                        />
+                      )}
+
+                      {/* Maximum Reference Line */}
+                      {showMaximo && statsData.comparativa && (
+                        <ReferenceLine 
+                          y={statsData.comparativa.precioMaximo} 
+                          stroke="#f43f5e" 
+                          strokeWidth={1.5}
+                          strokeDasharray="4 4" 
+                          label={{ 
+                            value: `Máximo: €${statsData.comparativa.precioMaximo.toFixed(2)}`, 
+                            fill: '#f43f5e', 
+                            position: 'insideTopLeft',
+                            fontSize: 9,
+                            fontWeight: 'bold',
+                            offset: 10
+                          }} 
+                        />
+                      )}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+              </div>
+            )}
+
             {/* Pestaña: Región */}
             {activeTab === "region" && (
               <div className="space-y-6 animate-[fadeIn_0.3s_ease-out] w-full">
@@ -430,7 +608,12 @@ function getEmptyData() {
     region: [],
     sistemas: [],
     estado: [],
-    backlog: []
+    backlog: [],
+    comparativa: {
+      precioActual: 0,
+      precioMedio: 0,
+      precioMaximo: 0
+    }
   };
 }
 

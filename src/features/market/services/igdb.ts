@@ -35,3 +35,35 @@ export async function searchGamesIGDB(query: string) {
     coverUrl: game.cover?.url ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` : null
   }));
 }
+
+export async function getGameByIdIGDB(gameId: number) {
+  if (!gameId) return null;
+
+  const response = await fetch(IGDB_URL, {
+    method: "POST",
+    headers: {
+      "Client-ID": process.env.IGDB_CLIENT_ID!,
+      "Authorization": `Bearer ${process.env.IGDB_ACCESS_TOKEN!}`,
+      "Accept": "application/json",
+    },
+    body: `where id = ${gameId}; fields name, cover.url, platforms.name, first_release_date;`,
+  });
+
+  if (!response.ok) {
+    console.error("IGDB ID Lookup Error:", await response.text());
+    return null;
+  }
+
+  const data = await response.json();
+  if (data && data.length > 0) {
+    const game = data[0];
+    return {
+      id: game.id,
+      name: game.name,
+      releaseDate: game.first_release_date ? new Date(game.first_release_date * 1000).toISOString() : null,
+      platforms: game.platforms?.map((p: any) => p.name) || [],
+      coverUrl: game.cover?.url ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` : null
+    };
+  }
+  return null;
+}
