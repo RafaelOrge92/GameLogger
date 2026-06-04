@@ -297,11 +297,33 @@ export default function Navbar({ user }: { user: any }) {
                   Salir
                 </button>
                 <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 cursor-default"
-                  style={{ backgroundColor: 'var(--accent)', color: '#0d1117' }}
+                  className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-sm font-semibold shrink-0 cursor-default border border-gray-800 bg-[#0f0f10]"
                   title={getUserName(user)}
                 >
-                  {getInitials(user)}
+                  {user?.user_metadata?.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                      onError={e => {
+                        e.currentTarget.style.display = "none";
+                        const fb = document.getElementById("nav-avatar-fallback");
+                        if (fb) fb.style.display = "flex";
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    id="nav-avatar-fallback"
+                    className="w-full h-full flex items-center justify-center"
+                    style={{
+                      backgroundColor: 'var(--accent)',
+                      color: '#0d1117',
+                      display: user?.user_metadata?.avatar_url ? "none" : "flex"
+                    }}
+                  >
+                    {getInitials(user)}
+                  </div>
                 </div>
               </div>
             ) : (

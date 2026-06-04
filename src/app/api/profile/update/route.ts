@@ -11,7 +11,16 @@ async function handleUpdate(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { username, avatar_url, favorite_console, bio, favorite_game_id, crown_jewel_id } = body;
+    const { username, avatar_url, favorite_console, bio, favorite_game_id, crown_jewel_id, is_value_public } = body;
+
+    // Validate username is not empty
+    if (!username || typeof username !== "string" || !username.trim()) {
+      return NextResponse.json(
+        { error: "El nombre de usuario no puede estar vacío." },
+        { status: 400 }
+      );
+    }
+    const formattedUsername = username.trim();
 
     // Validate bio length
     if (bio && bio.length > 150) {
@@ -25,12 +34,13 @@ async function handleUpdate(req: NextRequest) {
     const { error: updateError } = await supabase
       .from("profiles")
       .update({
-        username,
+        username: formattedUsername,
         avatar_url,
         favorite_console,
         bio,
         favorite_game_id: favorite_game_id ? Number(favorite_game_id) : null,
         crown_jewel_id: crown_jewel_id ? Number(crown_jewel_id) : null,
+        is_value_public: is_value_public !== undefined ? !!is_value_public : false,
       })
       .eq("id", user.id);
 
@@ -51,11 +61,15 @@ async function handleUpdate(req: NextRequest) {
       );
     }
 
-    // Also update raw user metadata in auth.users if username changes
-    // This keeps the profile sync state clean for Navbar initials, etc.
-    if (username) {
+    // Also update raw user metadata in auth.users if username or avatar_url changes
+    // This keeps the profile sync state clean for Navbar initials and avatar image.
+    if (formattedUsername || avatar_url !== undefined) {
+      const updateData: Record<string, any> = {};
+      if (formattedUsername) updateData.full_name = formattedUsername;
+      if (avatar_url !== undefined) updateData.avatar_url = avatar_url;
+
       await supabase.auth.updateUser({
-        data: { full_name: username }
+        data: updateData
       });
     }
 
