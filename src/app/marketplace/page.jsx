@@ -1,165 +1,89 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
-// Mock Data representing various marketplace listings from the community
-const MOCK_OFFERS = [
-  {
-    id: "off-1",
-    game_id: 119133,
-    title: "Chrono Trigger",
-    platform: "SNES",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co87df.jpg",
-    condition_state: "cib",
-    region: "PAL-ES",
-    offer_type: "both",
-    price_wanted: 320,
-    created_at: "2026-06-04T12:00:00Z",
-    user: {
-      username: "RetroLegend",
-      avatar_url: ""
-    }
-  },
-  {
-    id: "off-2",
-    game_id: 68,
-    title: "Final Fantasy VII",
-    platform: "PlayStation",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/cobn9o.jpg",
-    condition_state: "cib",
-    region: "PAL-ES",
-    offer_type: "sell",
-    price_wanted: 65,
-    created_at: "2026-06-04T15:30:00Z",
-    user: {
-      username: "friendTest",
-      avatar_url: ""
-    }
-  },
-  {
-    id: "off-3",
-    game_id: 40,
-    title: "Zelda: Ocarina of Time",
-    platform: "Nintendo 64",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co3nnx.jpg",
-    condition_state: "loose",
-    region: "NTSC-U",
-    offer_type: "trade",
-    price_wanted: null,
-    created_at: "2026-06-03T18:45:00Z",
-    user: {
-      username: "ZeldaFan",
-      avatar_url: ""
-    }
-  },
-  {
-    id: "off-4",
-    game_id: 29,
-    title: "Castlevania: Symphony of the Night",
-    platform: "PlayStation",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co53m8.jpg",
-    condition_state: "sealed",
-    region: "PAL-ES",
-    offer_type: "both",
-    price_wanted: 350,
-    created_at: "2026-06-04T09:15:00Z",
-    user: {
-      username: "Alucard",
-      avatar_url: ""
-    }
-  },
-  {
-    id: "off-5",
-    game_id: 33,
-    title: "Metal Gear Solid",
-    platform: "PlayStation",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/cobpao.jpg",
-    condition_state: "cib",
-    region: "PAL-ES",
-    offer_type: "sell",
-    price_wanted: 55,
-    created_at: "2026-06-05T08:20:00Z",
-    user: {
-      username: "Solidsnake",
-      avatar_url: ""
-    }
-  },
-  {
-    id: "off-6",
-    game_id: 75,
-    title: "Metroid Prime",
-    platform: "GameCube",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co6m4m.jpg",
-    condition_state: "loose",
-    region: "NTSC-J",
-    offer_type: "trade",
-    price_wanted: null,
-    created_at: "2026-06-02T11:10:00Z",
-    user: {
-      username: "Samus",
-      avatar_url: ""
-    }
-  },
-  {
-    id: "off-7",
-    game_id: 68,
-    title: "Super Mario Sunshine",
-    platform: "GameCube",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co68sg.jpg",
-    condition_state: "cib",
-    region: "PAL-ES",
-    offer_type: "sell",
-    price_wanted: 45,
-    created_at: "2026-06-05T10:15:00Z",
-    user: {
-      username: "RetroGamer88",
-      avatar_url: ""
-    }
-  },
-  {
-    id: "off-8",
-    game_id: 54,
-    title: "Pokémon Stadium",
-    platform: "Nintendo 64",
-    coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1yyd.jpg",
-    condition_state: "loose",
-    region: "PAL-UK",
-    offer_type: "sell",
-    price_wanted: 70,
-    created_at: "2026-06-01T14:00:00Z",
-    user: {
-      username: "KantoCollector",
-      avatar_url: ""
-    }
-  }
-];
+const REGIONS = ["all", "PAL-ES", "NTSC-U", "NTSC-J", "PAL-UK", "PAL-FR", "PAL-DE"];
+
+// Simple loading skeleton card to match RetroLogger design
+const SkeletonCard = () => (
+  <div className="bg-bg-surface border border-border rounded-xl overflow-hidden animate-pulse flex flex-col h-full">
+    <div className="aspect-[3/4] bg-neutral-800" />
+    <div className="p-4 flex-1 flex flex-col justify-between">
+      <div>
+        <div className="h-3 bg-neutral-800 rounded w-1/4 mb-2" />
+        <div className="h-5 bg-neutral-800 rounded w-3/4 mb-3" />
+        <div className="h-6 bg-neutral-800 rounded w-1/2" />
+      </div>
+      <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full bg-neutral-800" />
+          <div className="h-3 bg-neutral-800 rounded w-16" />
+        </div>
+        <div className="h-3 bg-neutral-800 rounded w-8" />
+      </div>
+    </div>
+  </div>
+);
 
 export default function MarketplacePage() {
+  // Real Data & Loading States
+  const [offers, setOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   // Filter States
   const [offerType, setOfferType] = useState("all"); // all, sell, trade, both
   const [condition, setCondition] = useState("all"); // all, loose, cib, sealed
   const [region, setRegion] = useState("all"); // all, PAL-ES, NTSC-U, etc.
 
-  // Extract unique regions for the dropdown dynamically
-  const uniqueRegions = ["all", ...new Set(MOCK_OFFERS.map((o) => o.region))];
+  // Fetch offers dynamically based on chosen filters
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchOffers() {
+      setLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        if (offerType && offerType !== "all") {
+          queryParams.append("offer_type", offerType);
+        }
+        if (condition && condition !== "all") {
+          queryParams.append("condition_state", condition);
+        }
+        if (region && region !== "all") {
+          queryParams.append("region", region);
+        }
 
-  // Filtering Logic
-  const filteredOffers = MOCK_OFFERS.filter((offer) => {
-    const matchesType =
-      offerType === "all" ||
-      (offerType === "sell" && (offer.offer_type === "sell" || offer.offer_type === "both")) ||
-      (offerType === "trade" && (offer.offer_type === "trade" || offer.offer_type === "both"));
+        const response = await fetch(`/api/marketplace/offers?${queryParams.toString()}`);
+        if (response.ok && isMounted) {
+          const data = await response.json();
+          setOffers(Array.isArray(data) ? data : []);
+        } else if (isMounted) {
+          setOffers([]);
+        }
+      } catch (error) {
+        console.error("Error fetching marketplace offers:", error);
+        if (isMounted) setOffers([]);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
 
-    const matchesCondition =
-      condition === "all" || offer.condition_state === condition;
+    fetchOffers();
 
-    const matchesRegion =
-      region === "all" || offer.region === region;
+    return () => {
+      isMounted = false;
+    };
+  }, [offerType, condition, region]);
 
-    return matchesType && matchesCondition && matchesRegion;
-  });
+  // Reset Filters handler
+  const handleResetFilters = () => {
+    setOfferType("all");
+    setCondition("all");
+    setRegion("all");
+  };
 
   return (
     <div className="w-full">
@@ -243,30 +167,43 @@ export default function MarketplacePage() {
               className="w-full bg-bg-base border border-border hover:border-gray-700 text-text-primary px-3.5 py-2 rounded-lg text-xs focus:border-emerald-500 focus:outline-none transition-colors duration-150 cursor-pointer uppercase"
             >
               <option value="all">Región: Todas</option>
-              {uniqueRegions
-                .filter((r) => r !== "all")
-                .map((reg) => (
-                  <option key={reg} value={reg}>
-                    {reg}
-                  </option>
-                ))}
+              {REGIONS.filter((r) => r !== "all").map((reg) => (
+                <option key={reg} value={reg}>
+                  {reg}
+                </option>
+              ))}
             </select>
           </div>
         </div>
       </div>
 
-      {/* Dynamic Offers Grid */}
-      {filteredOffers.length === 0 ? (
-        <div className="bg-bg-surface border border-border/80 border-dashed rounded-xl p-12 text-center text-text-secondary max-w-lg mx-auto mt-8">
+      {/* Main Content Area */}
+      {loading ? (
+        /* Loading Skeletons Grid */
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, idx) => (
+            <SkeletonCard key={idx} />
+          ))}
+        </div>
+      ) : offers.length === 0 ? (
+        /* Empty State with reset filters button */
+        <div className="bg-bg-surface border border-border/80 border-dashed rounded-xl p-12 text-center max-w-lg mx-auto mt-8 flex flex-col items-center">
           <div className="text-4xl mb-3">🔍</div>
           <h3 className="text-white font-bold text-lg mb-1">No se encontraron anuncios</h3>
-          <p className="text-xs">
-            Prueba a cambiar los filtros de tipo de oferta, estado o región.
+          <p className="text-xs text-text-secondary mb-4">
+            No hay ofertas disponibles con los filtros seleccionados.
           </p>
+          <button
+            onClick={handleResetFilters}
+            className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-lg text-xs font-bold transition-all active:scale-[0.98] cursor-pointer"
+          >
+            Restablecer filtros
+          </button>
         </div>
       ) : (
+        /* Dynamic Offers Grid */
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {filteredOffers.map((offer) => {
+          {offers.map((offer) => {
             // Setup Badge styles for visual clarity
             let offerBadgeClass = "";
             let offerBadgeText = "";
@@ -350,7 +287,9 @@ export default function MarketplacePage() {
                         </div>
                       ) : (
                         <div className="text-2xl font-black text-white font-mono leading-none">
-                          {offer.price_wanted.toFixed(2).replace(".", ",")}{" "}
+                          {offer.price_wanted !== null && typeof offer.price_wanted === "number"
+                            ? `${offer.price_wanted.toFixed(2).replace(".", ",")}`
+                            : "0,00"}{" "}
                           <span className="text-sm font-semibold text-text-secondary">€</span>
                         </div>
                       )}
