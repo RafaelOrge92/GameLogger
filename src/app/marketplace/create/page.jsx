@@ -1,85 +1,87 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useDebounce } from "@/hooks/useDebounce";
-import { searchGamesIGDB } from "@/features/market/services/igdb";
 
 const REGIONS = ["PAL-ES", "NTSC-U", "NTSC-J", "PAL-UK", "PAL-FR", "PAL-DE"];
 const CONDITIONS = [
   { value: "loose", label: "Loose", desc: "Solo cartucho/disco, sin caja" },
-  { value: "cib", label: "CIB", desc: "Completo en caja (Complete In Box)" },
-  { value: "sealed", label: "Sealed", desc: "Nuevo / sin abrir / precintado" },
+  { value: "cib",   label: "CIB",   desc: "Completo en caja (Complete In Box)" },
+  { value: "sealed",label: "Sealed",desc: "Nuevo / sin abrir / precintado" },
 ];
 const OFFER_TYPES = [
-  { value: "sell", label: "Venta", icon: "💶", desc: "Quiero venderlo" },
+  { value: "sell",  label: "Venta",       icon: "💶", desc: "Quiero venderlo" },
   { value: "trade", label: "Intercambio", icon: "🔄", desc: "Quiero cambiarlo" },
-  { value: "both", label: "Ambos", icon: "⚡", desc: "Venta o intercambio" },
+  { value: "both",  label: "Ambos",       icon: "⚡", desc: "Venta o intercambio" },
 ];
+
+// Loading skeleton for collection items
+const SkeletonItem = () => (
+  <div className="flex items-center gap-3 p-3 rounded-lg bg-bg-elevated border border-border animate-pulse">
+    <div className="w-10 h-14 rounded bg-neutral-800 shrink-0" />
+    <div className="flex-1 space-y-2">
+      <div className="h-3.5 bg-neutral-800 rounded w-3/4" />
+      <div className="h-2.5 bg-neutral-800 rounded w-1/3" />
+    </div>
+  </div>
+);
 
 export default function CreateOfferPage() {
   const router = useRouter();
 
-  // Game search
-  const [gameQuery, setGameQuery] = useState("");
-  const [gameResults, setGameResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showGameDropdown, setShowGameDropdown] = useState(false);
-  const [selectedGame, setSelectedGame] = useState(null);
-  const dropdownRef = useRef(null);
-  const debouncedQuery = useDebounce(gameQuery, 400);
+  // Collection state
+  const [collection, setCollection]     = useState([]);
+  const [loadingCollection, setLoadingCollection] = useState(true);
+  const [collectionError, setCollectionError]     = useState(null);
+  const [gameSearch, setGameSearch]               = useState("");
+  const [selectedGame, setSelectedGame]           = useState(null);
 
   // Form fields
   const [condition, setCondition] = useState("");
-  const [region, setRegion] = useState("");
+  const [region, setRegion]       = useState("");
   const [offerType, setOfferType] = useState("");
-  const [price, setPrice] = useState("");
+  const [price, setPrice]         = useState("");
 
   // Submission
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
+  const [submitError, setSubmitError]   = useState(null);
 
-  // Close dropdown on outside click
+  // Fetch user's collection on mount
   useEffect(() => {
-    function handleOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setShowGameDropdown(false);
-      }
-    }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
+    setLoadingCollection(true);
+    fetch("/api/collection/list")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCollection(data);
+        } else {
+          setCollectionError(data.error || "No se pudo cargar la colección.");
+        }
+      })
+      .catch(() => setCollectionError("Error de red al cargar la colección."))
+      .finally(() => setLoadingCollection(false));
   }, []);
 
-  // IGDB search
-  useEffect(() => {
-    if (!debouncedQuery.trim() || selectedGame) {
-      setGameResults([]);
-      setShowGameDropdown(false);
-      return;
-    }
-    setIsSearching(true);
-    setShowGameDropdown(true);
+  // Filtered collection by search query
+  const filteredCollection = useMemo(() => {
+    if (!gameSearch.trim()) return collection;
+    const q = gameSearch.toLowerCase();
+    return collection.filter(
+      (item) =>
+        item.title?.toLowerCase().includes(q) ||
+        item.platform?.toLowerCase().includes(q)
+    );
+  }, [collection, gameSearch]);
 
-    searchGamesIGDB(debouncedQuery)
-      .then((data) => {
-        setGameResults(Array.isArray(data) ? data : []);
-      })
-      .catch(() => setGameResults([]))
-      .finally(() => setIsSearching(false));
-  }, [debouncedQuery, selectedGame]);
-
-  const handleSelectGame = (game) => {
-    setSelectedGame(game);
-    setGameQuery(game.name);
-    setShowGameDropdown(false);
-    setGameResults([]);
+  const handleSelectGame = (item) => {
+    setSelectedGame(item);
+    setGameSearch("");
   };
 
   const handleClearGame = () => {
     setSelectedGame(null);
-    setGameQuery("");
   };
 
   const needsPrice = offerType === "sell" || offerType === "both";
@@ -100,7 +102,7 @@ export default function CreateOfferPage() {
 
     try {
       const body = {
-        game_id: selectedGame.id,
+        game_id: Number(selectedGame.game_id),
         condition_state: condition,
         region,
         offer_type: offerType,
@@ -120,7 +122,7 @@ export default function CreateOfferPage() {
         return;
       }
 
-      // Success — redirect to marketplace
+      // Success — go back to marketplace
       router.push("/marketplace");
       router.refresh();
     } catch {
@@ -153,20 +155,20 @@ export default function CreateOfferPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* Step 1 — Game search */}
+        {/* ── Step 1 — Pick from your collection ── */}
         <div className="bg-bg-surface border border-border rounded-xl p-5">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
             <span className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">1</span>
-            Selecciona el juego
+            Selecciona el juego de tu colección
           </h2>
 
           {selectedGame ? (
-            /* Selected game preview */
+            /* Selected game preview card */
             <div className="flex items-center gap-4 p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/20">
-              {selectedGame.coverUrl ? (
+              {selectedGame.cover_url ? (
                 <img
-                  src={selectedGame.coverUrl}
-                  alt={selectedGame.name}
+                  src={selectedGame.cover_url}
+                  alt={selectedGame.title}
                   className="w-12 h-16 object-cover rounded shrink-0"
                 />
               ) : (
@@ -175,33 +177,29 @@ export default function CreateOfferPage() {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-white truncate">{selectedGame.name}</p>
-                {selectedGame.platforms?.length > 0 && (
-                  <p className="text-xs text-text-secondary mt-0.5 truncate">
-                    {selectedGame.platforms.slice(0, 3).join(" · ")}
-                  </p>
-                )}
-                {selectedGame.releaseDate && (
-                  <p className="text-[10px] text-text-muted mt-0.5">
-                    {selectedGame.releaseDate.substring(0, 4)}
+                <p className="font-bold text-white truncate">{selectedGame.title}</p>
+                {selectedGame.platform && (
+                  <p className="text-xs text-emerald-400 font-mono font-bold mt-0.5 uppercase">
+                    {selectedGame.platform}
                   </p>
                 )}
               </div>
               <button
                 type="button"
                 onClick={handleClearGame}
-                className="shrink-0 w-7 h-7 rounded-full bg-bg-elevated border border-border hover:border-red-500/30 hover:text-red-400 text-text-muted flex items-center justify-center text-sm transition-all"
+                className="shrink-0 w-7 h-7 rounded-full bg-bg-elevated border border-border hover:border-red-500/30 hover:text-red-400 text-text-muted flex items-center justify-center text-sm transition-all cursor-pointer"
                 title="Cambiar juego"
               >
                 ✕
               </button>
             </div>
           ) : (
-            /* Game search input */
-            <div className="relative" ref={dropdownRef}>
+            /* Collection browser */
+            <div className="space-y-3">
+              {/* Search filter */}
               <div className="relative">
                 <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted pointer-events-none"
                   fill="none" stroke="currentColor" viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -209,63 +207,80 @@ export default function CreateOfferPage() {
                 </svg>
                 <input
                   type="text"
-                  value={gameQuery}
-                  onChange={(e) => setGameQuery(e.target.value)}
-                  onFocus={() => { if (gameResults.length > 0) setShowGameDropdown(true); }}
-                  placeholder="Busca el título del juego..."
-                  className="w-full pl-9 pr-4 py-2.5 rounded-lg text-sm bg-bg-elevated border border-border focus:border-emerald-500 focus:outline-none text-text-primary placeholder:text-text-muted transition-colors"
+                  value={gameSearch}
+                  onChange={(e) => setGameSearch(e.target.value)}
+                  placeholder="Filtrar por título o plataforma..."
+                  className="w-full pl-9 pr-4 py-2 rounded-lg text-sm bg-bg-elevated border border-border focus:border-emerald-500 focus:outline-none text-text-primary placeholder:text-text-muted transition-colors"
                 />
-                {isSearching && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <div className="w-3.5 h-3.5 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
-                  </div>
-                )}
               </div>
 
-              {/* Game dropdown */}
-              {showGameDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 rounded-lg overflow-hidden shadow-2xl border border-border-hover bg-bg-elevated z-50">
-                  {gameResults.length === 0 && !isSearching ? (
-                    <div className="p-4 text-center text-sm text-text-secondary">
-                      Sin resultados para &quot;{gameQuery}&quot;
-                    </div>
-                  ) : (
-                    <ul className="max-h-72 overflow-y-auto py-1">
-                      {gameResults.map((game) => (
-                        <li
-                          key={game.id}
-                          className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-bg-surface transition-colors"
-                          onClick={() => handleSelectGame(game)}
-                        >
-                          {game.coverUrl ? (
-                            <img
-                              src={game.coverUrl}
-                              alt={game.name}
-                              className="w-8 h-11 object-cover rounded shrink-0"
-                            />
-                          ) : (
-                            <div className="w-8 h-11 rounded bg-bg-surface border border-border flex items-center justify-center text-xs shrink-0">
-                              🎮
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-text-primary truncate">{game.name}</p>
-                            <p className="text-[11px] text-text-muted truncate">
-                              {game.releaseDate?.substring(0, 4)}
-                              {game.platforms?.length > 0 && ` · ${game.platforms.slice(0, 2).join(", ")}`}
-                            </p>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+              {/* Collection list */}
+              {loadingCollection ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 4 }).map((_, i) => <SkeletonItem key={i} />)}
                 </div>
+              ) : collectionError ? (
+                <div className="text-center py-6 text-sm text-red-400">
+                  ⚠️ {collectionError}
+                </div>
+              ) : collection.length === 0 ? (
+                <div className="text-center py-8 text-sm text-text-secondary">
+                  <p className="text-2xl mb-2">📦</p>
+                  <p className="font-semibold text-white mb-1">Tu colección está vacía</p>
+                  <p>Añade juegos a tu colección primero para poder publicar anuncios.</p>
+                </div>
+              ) : filteredCollection.length === 0 ? (
+                <div className="text-center py-4 text-sm text-text-muted">
+                  No hay juegos que coincidan con &quot;{gameSearch}&quot;
+                </div>
+              ) : (
+                <div className="max-h-72 overflow-y-auto space-y-1.5 pr-1">
+                  {filteredCollection.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleSelectGame(item)}
+                      className="w-full flex items-center gap-3 p-2.5 rounded-lg bg-bg-elevated border border-border hover:border-emerald-500/30 hover:bg-emerald-950/10 transition-all text-left cursor-pointer"
+                    >
+                      {item.cover_url ? (
+                        <img
+                          src={item.cover_url}
+                          alt={item.title}
+                          className="w-9 h-12 object-cover rounded shrink-0"
+                        />
+                      ) : (
+                        <div className="w-9 h-12 rounded bg-bg-surface border border-border flex items-center justify-center text-xs shrink-0">
+                          🎮
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-text-primary truncate">
+                          {item.title}
+                        </p>
+                        {item.platform && (
+                          <p className="text-[11px] text-emerald-500 font-mono font-bold uppercase mt-0.5">
+                            {item.platform}
+                          </p>
+                        )}
+                      </div>
+                      <svg className="w-4 h-4 text-text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {!loadingCollection && collection.length > 0 && (
+                <p className="text-[11px] text-text-muted text-right">
+                  {filteredCollection.length} de {collection.length} juego{collection.length !== 1 ? "s" : ""}
+                </p>
               )}
             </div>
           )}
         </div>
 
-        {/* Step 2 — Condition */}
+        {/* ── Step 2 — Condition ── */}
         <div className="bg-bg-surface border border-border rounded-xl p-5">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
             <span className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">2</span>
@@ -292,7 +307,7 @@ export default function CreateOfferPage() {
           </div>
         </div>
 
-        {/* Step 3 — Region */}
+        {/* ── Step 3 — Region ── */}
         <div className="bg-bg-surface border border-border rounded-xl p-5">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
             <span className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">3</span>
@@ -316,7 +331,7 @@ export default function CreateOfferPage() {
           </div>
         </div>
 
-        {/* Step 4 — Offer type */}
+        {/* ── Step 4 — Offer type ── */}
         <div className="bg-bg-surface border border-border rounded-xl p-5">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
             <span className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">4</span>
@@ -344,7 +359,7 @@ export default function CreateOfferPage() {
           </div>
         </div>
 
-        {/* Step 5 — Price (conditional) */}
+        {/* ── Step 5 — Price (conditional) ── */}
         {needsPrice && (
           <div className="bg-bg-surface border border-border rounded-xl p-5">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -364,19 +379,19 @@ export default function CreateOfferPage() {
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted font-bold text-sm">€</span>
             </div>
             <p className="text-[11px] text-text-muted mt-2">
-              Introduce el precio de venta. Puedes dejarlo en 0 si es negociable.
+              Introduce el precio. Puedes poner 0 si es negociable.
             </p>
           </div>
         )}
 
-        {/* Error message */}
+        {/* Error */}
         {submitError && (
           <div className="bg-red-950/30 border border-red-500/30 text-red-400 rounded-lg px-4 py-3 text-sm">
             ⚠️ {submitError}
           </div>
         )}
 
-        {/* Submit button */}
+        {/* Submit */}
         <div className="flex items-center justify-end gap-3 pt-2">
           <Link
             href="/marketplace"
@@ -389,7 +404,7 @@ export default function CreateOfferPage() {
             disabled={!isFormValid || isSubmitting}
             className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
               isFormValid && !isSubmitting
-                ? "bg-emerald-500 hover:bg-emerald-400 text-neutral-950 shadow-md shadow-emerald-950/30 hover:scale-[1.01] active:scale-[0.99]"
+                ? "bg-emerald-500 hover:bg-emerald-400 text-neutral-950 shadow-md shadow-emerald-950/30 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                 : "bg-bg-elevated text-text-muted border border-border cursor-not-allowed"
             }`}
           >
