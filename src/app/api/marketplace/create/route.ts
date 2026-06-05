@@ -81,17 +81,17 @@ export async function POST(req: NextRequest) {
         : null;
     }
 
-    // 3. Validation: Verify that the user really owns this game_id in their public.user_collection
+    // 3. Validation: Verify that the user really owns this game_id in their public.collections
     const { data: ownItem, error: checkError } = await supabase
-      .from("user_collection")
+      .from("collections")
       .select("id")
       .eq("user_id", user.id)
-      .eq("game_id", gameIdNum)
+      .eq("game_id", String(gameIdNum))
       .limit(1)
       .maybeSingle();
 
     if (checkError) {
-      console.error("Error checking user ownership in user_collection:", checkError);
+      console.error("Error checking user ownership in collections:", checkError);
       return NextResponse.json(
         { error: "Error en la validación de propiedad de la colección." },
         { status: 500 }

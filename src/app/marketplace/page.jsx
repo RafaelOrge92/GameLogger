@@ -321,7 +321,17 @@ export default function MarketplacePage() {
 
                     {/* Quick Info text */}
                     <span className="text-[10px] text-text-muted font-medium">
-                      Hace {new Date(offer.created_at).getDate() % 2 === 0 ? "1d" : "unas h"}
+                      {(() => {
+                        const diff = Date.now() - new Date(offer.created_at).getTime();
+                        const mins = Math.floor(diff / 60000);
+                        if (mins < 60) return `Hace ${mins || 1}m`;
+                        const hours = Math.floor(mins / 60);
+                        if (hours < 24) return `Hace ${hours}h`;
+                        const days = Math.floor(hours / 24);
+                        if (days < 30) return `Hace ${days}d`;
+                        const months = Math.floor(days / 30);
+                        return `Hace ${months} mes${months > 1 ? "es" : ""}`;
+                      })()}
                     </span>
                   </div>
                 </div>

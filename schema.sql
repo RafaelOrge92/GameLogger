@@ -88,3 +88,62 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- ==========================================
+-- 6. Marketplace — P2P Offers Table
+-- ==========================================
+
+-- ENUMs for marketplace
+CREATE TYPE offer_type_enum      AS ENUM ('sell', 'trade', 'both');
+CREATE TYPE offer_status_enum    AS ENUM ('active', 'sold', 'cancelled');
+CREATE TYPE condition_state_enum AS ENUM ('loose', 'cib', 'sealed');
+
+CREATE TABLE public.marketplace_offers (
+  id              UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id         UUID        REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  game_id         BIGINT      NOT NULL,                  -- IGDB numeric game ID
+  condition_state condition_state_enum NOT NULL,
+  region          TEXT        NOT NULL,
+  offer_type      offer_type_enum      NOT NULL,
+  price_wanted    DECIMAL(10, 2),                        -- NULL for trade-only offers
+  status          offer_status_enum    NOT NULL DEFAULT 'active',
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE public.marketplace_offers ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+CREATE POLICY "Active offers are viewable by everyone."
+  ON public.marketplace_offers FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert their own offers."
+  ON public.marketplace_offers FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own offers."
+  ON public.marketplace_offers FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own offers."
+  ON public.marketplace_offers FOR DELETE USING (auth.uid() = user_id);
+
+-- Indexes for common query patterns
+CREATE INDEX idx_marketplace_offers_user_id    ON public.marketplace_offers(user_id);
+CREATE INDEX idx_marketplace_offers_game_id    ON public.marketplace_offers(game_id);
+CREATE INDEX idx_marketplace_offers_status     ON public.marketplace_offers(status);
+CREATE INDEX idx_marketplace_offers_offer_type ON public.marketplace_offers(offer_type);
+CREATE INDEX idx_marketplace_offers_created_at ON public.marketplace_offers(created_at DESC);
+
+-- Trigger to auto-update the updated_at timestamp on row changes
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER marketplace_offers_updated_at
+  BEFORE UPDATE ON public.marketplace_offers
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+
