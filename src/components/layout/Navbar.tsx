@@ -9,6 +9,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import GameModal from "@/components/layout/GameModal";
 import { addGameToCollection } from "@/features/collection/actions";
 import { useToast } from "@/context/ToastContext";
+import UserSearch from "@/components/UserSearch";
 
 const NAV_LINKS = [
   { href: "/", label: "Mi Colección" },
@@ -177,6 +178,11 @@ export default function Navbar({ user }: { user: any }) {
 
             {/* Spacer */}
             <div className="flex-1" />
+
+            {/* User Search (Collectors) */}
+            <div className="hidden md:block w-48 lg:w-56 shrink-0">
+              <UserSearch />
+            </div>
 
             {/* Search */}
             <div className="relative w-56 sm:w-72" ref={dropdownRef}>
@@ -352,30 +358,35 @@ export default function Navbar({ user }: { user: any }) {
 
           {/* Mobile menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden pb-3 space-y-1">
-              {NAV_LINKS.map(link => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="block px-3 py-2 rounded-md text-sm"
-                  style={{
-                    color: pathname === link.href ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    backgroundColor: pathname === link.href ? 'var(--bg-elevated)' : 'transparent',
-                  }}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              {user && (
-                <button
-                  onClick={handleSignOut}
-                  className="block w-full text-left px-3 py-2 rounded-md text-sm"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
-                  Cerrar sesión
-                </button>
-              )}
+            <div className="md:hidden pb-3 space-y-3 px-3">
+              <div className="pt-2">
+                <UserSearch />
+              </div>
+              <div className="space-y-1">
+                {NAV_LINKS.map(link => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="block px-3 py-2 rounded-md text-sm"
+                    style={{
+                      color: pathname === link.href ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      backgroundColor: pathname === link.href ? 'var(--bg-elevated)' : 'transparent',
+                    }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                {user && (
+                  <button
+                    onClick={handleSignOut}
+                    className="block w-full text-left px-3 py-2 rounded-md text-sm"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    Cerrar sesión
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>

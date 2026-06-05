@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import UserSearch from "@/components/UserSearch";
 
 export default function Sidebar({ user }: { user: any }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -42,13 +41,6 @@ export default function Sidebar({ user }: { user: any }) {
           <h1 className="text-[#ff6b00] font-retro text-2xl tracking-widest">GT</h1>
         )}
       </div>
-
-      {/* 🔍 EL BUSCADOR COHERENTE */}
-      {isExpanded && (
-        <div className="px-3 pt-6 shrink-0">
-          <UserSearch />
-        </div>
-      )}
 
       {/* Navigation Links */}
       <nav className="flex-1 py-8 px-3 space-y-4 overflow-hidden">
