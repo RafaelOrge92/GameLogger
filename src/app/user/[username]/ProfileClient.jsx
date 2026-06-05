@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { followUser, unfollowUser } from "@/features/social/actions";
 import { useToast } from "@/context/ToastContext";
 import Link from "next/link";
 
@@ -25,6 +24,7 @@ const CONDITION_META = {
 export default function ProfileClient({
   profile,
   initialIsFollowing,
+  initialFollowerCount = 0,
   currentUser,
   collection,
   stats,
@@ -32,6 +32,7 @@ export default function ProfileClient({
   crownJewel
 }) {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
+  const [followerCount, setFollowerCount] = useState(initialFollowerCount);
   const [isLoadingFollow, setIsLoadingFollow] = useState(false);
   const { showToast } = useToast();
 
@@ -44,29 +45,52 @@ export default function ProfileClient({
     }
     
     setIsLoadingFollow(true);
+    const prevIsFollowing = isFollowing;
+    const prevCount = followerCount;
+
+    // Optimistic Update
+    setIsFollowing(!prevIsFollowing);
+    setFollowerCount(prevIsFollowing ? Math.max(0, prevCount - 1) : prevCount + 1);
+
     try {
-      if (isFollowing) {
-        const res = await unfollowUser(profile.id);
-        if (res.success) {
+      const response = await fetch("/api/user/follow", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ following_id: profile.id })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === "followed") {
+          setIsFollowing(true);
+          showToast(`¡Ahora sigues a ${profile.username || "este usuario"}!`, "success");
+        } else if (data.status === "unfollowed") {
           setIsFollowing(false);
           showToast(`Dejaste de seguir a ${profile.username || "este usuario"}`, "success");
         } else {
-          showToast(res.error || "Ocurrió un error.", "error");
+          // Revert on unexpected status
+          setIsFollowing(prevIsFollowing);
+          setFollowerCount(prevCount);
+          showToast(data.error || "Ocurrió un error.", "error");
         }
       } else {
-        const res = await followUser(profile.id);
-        if (res.success) {
-          setIsFollowing(true);
-          showToast(`¡Ahora sigues a ${profile.username || "este usuario"}!`, "success");
-        } else {
-          showToast(res.error || "Ocurrió un error.", "error");
-        }
+        const data = await response.json().catch(() => ({}));
+        setIsFollowing(prevIsFollowing);
+        setFollowerCount(prevCount);
+        showToast(data.error || "Error al procesar la acción de seguimiento.", "error");
       }
     } catch (error) {
       console.error(error);
+      setIsFollowing(prevIsFollowing);
+      setFollowerCount(prevCount);
       showToast("Error de conexión al procesar la acción.", "error");
     } finally {
-      setIsLoadingFollow(false);
+      // Disable the button for exactly 1 second to prevent double clicks
+      setTimeout(() => {
+        setIsLoadingFollow(false);
+      }, 1000);
     }
   };
 
@@ -123,8 +147,10 @@ export default function ProfileClient({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[var(--text-muted)] font-medium">
-                Miembro desde {profile.created_at ? new Date(profile.created_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' }) : 'Recientemente'}
+              <p className="text-xs text-[var(--text-muted)] font-medium flex flex-wrap items-center justify-center md:justify-start gap-2 mt-1">
+                <span>Miembro desde {profile.created_at ? new Date(profile.created_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' }) : 'Recientemente'}</span>
+                <span className="text-gray-600 hidden sm:inline">•</span>
+                <span className="text-emerald-400 font-bold">{followerCount} {followerCount === 1 ? "seguidor" : "seguidores"}</span>
               </p>
             </div>
 
@@ -144,18 +170,18 @@ export default function ProfileClient({
                 <button
                   onClick={handleFollowToggle}
                   disabled={isLoadingFollow}
-                  className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-xs font-black tracking-wider uppercase transition-all duration-300 active:scale-[0.97] cursor-pointer disabled:opacity-50 ${
+                  className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-xs font-black tracking-wider uppercase transition-all duration-300 active:scale-[0.97] cursor-pointer disabled:opacity-75 ${
                     isFollowing
-                      ? "btn-secondary text-[var(--text-primary)] border-emerald-500/30 hover:border-emerald-500"
-                      : "btn-primary text-emerald-950 shadow-[0_0_15px_rgba(67,185,79,0.25)] hover:shadow-[0_0_25px_rgba(67,185,79,0.4)]"
+                      ? "bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700/60"
+                      : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.2)]"
                   }`}
                 >
                   {isLoadingFollow ? (
                     <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   ) : isFollowing ? (
-                    <span>[ Siguiendo ]</span>
+                    <span>Siguiendo</span>
                   ) : (
-                    <span>[ Seguir ]</span>
+                    <span>Seguir</span>
                   )}
                 </button>
               )}

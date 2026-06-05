@@ -35,6 +35,7 @@ export default async function UserProfilePage({ params }) {
   let displayFav = null;
   let displayCrown = null;
   let isFollowing = false;
+  let followerCount = 0;
   let currentUser = null;
 
   // Fetch current visitor session (does NOT expose collection data, just identity)
@@ -95,6 +96,7 @@ export default async function UserProfilePage({ params }) {
     
     // Simulate isFollowing state locally
     isFollowing = false;
+    followerCount = 42;
   } else {
     // REAL PROFILE RESOLVED
     displayProfile = profile;
@@ -103,6 +105,13 @@ export default async function UserProfilePage({ params }) {
     if (currentUser) {
       isFollowing = await checkFollowStatus(profile.id);
     }
+
+    // Fetch follower count using admin client (bypasses RLS)
+    const { count: followsCount } = await adminSupabase
+      .from("follows")
+      .select("*", { count: "exact", head: true })
+      .eq("following_id", profile.id);
+    followerCount = followsCount || 0;
 
     // 2. Fetch collections (status, platform, title, cover_url) — admin bypass for public view
     const { data: colls } = await adminSupabase
@@ -206,6 +215,7 @@ export default async function UserProfilePage({ params }) {
       <ProfileClient
         profile={displayProfile}
         initialIsFollowing={isFollowing}
+        initialFollowerCount={followerCount}
         currentUser={currentUser}
         collection={displayCollection}
         stats={displayStats}

@@ -637,6 +637,7 @@ export default function SettingsPage() {
             <ProfileClient
               profile={displayProfile}
               initialIsFollowing={false}
+              initialFollowerCount={0}
               currentUser={currentUserState}
               collection={myCollection}
               stats={stats}
