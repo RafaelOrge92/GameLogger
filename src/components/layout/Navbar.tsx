@@ -12,9 +12,9 @@ import { useToast } from "@/context/ToastContext";
 import UserSearch from "@/components/UserSearch";
 
 const NAV_LINKS = [
-  { href: "/", label: "Mi Colección" },
-  { href: "/stats", label: "Estadísticas" },
-  { href: "/hunt", label: "Alertas de Caza" },
+  { href: "/", label: "Dashboard" },
+  { href: "/marketplace", label: "Mercado" },
+  { href: "/dashboard/settings", label: "Mi Perfil" },
 ];
 
 export default function Navbar({ user }: { user: any }) {
@@ -151,26 +151,23 @@ export default function Navbar({ user }: { user: any }) {
             </Link>
 
             {/* Nav links — desktop */}
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden md:flex items-center h-full">
               {NAV_LINKS.map((link) => {
                 const isActive = pathname === link.href;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-                    style={{
-                      color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      backgroundColor: isActive ? 'var(--bg-elevated)' : 'transparent',
-                    }}
-                    onMouseEnter={e => {
-                      if (!isActive) (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
-                    }}
-                    onMouseLeave={e => {
-                      if (!isActive) (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
-                    }}
+                    className={`px-3.5 h-full flex items-center text-sm font-semibold relative transition-colors duration-150 ${
+                      isActive
+                        ? "text-emerald-400 font-bold"
+                        : "text-gray-400 hover:text-white"
+                    }`}
                   >
-                    {link.label}
+                    <span>{link.label}</span>
+                    {isActive && (
+                      <span className="absolute bottom-0 left-3.5 right-3.5 h-0.5 bg-emerald-500 rounded-full" />
+                    )}
                   </Link>
                 );
               })}
@@ -363,20 +360,23 @@ export default function Navbar({ user }: { user: any }) {
                 <UserSearch />
               </div>
               <div className="space-y-1">
-                {NAV_LINKS.map(link => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="block px-3 py-2 rounded-md text-sm"
-                    style={{
-                      color: pathname === link.href ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      backgroundColor: pathname === link.href ? 'var(--bg-elevated)' : 'transparent',
-                    }}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                {NAV_LINKS.map((link) => {
+                  const isActive = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActive
+                          ? "bg-emerald-950/20 text-emerald-400 border-l-2 border-emerald-500 font-semibold"
+                          : "text-gray-400 hover:bg-gray-800/30 hover:text-white"
+                      }`}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
                 {user && (
                   <button
                     onClick={handleSignOut}
