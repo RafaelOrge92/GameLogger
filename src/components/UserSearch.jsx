@@ -182,45 +182,37 @@ export default function UserSearch() {
                         setIsOpen(false);
                         setQuery("");
                       }}
-                      className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors duration-150 ${
+                      className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors duration-150 ${
                         isSelected 
                           ? "bg-emerald-950/25 text-emerald-400 border-l-2 border-emerald-500" 
                           : "hover:bg-gray-800/40 text-gray-200 hover:text-white"
                       }`}
                       onMouseEnter={() => setSelectedIndex(index)}
                     >
-                      {/* Left side: Avatar + Username */}
-                      <div className="flex items-center gap-3">
-                        {user.avatar_url ? (
-                          <img
-                            src={user.avatar_url}
-                            alt={user.username}
-                            onError={(e) => {
-                              // If avatar fails to load, replace with fallback
-                              e.target.onerror = null;
-                              e.target.src = "/retro_avatar.png";
-                            }}
-                            className="w-8 h-8 rounded-full object-cover border border-gray-800"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xs font-bold text-emerald-400">
-                            {user.username ? user.username.substring(0, 2).toUpperCase() : "U"}
-                          </div>
-                        )}
-                        <span className={`text-sm font-semibold transition-colors ${
-                          isSelected ? "text-emerald-400" : "text-white"
-                        }`}>
-                          {user.username}
-                        </span>
-                      </div>
-
-                      {/* Right side: Favorite Console */}
-                      {user.favorite_console && (
-                        <div className="flex items-center gap-1.5 bg-[#212427]/40 px-2 py-0.5 rounded text-[10px] font-bold text-gray-500 border border-gray-800/30">
-                          <span>🎮</span>
-                          <span>{user.favorite_console}</span>
+                      {/* Avatar */}
+                      {user.avatar_url ? (
+                        <img
+                          src={user.avatar_url}
+                          alt={user.username}
+                          onError={(e) => {
+                            // If avatar fails to load, replace with fallback
+                            e.target.onerror = null;
+                            e.target.src = "/retro_avatar.png";
+                          }}
+                          className="w-10 h-10 rounded-full object-cover border border-gray-800 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-sm font-bold text-emerald-400 shrink-0">
+                          {user.username ? user.username.substring(0, 2).toUpperCase() : "U"}
                         </div>
                       )}
+
+                      {/* Username */}
+                      <span className={`text-sm font-semibold transition-colors ${
+                        isSelected ? "text-emerald-400" : "text-white"
+                      }`}>
+                        {user.username}
+                      </span>
                     </Link>
                   </li>
                 );
