@@ -102,7 +102,6 @@ export async function POST(req: NextRequest) {
 
     if (notifError) {
       console.error("Database error creating notification alert:", notifError);
-      // Don't fail the request since the trade offer was already created successfully
     }
 
     return NextResponse.json({ success: true, tradeOffer });
