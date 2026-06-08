@@ -136,3 +136,74 @@ export async function removeGameFromCollection(id: string) {
 
   return { success: true };
 }
+
+export async function updateGameInCollection(
+  id: string,
+  status: "owned" | "playing" | "completed" | "plan_to_play" | "dropped",
+  condition: "sealed" | "cib" | "box_and_game" | "loose" | "digital",
+  purchasePrice: number | null,
+  notes: string | null,
+  edition: string | null,
+  region: string
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "No autenticado" };
+  }
+
+  // Update in collections
+  const { error: collError } = await supabase
+    .from("collections")
+    .update({
+      status,
+      condition,
+      purchase_price: purchasePrice,
+      notes,
+      edition
+    })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (collError) {
+    console.error("Error updating collection:", collError);
+    return { error: "Error al actualizar los detalles en la base de datos." };
+  }
+
+  // Find game_id from collections to update user_collection
+  const { data: gameInfo } = await supabase
+    .from("collections")
+    .select("game_id")
+    .eq("id", id)
+    .single();
+
+  if (gameInfo) {
+    const gameIdInt = parseInt(gameInfo.game_id);
+    if (!isNaN(gameIdInt)) {
+      let conditionState = "cib";
+      if (condition === "sealed") {
+        conditionState = "sealed";
+      } else if (condition === "loose") {
+        conditionState = "loose";
+      }
+
+      // Update in user_collection
+      const { error: userColError } = await supabase
+        .from("user_collection")
+        .update({
+          condition_state: conditionState,
+          region,
+          purchase_price: purchasePrice
+        })
+        .eq("game_id", gameIdInt)
+        .eq("user_id", user.id);
+
+      if (userColError) {
+        console.error("Error updating user_collection:", userColError);
+      }
+    }
+  }
+
+  return { success: true };
+}
+
