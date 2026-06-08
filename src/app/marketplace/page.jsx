@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Gamepad2, Search, ArrowLeftRight } from "lucide-react";
 
 const REGIONS = ["all", "PAL-ES", "NTSC-U", "NTSC-J", "PAL-UK", "PAL-FR", "PAL-DE"];
 
@@ -90,8 +91,8 @@ export default function MarketplacePage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white font-retro">
-            🎮 Mercado de la Comunidad
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white font-retro flex items-center gap-2">
+            <Gamepad2 className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400" /> Mercado de la Comunidad
           </h1>
           <p className="text-sm text-text-secondary mt-1">
             Compra, vende o intercambia piezas con otros coleccionistas.
@@ -188,7 +189,7 @@ export default function MarketplacePage() {
       ) : offers.length === 0 ? (
         /* Empty State with reset filters button */
         <div className="bg-bg-surface border border-border/80 border-dashed rounded-xl p-12 text-center max-w-lg mx-auto mt-8 flex flex-col items-center">
-          <div className="text-4xl mb-3">🔍</div>
+          <Search className="w-10 h-10 text-gray-500 mb-3" />
           <h3 className="text-white font-bold text-lg mb-1">No se encontraron anuncios</h3>
           <p className="text-xs text-text-secondary mb-4">
             No hay ofertas disponibles con los filtros seleccionados.
@@ -242,7 +243,7 @@ export default function MarketplacePage() {
                     />
                   ) : (
                     <div className="text-center p-4">
-                      <span className="text-4xl">🎮</span>
+                      <Gamepad2 className="w-10 h-10 text-gray-500" />
                       <p className="text-[10px] text-text-muted mt-2 font-mono">{offer.platform}</p>
                     </div>
                   )}
@@ -281,8 +282,8 @@ export default function MarketplacePage() {
                     {/* Pricing or Trade highlights */}
                     <div className="mt-1">
                       {offer.offer_type === "trade" ? (
-                        <div className="flex items-center gap-1.5 text-accent-cyan font-bold text-base py-0.5">
-                          <span>🔄</span>
+                        <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-base py-0.5">
+                          <ArrowLeftRight className="w-4 h-4 text-cyan-400" />
                           <span>Intercambio</span>
                         </div>
                       ) : (

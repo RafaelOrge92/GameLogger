@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import PortfolioChart from "./PortfolioChart";
+import { BarChart3, Search } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -150,8 +151,9 @@ export default function TabsDashboard() {
       {/* Header and Tabs Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-800/80">
         <div>
-          <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-            <span>📊</span> Analíticas de Colección
+          <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
+            <BarChart3 className="w-5 h-5 text-emerald-400" />
+            <span>Analíticas de Colección</span>
           </h2>
           <p className="text-xs text-gray-400 mt-0.5">Echa un vistazo al valor y distribución de tu catálogo</p>
         </div>
@@ -184,7 +186,7 @@ export default function TabsDashboard() {
       <div className="pt-6 min-h-[340px] flex flex-col justify-center">
         {isEmpty ? (
           <div className="border border-dashed border-gray-800 rounded-xl bg-[#0f0f10]/20 p-8 text-center flex flex-col items-center justify-center min-h-[260px] animate-[fadeIn_0.3s_ease-out]">
-            <span className="text-3xl mb-3">🔍</span>
+            <Search className="w-10 h-10 text-gray-500 mb-3" />
             <p className="text-sm font-semibold text-gray-300">No hay datos para los filtros seleccionados</p>
             <p className="text-xs text-gray-500 mt-1 max-w-xs mx-auto">Prueba a registrar juegos o modifica los selectores superiores para ver tus estadísticas.</p>
           </div>
