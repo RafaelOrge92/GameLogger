@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   try {
     const body = await req.json();
     const { image, mimeType, fileName } = body;
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       // Fallback in case of parsing errors
       return NextResponse.json({
         success: true,
-        isAllowed: true, // Default to true if not matching strict rules
+        isAllowed: true,
         recognizedGame: null,
       });
     }
