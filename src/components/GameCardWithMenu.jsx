@@ -1,0 +1,241 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeftRight, Bookmark, MoreHorizontal } from "lucide-react";
+import { addGameToWishlist } from "@/features/collection/actions";
+import { useToast } from "@/context/ToastContext";
+
+export default function GameCardWithMenu({
+  item,
+  statusMeta,
+  conditionMeta,
+  stats,
+  profile,
+  currentUser,
+  isOwnProfile,
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const menuRef = useRef(null);
+  const cardRef = useRef(null);
+  const router = useRouter();
+  const { showToast } = useToast();
+
+  // Close the menu when clicking outside or scrolling
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    
+    function handleScroll() {
+      setIsOpen(false);
+    }
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", handleScroll, { passive: true });
+    }
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [isOpen]);
+
+  const handleButtonClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const menuWidth = 192; // w-48 is 192px
+    const menuHeight = 90; // approximate height
+
+    let x = rect.right - menuWidth;
+    let y = rect.bottom + 6;
+
+    // Viewport collision checks
+    if (x < 10) x = 10;
+    if (y + menuHeight > window.innerHeight) {
+      y = rect.top - menuHeight - 6;
+    }
+
+    setCoords({ x, y });
+    setIsOpen((prev) => !prev);
+  };
+
+  const handleContextMenu = (e) => {
+    if (isOwnProfile) return; // Only show context menu on other users' profiles
+    e.preventDefault();
+    e.stopPropagation();
+
+    const menuWidth = 192;
+    const menuHeight = 90;
+
+    let x = e.clientX;
+    let y = e.clientY;
+
+    // Collision check to prevent menu drawing off-screen
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10;
+    }
+
+    setCoords({ x, y });
+    setIsOpen(true);
+  };
+
+  const handleProposeTrade = (e) => {
+    e.stopPropagation();
+    setIsOpen(false);
+    if (!currentUser) {
+      showToast("Debes iniciar sesión para proponer un intercambio.", "error");
+      return;
+    }
+    router.push(
+      `/marketplace/create?game_id=${item.gameId}&owner_id=${profile.id}&type=trade`
+    );
+  };
+
+  const handleAddToWishlist = async (e) => {
+    e.stopPropagation();
+    setIsOpen(false);
+    if (!currentUser) {
+      showToast("Debes iniciar sesión para añadir a tu lista de deseos.", "error");
+      return;
+    }
+
+    try {
+      const result = await addGameToWishlist(
+        item.gameId,
+        item.title,
+        item.coverUrl,
+        item.platform
+      );
+
+      if (result.error) {
+        showToast(result.error, "error");
+      } else {
+        showToast(`¡${item.title} añadido a tu lista de deseos!`, "success");
+      }
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+      showToast("Error de conexión al guardar el juego.", "error");
+    }
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      onContextMenu={handleContextMenu}
+      className="relative w-full h-full group select-none"
+    >
+      {/* 1. El Activador Visual (Botón de 3 Puntos) — Only for visitors */}
+      {!isOwnProfile && (
+        <button
+          onClick={handleButtonClick}
+          type="button"
+          className="absolute top-2.5 right-2.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer flex items-center justify-center w-7 h-7 text-gray-400 hover:text-white bg-gray-950/80 hover:bg-gray-900 border border-gray-800 rounded-md backdrop-blur-xs shadow-lg"
+          aria-label="Opciones comerciales"
+        >
+          <MoreHorizontal className="w-4 h-4" />
+        </button>
+      )}
+
+      {/* 2. Tarjeta de Videojuego */}
+      <div
+        className="game-card flex flex-col overflow-hidden w-full h-full"
+        style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-surface)" }}
+      >
+        {/* Cover block */}
+        <div className="aspect-[3/4] relative w-full overflow-hidden bg-[#141517]">
+          {item.coverUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={item.coverUrl}
+              alt={item.title}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center p-3 text-center text-xs font-bold text-[var(--text-muted)] uppercase">
+              {item.title}
+            </div>
+          )}
+
+          {/* Physical Condition floating Badge on Hover */}
+          <div className="absolute inset-0 bg-black/45 opacity-0 hover:opacity-100 transition-opacity duration-200 flex flex-col justify-center items-center p-2 text-center pointer-events-none">
+            <span className={`px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider border ${conditionMeta.color} shadow-lg backdrop-blur-sm scale-90 group-hover:scale-100 transition-transform duration-200`}>
+              {conditionMeta.label}
+            </span>
+            {item.platform && (
+              <span className="mt-1.5 text-[9px] text-gray-300 bg-gray-950/60 px-1.5 py-0.5 rounded font-semibold border border-gray-800">
+                {item.platform}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Metadata below cover */}
+        <div className="p-3 space-y-1.5 bg-[#1f2125]/50 border-t border-[var(--border)]/55 flex-1 flex flex-col justify-between">
+          <p
+            className="text-xs font-bold text-white truncate leading-tight hover:text-emerald-400 transition-colors"
+            title={item.title}
+          >
+            {item.title}
+          </p>
+          <div className="flex items-center justify-between gap-1">
+            <span
+              className="text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider uppercase"
+              style={{ color: statusMeta.color, backgroundColor: statusMeta.bg }}
+            >
+              {statusMeta.label}
+            </span>
+            {item.purchasePrice && (stats.isPricePublic || stats.isMock) && (
+              <span className="text-[10px] font-bold text-emerald-400">
+                €{parseFloat(item.purchasePrice).toFixed(0)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Status bottom bar */}
+        <div className="h-1 w-full" style={{ backgroundColor: statusMeta.color }} />
+      </div>
+
+      {/* 3. Menú Flotante con Coordenadas Fijas */}
+      {isOpen && (
+        <div
+          ref={menuRef}
+          className="fixed w-48 bg-[#18191b] border border-gray-800/80 rounded-lg shadow-2xl py-1 z-[9999] animate-[fadeIn_0.1s_ease-out]"
+          style={{
+            top: `${coords.y}px`,
+            left: `${coords.x}px`,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={handleProposeTrade}
+            type="button"
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer"
+          >
+            <ArrowLeftRight className="w-4 h-4 shrink-0" />
+            <span>Proponer Intercambio</span>
+          </button>
+          <button
+            onClick={handleAddToWishlist}
+            type="button"
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer border-t border-gray-800/50"
+          >
+            <Bookmark className="w-4 h-4 shrink-0" />
+            <span>Añadir a Mis Deseos</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
