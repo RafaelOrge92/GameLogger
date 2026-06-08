@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getGamePriceHistory } from "@/features/market/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -23,35 +22,41 @@ export async function GET(req: NextRequest) {
     const platformFilter = searchParams.get("platform");
     const range = searchParams.get("range") || "1y";
 
-    // 1. Fetch user's inventory
-    const { data: items, error: itemsError } = await supabase
-      .from("user_collection")
-      .select("game_id, condition_state, region, purchase_price, acquired_at")
-      .eq("user_id", userId);
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 1 — Single bulk query: user_collection joined with collections.
+    // Avoids two round-trips and the N+1 per-game pattern entirely.
+    // ─────────────────────────────────────────────────────────────────────────
+    const [
+      { data: items, error: itemsError },
+      { data: colls, error: collsError }
+    ] = await Promise.all([
+      supabase
+        .from("user_collection")
+        .select("game_id, condition_state, region, purchase_price, acquired_at")
+        .eq("user_id", userId),
+      supabase
+        .from("collections")
+        .select("game_id, platform, status, title")
+        .eq("user_id", userId)
+    ]);
 
     if (itemsError) {
       console.error("Error fetching user_collection:", itemsError);
       return NextResponse.json(getEmptyResponse());
+    }
+    if (collsError) {
+      console.error("Error fetching collections:", collsError);
     }
 
     if (!items || items.length === 0) {
       return NextResponse.json(getEmptyResponse());
     }
 
-    // 2. Fetch supporting data from collections table (platform, status, title)
-    const { data: colls, error: collsError } = await supabase
-      .from("collections")
-      .select("game_id, platform, status, title")
-      .eq("user_id", userId);
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 2 — Build a lookup map from collections and enrich items in memory.
+    // ─────────────────────────────────────────────────────────────────────────
+    const collMap = new Map((colls ?? []).map(c => [String(c.game_id), c]));
 
-    if (collsError) {
-      console.error("Error fetching collections:", collsError);
-      return NextResponse.json(getEmptyResponse());
-    }
-
-    const collMap = new Map(colls?.map(c => [String(c.game_id), c]) || []);
-
-    // 3. Enrich items with collections metadata and apply filters in memory
     const enrichedItems = items.map(item => {
       const collItem = collMap.get(String(item.game_id));
       return {
@@ -62,6 +67,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
+    // Apply filters in memory — no extra DB round-trip.
     const filteredItems = enrichedItems.filter(item => {
       if (regionFilter && item.region !== regionFilter) return false;
       if (platformFilter && item.platform !== platformFilter) return false;
@@ -72,8 +78,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(getEmptyResponse());
     }
 
-    // 4. Fetch historical prices for all matching games in the collection
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 3 — Single bulk query for historical prices.
+    // One query for ALL relevant game_ids — no N+1, no external APIs.
+    // ─────────────────────────────────────────────────────────────────────────
     const gameIds = Array.from(new Set(filteredItems.map(item => item.game_id)));
+
     const { data: prices, error: pricesError } = await supabase
       .from("historical_prices")
       .select("game_id, condition_state, region, market_price_cleaned, recorded_date")
@@ -85,9 +95,36 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(getEmptyResponse());
     }
 
-    const pricesList = prices || [];
+    // pricesList is sorted ascending by recorded_date.
+    const pricesList = prices ?? [];
 
-    // --- CHART A: evolucion ---
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helper: find the latest market price for an item at or before `cutoff`.
+    // Iterates from the end of the sorted array — O(n) worst case but very
+    // fast in practice because the array is already sorted ascending.
+    // ─────────────────────────────────────────────────────────────────────────
+    function latestPriceAt(
+      item: { game_id: number | string; condition_state: string; region: string; purchase_price: any },
+      cutoff: Date
+    ): number {
+      const fallback = item.purchase_price ? Number(item.purchase_price) : 0;
+      for (let i = pricesList.length - 1; i >= 0; i--) {
+        const p = pricesList[i];
+        if (
+          p.game_id === item.game_id &&
+          p.condition_state === item.condition_state &&
+          p.region === item.region &&
+          new Date(p.recorded_date + "T23:59:59Z") <= cutoff
+        ) {
+          return Number(p.market_price_cleaned);
+        }
+      }
+      return fallback;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 4 — Build the time-series date points.
+    // ─────────────────────────────────────────────────────────────────────────
     const dataPointsList: Array<{ label: string; year: number; month: number; date: number; endOfDate: Date }> = [];
     const today = new Date();
 
@@ -97,65 +134,49 @@ export async function GET(req: NextRequest) {
     else if (range === "90d") numDays = 90;
 
     if (numDays > 0) {
-      // Generate last numDays calendar days
       for (let i = numDays - 1; i >= 0; i--) {
         const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i));
         const day = d.getUTCDate();
         const monthIdx = d.getUTCMonth();
         const year = d.getUTCFullYear();
-        const label = `${day} ${MONTH_NAMES[monthIdx]}`;
-        const endOfDay = new Date(Date.UTC(year, monthIdx, day, 23, 59, 59, 999));
-        
         dataPointsList.push({
-          label,
+          label: `${day} ${MONTH_NAMES[monthIdx]}`,
           year,
           month: monthIdx,
           date: day,
-          endOfDate: endOfDay
+          endOfDate: new Date(Date.UTC(year, monthIdx, day, 23, 59, 59, 999))
         });
       }
     } else {
-      // Default to 12 months (1y)
+      // Default: last 12 calendar months
       for (let i = 11; i >= 0; i--) {
         const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - i, 1));
         const monthIdx = d.getUTCMonth();
         const year = d.getUTCFullYear();
-        const label = MONTH_NAMES[monthIdx];
-        const lastDay = new Date(Date.UTC(year, monthIdx + 1, 0, 23, 59, 59, 999));
-        
         dataPointsList.push({
-          label,
+          label: MONTH_NAMES[monthIdx],
           year,
           month: monthIdx,
           date: 1,
-          endOfDate: lastDay
+          endOfDate: new Date(Date.UTC(year, monthIdx + 1, 0, 23, 59, 59, 999))
         });
       }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // CHART A — Evolución: portfolio value vs. total investment over time.
+    // ─────────────────────────────────────────────────────────────────────────
     const evolucion = dataPointsList.map(point => {
-      const itemsOwnedAtPoint = filteredItems.filter(item => new Date(item.acquired_at) <= point.endOfDate);
-      
+      const itemsOwnedAtPoint = filteredItems.filter(
+        item => new Date(item.acquired_at) <= point.endOfDate
+      );
+
       let valorTotal = 0;
       let inversionTotal = 0;
 
       for (const ownedItem of itemsOwnedAtPoint) {
         inversionTotal += ownedItem.purchase_price ? Number(ownedItem.purchase_price) : 0;
-        
-        let itemPrice = ownedItem.purchase_price ? Number(ownedItem.purchase_price) : 0;
-        for (let pIdx = pricesList.length - 1; pIdx >= 0; pIdx--) {
-          const p = pricesList[pIdx];
-          if (
-            p.game_id === ownedItem.game_id &&
-            p.condition_state === ownedItem.condition_state &&
-            p.region === ownedItem.region &&
-            new Date(p.recorded_date + "T23:59:59Z") <= point.endOfDate
-          ) {
-            itemPrice = Number(p.market_price_cleaned);
-            break;
-          }
-        }
-        valorTotal += itemPrice;
+        valorTotal += latestPriceAt(ownedItem, point.endOfDate);
       }
 
       return {
@@ -165,66 +186,66 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // Precalculate current price for other groupings
-    const itemsWithCurrentPrice = filteredItems.map(item => {
-      let currentPrice = item.purchase_price ? Number(item.purchase_price) : 0;
-      for (let pIdx = pricesList.length - 1; pIdx >= 0; pIdx--) {
-        const p = pricesList[pIdx];
-        if (
-          p.game_id === item.game_id &&
-          p.condition_state === item.condition_state &&
-          p.region === item.region
-        ) {
-          currentPrice = Number(p.market_price_cleaned);
-          break;
-        }
-      }
-      return {
-        ...item,
-        currentPrice
-      };
-    });
-
-    // --- CHART B: region ---
-    const regionCounts: Record<string, number> = {};
-    filteredItems.forEach(item => {
-      const r = item.region || "Desconocida";
-      regionCounts[r] = (regionCounts[r] || 0) + 1;
-    });
-    const region = Object.entries(regionCounts).map(([name, value]) => ({
-      name,
-      value
+    // ─────────────────────────────────────────────────────────────────────────
+    // Pre-compute current market price for each item once — reused by
+    // CHART C (sistemas) and CHART E (comparativa).
+    // ─────────────────────────────────────────────────────────────────────────
+    const now = new Date();
+    const itemsWithCurrentPrice = filteredItems.map(item => ({
+      ...item,
+      currentPrice: latestPriceAt(item, now)
     }));
 
-    // --- CHART C: sistemas ---
-    const platformGroups: Record<string, { valor: number; cantidad: number }> = {};
-    itemsWithCurrentPrice.forEach(item => {
-      const platform = item.platform || "Desconocido";
-      if (!platformGroups[platform]) {
-        platformGroups[platform] = { valor: 0, cantidad: 0 };
-      }
-      platformGroups[platform].cantidad += 1;
-      platformGroups[platform].valor += item.currentPrice;
-    });
+    // ─────────────────────────────────────────────────────────────────────────
+    // CHART B — Región: count of items per market region.
+    // ─────────────────────────────────────────────────────────────────────────
+    const regionCounts = filteredItems.reduce<Record<string, number>>((acc, item) => {
+      const r = item.region || "Desconocida";
+      acc[r] = (acc[r] || 0) + 1;
+      return acc;
+    }, {});
+
+    const region = Object.entries(regionCounts).map(([name, value]) => ({ name, value }));
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CHART C — Sistemas: value and count per platform.
+    // ─────────────────────────────────────────────────────────────────────────
+    const platformGroups = itemsWithCurrentPrice.reduce<Record<string, { valor: number; cantidad: number }>>(
+      (acc, item) => {
+        const platform = item.platform || "Desconocido";
+        if (!acc[platform]) acc[platform] = { valor: 0, cantidad: 0 };
+        acc[platform].cantidad += 1;
+        acc[platform].valor += item.currentPrice;
+        return acc;
+      },
+      {}
+    );
+
     const sistemas = Object.entries(platformGroups).map(([sistema, data]) => ({
       sistema,
       valor: parseFloat(data.valor.toFixed(2)),
       cantidad: data.cantidad
     }));
 
-    // --- CHART D: estado ---
+    // ─────────────────────────────────────────────────────────────────────────
+    // CHART D — Estado: radar percentages per physical condition.
+    // ─────────────────────────────────────────────────────────────────────────
     const totalCount = filteredItems.length;
-    const looseCount = filteredItems.filter(item => item.condition_state === "loose").length;
-    const cibCount = filteredItems.filter(item => item.condition_state === "cib").length;
-    const sealedCount = filteredItems.filter(item => item.condition_state === "sealed").length;
+    const conditionCounts = filteredItems.reduce<Record<string, number>>((acc, item) => {
+      const c = item.condition_state || "loose";
+      acc[c] = (acc[c] || 0) + 1;
+      return acc;
+    }, {});
 
-    const estado = [
-      { subject: "Loose", A: totalCount > 0 ? Math.round((looseCount / totalCount) * 100) : 0, fullMark: 100 },
-      { subject: "CIB", A: totalCount > 0 ? Math.round((cibCount / totalCount) * 100) : 0, fullMark: 100 },
-      { subject: "Sealed", A: totalCount > 0 ? Math.round((sealedCount / totalCount) * 100) : 0, fullMark: 100 }
-    ];
+    const estado = ["loose", "cib", "sealed"].map(cond => ({
+      subject: cond === "loose" ? "Loose" : cond === "cib" ? "CIB" : "Sealed",
+      A: totalCount > 0 ? Math.round(((conditionCounts[cond] ?? 0) / totalCount) * 100) : 0,
+      fullMark: 100
+    }));
 
-    // --- CHART E: backlog ---
+    // ─────────────────────────────────────────────────────────────────────────
+    // CHART E — Backlog: count of items per play status.
+    // ─────────────────────────────────────────────────────────────────────────
     const STATUS_MAP: Record<string, string> = {
       playing: "Jugando",
       completed: "Completados",
@@ -233,70 +254,31 @@ export async function GET(req: NextRequest) {
       owned: "En colección"
     };
 
-    const backlogCounts: Record<string, number> = {
-      "Jugando": 0,
-      "Completados": 0,
-      "Pendientes": 0,
-      "Abandonado": 0,
-      "En colección": 0
-    };
-
-    filteredItems.forEach(item => {
-      const mappedStatus = STATUS_MAP[item.status] || "En colección";
-      backlogCounts[mappedStatus] = (backlogCounts[mappedStatus] || 0) + 1;
-    });
+    const backlogCounts = filteredItems.reduce<Record<string, number>>((acc, item) => {
+      const label = STATUS_MAP[item.status] || "En colección";
+      acc[label] = (acc[label] || 0) + 1;
+      return acc;
+    }, {});
 
     const backlog = Object.entries(backlogCounts)
       .map(([name, value]) => ({ name, value }))
       .filter(item => item.value > 0);
 
-    // --- COMPARATIVA STATS ---
-    const itemsPriceHistories = await Promise.all(
-      filteredItems.map(async (item) => {
-        try {
-          const sales = await getGamePriceHistory(
-            String(item.game_id),
-            item.title || "",
-            item.platform
-          );
-          return { item, sales };
-        } catch (err) {
-          console.error(`Failed to get price history for game ${item.game_id}:`, err);
-          return { item, sales: [] };
-        }
-      })
-    );
-
+    // ─────────────────────────────────────────────────────────────────────────
+    // CHART F — Comparativa: portfolio value over the selected range window.
+    // 100 % pure Supabase data — no IGDB, no eBay, no external calls.
+    // Reuses the same `pricesList` bulk-fetched above via `latestPriceAt`.
+    // ─────────────────────────────────────────────────────────────────────────
     const comparativaEvolucion = dataPointsList.map(point => {
-      let valorTotal = 0;
+      // Only count items already in the collection at this point in time
+      const ownedAtPoint = filteredItems.filter(
+        item => new Date(item.acquired_at) <= point.endOfDate
+      );
 
-      for (const { item, sales } of itemsPriceHistories) {
-        // Sort sales by date ascending
-        const sortedSales = sales
-          .filter(s => s.condition === item.condition_state)
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-        let itemPrice = item.purchase_price ? Number(item.purchase_price) : 0;
-
-        // Find the last sale before or on point.endOfDate
-        let foundSale = null;
-        for (let sIdx = sortedSales.length - 1; sIdx >= 0; sIdx--) {
-          const sale = sortedSales[sIdx];
-          if (new Date(sale.date) <= point.endOfDate) {
-            foundSale = sale;
-            break;
-          }
-        }
-
-        if (foundSale) {
-          itemPrice = foundSale.price;
-        } else if (sortedSales.length > 0) {
-          // Backward-fill: take the first sale in the future if none in the past
-          itemPrice = sortedSales[0].price;
-        }
-
-        valorTotal += itemPrice;
-      }
+      const valorTotal = ownedAtPoint.reduce(
+        (sum, item) => sum + latestPriceAt(item, point.endOfDate),
+        0
+      );
 
       return {
         fecha: point.label,
@@ -304,17 +286,25 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    const precioActual = comparativaEvolucion.length > 0 
-      ? comparativaEvolucion[comparativaEvolucion.length - 1].valorTotal 
-      : 0;
+    const precioActual =
+      comparativaEvolucion.length > 0
+        ? comparativaEvolucion[comparativaEvolucion.length - 1].valorTotal
+        : 0;
 
-    const precioMedio = comparativaEvolucion.length > 0
-      ? parseFloat((comparativaEvolucion.reduce((sum, p) => sum + p.valorTotal, 0) / comparativaEvolucion.length).toFixed(2))
-      : 0;
+    const precioMedio =
+      comparativaEvolucion.length > 0
+        ? parseFloat(
+            (
+              comparativaEvolucion.reduce((sum, p) => sum + p.valorTotal, 0) /
+              comparativaEvolucion.length
+            ).toFixed(2)
+          )
+        : 0;
 
-    const precioMaximo = comparativaEvolucion.length > 0
-      ? parseFloat(Math.max(...comparativaEvolucion.map(p => p.valorTotal)).toFixed(2))
-      : 0;
+    const precioMaximo =
+      comparativaEvolucion.length > 0
+        ? parseFloat(Math.max(...comparativaEvolucion.map(p => p.valorTotal)).toFixed(2))
+        : 0;
 
     const comparativa = {
       chartData: comparativaEvolucion,
