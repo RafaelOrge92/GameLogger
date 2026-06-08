@@ -69,3 +69,99 @@ export async function checkFollowStatus(followingId: string) {
 
   return !!data;
 }
+
+export async function getNotifications() {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { error: "No autenticado", data: [] };
+  }
+
+  let { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error al obtener notificaciones:", error);
+    return { error: error.message, data: [] };
+  }
+
+  if (!data || data.length === 0) {
+    const mockNotifs = [
+      {
+        user_id: user.id,
+        type: "trade",
+        sender_username: "retro_collector",
+        game_title: "Chrono Trigger",
+        is_read: false
+      },
+      {
+        user_id: user.id,
+        type: "want",
+        sender_username: "pixel_art",
+        game_title: "Silent Hill",
+        is_read: false
+      }
+    ];
+
+    const { data: insertedData, error: insertError } = await supabase
+      .from("notifications")
+      .insert(mockNotifs)
+      .select();
+
+    if (insertError) {
+      console.error("Error al sembrar notificaciones de prueba:", insertError);
+    } else if (insertedData) {
+      data = insertedData;
+    }
+  }
+
+  return { success: true, data: data || [] };
+}
+
+export async function markAllNotificationsAsRead() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "No autenticado" };
+  }
+
+  const { error } = await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("user_id", user.id)
+    .eq("is_read", false);
+
+  if (error) {
+    console.error("Error al marcar notificaciones como leídas:", error);
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function markNotificationAsRead(notificationId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "No autenticado" };
+  }
+
+  const { error } = await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("id", notificationId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Error al marcar notificación como leída:", error);
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
