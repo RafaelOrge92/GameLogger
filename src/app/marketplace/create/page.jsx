@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Banknote, ArrowLeftRight, Zap, Megaphone, Gamepad2, AlertTriangle, Package } from "lucide-react";
 
 const REGIONS = ["PAL-ES", "NTSC-U", "NTSC-J", "PAL-UK", "PAL-FR", "PAL-DE"];
 const CONDITIONS = [
@@ -12,9 +13,9 @@ const CONDITIONS = [
   { value: "sealed",label: "Sealed",desc: "Nuevo / sin abrir / precintado" },
 ];
 const OFFER_TYPES = [
-  { value: "sell",  label: "Venta",       icon: "💶", desc: "Quiero venderlo" },
-  { value: "trade", label: "Intercambio", icon: "🔄", desc: "Quiero cambiarlo" },
-  { value: "both",  label: "Ambos",       icon: "⚡", desc: "Venta o intercambio" },
+  { value: "sell",  label: "Venta",       icon: Banknote, desc: "Quiero venderlo" },
+  { value: "trade", label: "Intercambio", icon: ArrowLeftRight, desc: "Quiero cambiarlo" },
+  { value: "both",  label: "Ambos",       icon: Zap, desc: "Venta o intercambio" },
 ];
 
 // Loading skeleton for collection items
@@ -145,8 +146,8 @@ export default function CreateOfferPage() {
           </svg>
           Volver al Mercado
         </Link>
-        <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-          📢 Publicar Anuncio
+        <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight flex items-center gap-2">
+          <Megaphone className="w-8 h-8 text-emerald-400" /> Publicar Anuncio
         </h1>
         <p className="text-sm text-text-secondary mt-1">
           Pon en venta o intercambio un juego de tu colección.
@@ -172,8 +173,8 @@ export default function CreateOfferPage() {
                   className="w-12 h-16 object-cover rounded shrink-0"
                 />
               ) : (
-                <div className="w-12 h-16 rounded bg-bg-elevated border border-border flex items-center justify-center text-xl shrink-0">
-                  🎮
+                <div className="w-12 h-16 rounded bg-bg-elevated border border-border flex items-center justify-center shrink-0">
+                  <Gamepad2 className="w-5 h-5 text-gray-500" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
@@ -220,12 +221,12 @@ export default function CreateOfferPage() {
                   {Array.from({ length: 4 }).map((_, i) => <SkeletonItem key={i} />)}
                 </div>
               ) : collectionError ? (
-                <div className="text-center py-6 text-sm text-red-400">
-                  ⚠️ {collectionError}
+                <div className="text-center py-6 text-sm text-red-400 flex items-center justify-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-red-400" /> {collectionError}
                 </div>
               ) : collection.length === 0 ? (
-                <div className="text-center py-8 text-sm text-text-secondary">
-                  <p className="text-2xl mb-2">📦</p>
+                <div className="text-center py-8 text-sm text-text-secondary flex flex-col items-center">
+                  <Package className="w-10 h-10 text-gray-500 mb-2 mx-auto" />
                   <p className="font-semibold text-white mb-1">Tu colección está vacía</p>
                   <p>Añade juegos a tu colección primero para poder publicar anuncios.</p>
                 </div>
@@ -249,8 +250,8 @@ export default function CreateOfferPage() {
                           className="w-9 h-12 object-cover rounded shrink-0"
                         />
                       ) : (
-                        <div className="w-9 h-12 rounded bg-bg-surface border border-border flex items-center justify-center text-xs shrink-0">
-                          🎮
+                        <div className="w-9 h-12 rounded bg-bg-surface border border-border flex items-center justify-center shrink-0">
+                          <Gamepad2 className="w-4 h-4 text-gray-500" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
@@ -338,7 +339,7 @@ export default function CreateOfferPage() {
             Tipo de oferta
           </h2>
           <div className="grid grid-cols-3 gap-3">
-            {OFFER_TYPES.map(({ value, label, icon, desc }) => (
+            {OFFER_TYPES.map(({ value, label, icon: IconComponent, desc }) => (
               <button
                 key={value}
                 type="button"
@@ -349,7 +350,7 @@ export default function CreateOfferPage() {
                     : "border-border hover:border-border-hover text-text-secondary hover:text-white bg-bg-elevated"
                 }`}
               >
-                <span className="text-2xl mb-1">{icon}</span>
+                <IconComponent className={`w-6 h-6 mb-1.5 transition-colors ${offerType === value ? "text-emerald-400" : "text-gray-400 group-hover:text-white"}`} />
                 <span className={`text-sm font-bold mb-0.5 ${offerType === value ? "text-emerald-400" : ""}`}>
                   {label}
                 </span>
@@ -386,8 +387,8 @@ export default function CreateOfferPage() {
 
         {/* Error */}
         {submitError && (
-          <div className="bg-red-950/30 border border-red-500/30 text-red-400 rounded-lg px-4 py-3 text-sm">
-            ⚠️ {submitError}
+          <div className="bg-red-950/30 border border-red-500/30 text-red-400 rounded-lg px-4 py-3 text-sm flex items-center gap-1.5">
+            <AlertTriangle className="w-4 h-4 text-red-400" /> {submitError}
           </div>
         )}
 

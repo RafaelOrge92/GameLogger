@@ -2,6 +2,8 @@ import { getCollection, removeGameFromCollection } from "@/features/collection/a
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
+import { TrendingUp, Gamepad2, Sliders, BarChart3 } from "lucide-react";
+import DashboardCollection from "@/components/DashboardCollection";
 
 // Status helpers
 const STATUS_META: Record<string, { label: string; color: string }> = {
@@ -87,8 +89,8 @@ export default async function Home() {
       <div className="py-12 md:py-24 space-y-20 md:space-y-32">
         {/* Hero Section */}
         <div className="max-w-4xl mx-auto text-center space-y-8 px-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase border border-emerald-500/30 bg-emerald-950/20 text-emerald-400">
-            📊 El control financiero de tu colección
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase border border-emerald-500/30 bg-emerald-950/20 text-emerald-400">
+            <BarChart3 className="w-3.5 h-3.5" /> El control financiero de tu colección
           </div>
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1] font-sans">
             RetroLogger: Indexa, Tasa y Evoluciona tu Colección Retro
@@ -113,8 +115,8 @@ export default async function Home() {
         {/* Trending Section (Top Buscados) */}
         <div className="max-w-5xl mx-auto px-4 space-y-6 overflow-hidden">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">📈</span>
+            <div className="flex items-center gap-1.5">
+              <TrendingUp className="w-5 h-5 text-cyan-400" />
               <h3 className="text-lg font-bold text-white tracking-tight font-sans">
                 Tendencias de Mercado (Top Buscados)
               </h3>
@@ -328,29 +330,34 @@ export default async function Home() {
               {
                 title: "Valuación Real del Mercado",
                 desc: "Consultamos los precios de mercado en tiempo real y ventas recientes para ofrecerte estimaciones limpias y realistas de tus juegos.",
-                icon: "📈"
+                icon: TrendingUp
               },
               {
                 title: "Limpieza IQR de Outliers",
                 desc: "Filtramos anuncios anómalos o sospechosos (lotes vacíos, reproducciones baratas) para obtener valores fiables basados en datos puros.",
-                icon: "⚙️"
+                icon: Sliders
               },
               {
                 title: "Indexación por Estado y Región",
                 desc: "Registra tus piezas especificando si son cartuchos sueltos (Loose), completos (CIB) o precintados (Sealed), adaptados a su región original.",
-                icon: "🎮"
+                icon: Gamepad2
               }
-            ].map((feat, i) => (
-              <div 
-                key={i} 
-                className="p-6 rounded-xl border space-y-3 transition-colors hover:border-emerald-500/20"
-                style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}
-              >
-                <span className="text-3xl block">{feat.icon}</span>
-                <h4 className="text-base font-bold text-white">{feat.title}</h4>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{feat.desc}</p>
-              </div>
-            ))}
+            ].map((feat, i) => {
+              const IconComponent = feat.icon;
+              return (
+                <div 
+                  key={i} 
+                  className="p-6 rounded-xl border space-y-3 transition-colors hover:border-emerald-500/20"
+                  style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}
+                >
+                  <div className="text-emerald-400">
+                    <IconComponent className="w-8 h-8" />
+                  </div>
+                  <h4 className="text-base font-bold text-white">{feat.title}</h4>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{feat.desc}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -359,6 +366,20 @@ export default async function Home() {
 
   const { data: games = [] } = await getCollection();
 
+  // Fetch region from user_collection to enrich games
+  let enrichedGames = [];
+  if (user) {
+    const { data: userItems } = await supabase
+      .from("user_collection")
+      .select("game_id, region")
+      .eq("user_id", user.id);
+    const itemMap = new Map(userItems?.map(ui => [String(ui.game_id), ui.region]) || []);
+    enrichedGames = games.map((g: any) => ({
+      ...g,
+      region: itemMap.get(String(g.game_id)) || "PAL-ES"
+    }));
+  }
+
   const totalGames = games.length;
   const totalValue = games.reduce(
     (acc, g) => acc + (g.purchase_price ? parseFloat(g.purchase_price) : 0),
@@ -366,15 +387,6 @@ export default async function Home() {
   );
   const completedGames = games.filter(g => g.status === "completed").length;
   const playingGames  = games.filter(g => g.status === "playing").length;
-
-  async function deleteGameAction(formData: FormData) {
-    "use server";
-    const id = formData.get("id") as string;
-    if (id) {
-      await removeGameFromCollection(id);
-      revalidatePath("/");
-    }
-  }
 
   const userName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario";
 
@@ -391,7 +403,7 @@ export default async function Home() {
       {/* Page header */}
       <div>
         <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-          Hola, {userName} 👋
+          Hola, {userName}
         </h1>
         <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
           Tu colección personal de videojuegos
@@ -413,122 +425,7 @@ export default async function Home() {
       </div>
 
       {/* Collection content */}
-      {totalGames === 0 ? (
-        /* Empty state */
-        <div
-          className="rounded-xl flex flex-col items-center justify-center text-center py-20 px-8"
-          style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
-        >
-          <div
-            className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
-            style={{ backgroundColor: 'var(--bg-elevated)' }}
-          >
-            <svg className="w-7 h-7" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-          </div>
-          <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-            Tu colección está vacía
-          </h3>
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Usa la barra de búsqueda superior para añadir tu primer juego
-          </p>
-        </div>
-      ) : (
-        /* Games grid — cover-art focused like Backloggd */
-        <div>
-          <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-            {totalGames} {totalGames === 1 ? "juego" : "juegos"}
-          </p>
-
-          {/* CSS-only hover via .game-card and .game-card-overlay — no JS handlers needed */}
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3">
-            {games.map((game: any) => {
-              const status = STATUS_META[game.status] ?? { label: game.status, color: 'var(--text-muted)' };
-              return (
-                <div key={game.id} className="game-card">
-                  {/* Cover image */}
-                  <div className="aspect-[3/4]" style={{ backgroundColor: 'var(--bg-elevated)' }}>
-                    {game.cover_url ? (
-                      <img
-                        src={game.cover_url}
-                        alt={game.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center text-[10px] text-center p-2 font-medium"
-                        style={{ color: 'var(--text-muted)' }}
-                      >
-                        {game.title}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Hover overlay — controlled entirely by CSS (.game-card:hover .game-card-overlay) */}
-                  <div className="game-card-overlay">
-                    {/* Delete button top-right */}
-                    <form action={deleteGameAction} className="flex justify-end">
-                      <input type="hidden" name="id" value={game.id} />
-                      <button
-                        type="submit"
-                        className="w-6 h-6 rounded flex items-center justify-center text-sm font-medium btn-danger-dim"
-                        title="Eliminar de la colección"
-                      >
-                        ×
-                      </button>
-                    </form>
-
-                    {/* Info bottom */}
-                    <div>
-                      <p
-                        className="text-[11px] font-semibold leading-tight mb-1"
-                        style={{
-                          color: 'var(--text-primary)',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {game.title}
-                      </p>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] font-medium" style={{ color: status.color }}>
-                          {status.label}
-                        </span>
-                        {game.purchase_price && (
-                          <span className="text-[10px]" style={{ color: 'var(--accent)' }}>
-                            €{parseFloat(game.purchase_price).toFixed(0)}
-                          </span>
-                        )}
-                      </div>
-                      {game.platform && (
-                        <span
-                          className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded"
-                          style={{
-                            backgroundColor: 'var(--bg-elevated)',
-                            color: 'var(--text-muted)',
-                          }}
-                        >
-                          {game.platform}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Status indicator strip */}
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-0.5"
-                    style={{ backgroundColor: status.color }}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <DashboardCollection initialGames={enrichedGames} />
     </div>
   );
 }

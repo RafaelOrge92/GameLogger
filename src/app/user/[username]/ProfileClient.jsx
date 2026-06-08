@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useToast } from "@/context/ToastContext";
 import Link from "next/link";
+import { Gamepad2, Library, Gem, Flame, Sparkles, Crown, Package, Award } from "lucide-react";
 
 // Status configuration matching page.tsx
 const STATUS_META = {
@@ -142,8 +143,8 @@ export default function ProfileClient({
                 
                 {/* Console tag */}
                 {profile.favorite_console && (
-                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/35 text-emerald-400 flex items-center gap-1 shadow-sm">
-                    🎮 {profile.favorite_console}
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/35 text-emerald-400 flex items-center gap-1.5 shadow-sm">
+                    <Gamepad2 className="w-3.5 h-3.5 text-emerald-400" /> {profile.favorite_console}
                   </span>
                 )}
               </div>
@@ -210,8 +211,8 @@ export default function ProfileClient({
             <p className="text-3xl font-black text-white">{stats.totalGames}</p>
             <p className="text-[10px] text-emerald-400 font-medium">Piezas registradas</p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-950/20 border border-emerald-500/10 flex items-center justify-center text-2xl">
-            📚
+          <div className="w-12 h-12 rounded-xl bg-emerald-950/20 border border-emerald-500/10 flex items-center justify-center">
+            <Library className="w-5 h-5 text-emerald-400" />
           </div>
         </div>
 
@@ -229,8 +230,8 @@ export default function ProfileClient({
               {stats.isPricePublic || stats.isMock ? "Tasado al valor de mercado" : "Valor oculto por el usuario"}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-cyan-950/20 border border-cyan-500/10 flex items-center justify-center text-2xl">
-            💎
+          <div className="w-12 h-12 rounded-xl bg-cyan-950/20 border border-cyan-500/10 flex items-center justify-center">
+            <Gem className="w-5 h-5 text-cyan-400" />
           </div>
         </div>
 
@@ -238,8 +239,8 @@ export default function ProfileClient({
         <div className="stat-card flex items-center justify-between p-5 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-orange-500/10 transition-all duration-300" />
           <div className="space-y-1.5 text-left">
-            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-              🔥 Interés de la Comunidad
+            <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
+              <Flame className="w-3.5 h-3.5 text-orange-500" /> Interés de la Comunidad
             </p>
             <p className="text-xl sm:text-2xl font-black text-orange-500">
               {stats.comunidadDeseados !== undefined ? stats.comunidadDeseados : 42} Coleccionistas
@@ -248,8 +249,8 @@ export default function ProfileClient({
               Tienen piezas de tu estantería en su Lista de Deseos
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-orange-950/20 border border-orange-500/10 flex items-center justify-center text-2xl">
-            🔥
+          <div className="w-12 h-12 rounded-xl bg-orange-950/20 border border-orange-500/10 flex items-center justify-center">
+            <Flame className="w-5 h-5 text-orange-500" />
           </div>
         </div>
 
@@ -257,8 +258,8 @@ export default function ProfileClient({
 
       {/* 3. El Escaparate de Destacados (Vitrina de Honor) */}
       <div className="space-y-4">
-        <h3 className="text-base font-bold text-white tracking-tight uppercase flex items-center gap-2">
-          <span>✨</span> Vitrina de Honor
+        <h3 className="text-base font-bold text-white tracking-tight uppercase flex items-center gap-1.5">
+          <Sparkles className="w-4 h-4 text-amber-400" /> Vitrina de Honor
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -281,7 +282,7 @@ export default function ProfileClient({
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-center p-3 text-xs" style={{ color: "var(--text-muted)" }}>
-                  <span>🎮</span>
+                  <Gamepad2 className="w-5 h-5 text-gray-500 mb-1" />
                   <span className="font-semibold mt-1">Sin juego favorito</span>
                 </div>
               )}
@@ -316,7 +317,9 @@ export default function ProfileClient({
               {favoriteGame && (
                 <div className="pt-4 border-t border-[var(--border)]/50 mt-4 flex items-center justify-between text-xs">
                   <span style={{ color: "var(--text-muted)" }}>Estado en biblioteca:</span>
-                  <span className="font-bold text-emerald-400">Completado 🎖️</span>
+                  <span className="font-bold text-emerald-400 flex items-center gap-1">
+                    Completado <Award className="w-3.5 h-3.5 text-emerald-400" />
+                  </span>
                 </div>
               )}
             </div>
@@ -340,7 +343,7 @@ export default function ProfileClient({
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-center p-3 text-xs" style={{ color: "var(--text-muted)" }}>
-                  <span>👑</span>
+                  <Crown className="w-5 h-5 text-amber-500 mb-1" />
                   <span className="font-semibold mt-1">Sin joya destacada</span>
                 </div>
               )}
@@ -389,8 +392,8 @@ export default function ProfileClient({
       {/* 4. La Cuadrícula de la Colección */}
       <div className="space-y-4">
         <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-3">
-          <h3 className="text-base font-bold text-white tracking-tight uppercase flex items-center gap-2">
-            <span>🎮</span> Colección Completa
+          <h3 className="text-base font-bold text-white tracking-tight uppercase flex items-center gap-1.5">
+            <Gamepad2 className="w-4 h-4 text-emerald-400" /> Colección Completa
           </h3>
           <span className="text-xs" style={{ color: "var(--text-muted)" }}>
             {collection.length} juegos en propiedad
@@ -402,7 +405,7 @@ export default function ProfileClient({
             className="rounded-xl flex flex-col items-center justify-center text-center py-16 px-6 border"
             style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}
           >
-            <span className="text-4xl mb-3">📦</span>
+            <Package className="w-10 h-10 text-gray-500 mb-3" />
             <h4 className="text-sm font-bold text-white mb-1">Sin juegos públicos</h4>
             <p className="text-xs max-w-xs" style={{ color: "var(--text-secondary)" }}>
               Este usuario no tiene ningún juego registrado o su colección es totalmente privada.
