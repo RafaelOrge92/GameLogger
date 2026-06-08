@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { removeGameFromCollection } from "@/features/collection/actions";
 import { Search, Filter, ArrowUpDown, X, Trash2, Gamepad2, Package } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import MyGameDetailsModal from "./MyGameDetailsModal";
 
 interface Game {
   id: string;
@@ -16,6 +17,8 @@ interface Game {
   purchase_price: string | null;
   region: string;
   added_at: string;
+  notes?: string | null;
+  edition?: string | null;
 }
 
 interface DashboardCollectionProps {
@@ -46,6 +49,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
   const [condition, setCondition] = useState("");
   const [sortBy, setSortBy] = useState("recent");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedGameForDetails, setSelectedGameForDetails] = useState<Game | null>(null);
 
   const { showToast } = useToast();
 
@@ -88,6 +92,16 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
       }
     }
   };
+
+  const handleGameUpdate = (updatedGame: Game) => {
+    setGames((prev) => prev.map((g) => (g.id === updatedGame.id ? updatedGame : g)));
+    setSelectedGameForDetails(updatedGame);
+  };
+
+  const handleGameDelete = (id: string) => {
+    setGames((prev) => prev.filter((g) => g.id !== id));
+  };
+
 
   // Filter and sort logic
   const filteredAndSortedGames = useMemo(() => {
@@ -287,7 +301,11 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
               bg: "transparent",
             };
             return (
-              <div key={game.id} className="game-card relative overflow-hidden group">
+              <div 
+                key={game.id} 
+                className="game-card relative overflow-hidden group cursor-pointer"
+                onClick={() => setSelectedGameForDetails(game)}
+              >
                 {/* Cover image */}
                 <div className="aspect-[3/4] bg-[#141517] w-full overflow-hidden">
                   {game.cover_url ? (
@@ -309,7 +327,10 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
                   {/* Delete button top-right */}
                   <div className="flex justify-end">
                     <button
-                      onClick={() => handleDelete(game.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(game.id);
+                      }}
                       disabled={deletingId === game.id}
                       className="w-6 h-6 rounded flex items-center justify-center text-sm font-medium bg-red-950/40 hover:bg-red-900 border border-red-500/30 text-red-400 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer"
                       title="Eliminar de la colección"
@@ -369,6 +390,15 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
             );
           })}
         </div>
+      )}
+
+      {selectedGameForDetails && (
+        <MyGameDetailsModal
+          game={selectedGameForDetails}
+          onClose={() => setSelectedGameForDetails(null)}
+          onUpdate={handleGameUpdate}
+          onDelete={handleGameDelete}
+        />
       )}
     </div>
   );
