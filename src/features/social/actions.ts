@@ -165,3 +165,58 @@ export async function markNotificationAsRead(notificationId: string) {
   return { success: true };
 }
 
+export async function getTradeOfferDetails(tradeOfferId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "No autenticado" };
+  }
+
+  const { data, error } = await supabase
+    .from("trade_offers")
+    .select("*")
+    .eq("id", tradeOfferId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching trade offer details:", error);
+    return { error: "No se pudo cargar la propuesta." };
+  }
+
+  return { success: true, data };
+}
+
+export async function respondToTradeOffer(
+  tradeOfferId: string,
+  status: "accepted" | "rejected"
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "No autenticado" };
+  }
+
+  const { error: tradeError } = await supabase
+    .from("trade_offers")
+    .update({ status })
+    .eq("id", tradeOfferId)
+    .eq("receiver_id", user.id);
+
+  if (tradeError) {
+    console.error("Error updating trade offer status:", tradeError);
+    return { error: "No se pudo actualizar el estado de la propuesta." };
+  }
+
+  // Mark matching notification as read
+  await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("trade_offer_id", tradeOfferId)
+    .eq("user_id", user.id);
+
+  return { success: true };
+}
+
+

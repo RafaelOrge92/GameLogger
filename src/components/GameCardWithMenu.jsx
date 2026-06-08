@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeftRight, Bookmark, MoreHorizontal } from "lucide-react";
 import { addGameToWishlist } from "@/features/collection/actions";
 import { useToast } from "@/context/ToastContext";
+import TradeProposalModal from "@/components/TradeProposalModal";
 
 export default function GameCardWithMenu({
   item,
@@ -16,6 +17,7 @@ export default function GameCardWithMenu({
   isOwnProfile,
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const menuRef = useRef(null);
   const cardRef = useRef(null);
@@ -96,9 +98,7 @@ export default function GameCardWithMenu({
       showToast("Debes iniciar sesión para proponer un intercambio.", "error");
       return;
     }
-    router.push(
-      `/marketplace/create?game_id=${item.gameId}&owner_id=${profile.id}&type=trade`
-    );
+    setIsProposalModalOpen(true);
   };
 
   const handleAddToWishlist = async (e) => {
@@ -235,6 +235,15 @@ export default function GameCardWithMenu({
             <span>Añadir a Mis Deseos</span>
           </button>
         </div>
+      )}
+      {/* 4. Modal de Propuesta de Intercambio */}
+      {isProposalModalOpen && (
+        <TradeProposalModal
+          game={item}
+          ownerId={profile.id}
+          currentUser={currentUser}
+          onClose={() => setIsProposalModalOpen(false)}
+        />
       )}
     </div>
   );
