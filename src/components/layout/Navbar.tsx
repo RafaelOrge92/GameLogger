@@ -9,6 +9,8 @@ import { useDebounce } from "@/hooks/useDebounce";
 import GameModal from "@/components/layout/GameModal";
 import { useToast } from "@/context/ToastContext";
 import UserSearch from "@/components/UserSearch";
+import NotificationInbox from "@/components/layout/NotificationInbox";
+
 import {
   Search,
   X,
@@ -345,6 +347,11 @@ export default function Navbar({ user }: { user: any }) {
                   )}
                 </div>
               )}
+            </div>
+
+            {/* ── Notification Inbox ───────────────────────────────────────── */}
+            <div className="hidden sm:block shrink-0 mr-1">
+              <NotificationInbox currentUser={user} />
             </div>
 
             {/* ── User menu — desktop ───────────────────────────────────────── */}
