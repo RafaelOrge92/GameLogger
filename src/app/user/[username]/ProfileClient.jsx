@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useToast } from "@/context/ToastContext";
 import Link from "next/link";
 import { Gamepad2, Library, Gem, Flame, Sparkles, Crown, Package, Award } from "lucide-react";
+import GameContextMenu from "@/components/GameContextMenu";
+
 
 // Status configuration matching page.tsx
 const STATUS_META = {
@@ -417,10 +419,9 @@ export default function ProfileClient({
               const statusMeta = STATUS_META[item.status] || { label: item.status, color: "var(--text-primary)", bg: "transparent" };
               const conditionMeta = CONDITION_META[item.condition] || { label: item.condition, color: "text-gray-400 border-gray-800" };
               
-              return (
+              const cardMarkup = (
                 <div 
-                  key={item.id} 
-                  className="game-card flex flex-col overflow-hidden select-none"
+                  className="game-card flex flex-col overflow-hidden select-none w-full h-full"
                   style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-surface)" }}
                 >
                   {/* Cover block */}
@@ -478,6 +479,24 @@ export default function ProfileClient({
                   {/* Status bottom bar */}
                   <div className="h-1 w-full" style={{ backgroundColor: statusMeta.color }} />
                 </div>
+              );
+
+              return isOwnProfile ? (
+                <div 
+                  key={item.id} 
+                  className="w-full h-full"
+                >
+                  {cardMarkup}
+                </div>
+              ) : (
+                <GameContextMenu
+                  key={item.id}
+                  game={item}
+                  ownerId={profile.id}
+                  currentUser={currentUser}
+                >
+                  {cardMarkup}
+                </GameContextMenu>
               );
             })}
           </div>
