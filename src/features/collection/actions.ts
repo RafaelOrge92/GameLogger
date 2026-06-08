@@ -208,3 +208,40 @@ export async function updateGameInCollection(
   return { success: true };
 }
 
+export async function addGameToWishlist(
+  gameId: string,
+  title: string,
+  coverUrl: string | null,
+  platform: string | null
+) {
+  const supabase = await createClient();
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { error: "Debes iniciar sesión para añadir a tus deseos." };
+  }
+
+  const { error } = await supabase
+    .from("wishlists")
+    .insert([
+      {
+        user_id: user.id,
+        game_id: gameId.toString(),
+        title: title,
+        cover_url: coverUrl,
+        platform: platform || "PC"
+      }
+    ]);
+
+  if (error) {
+    if (error.code === "23505") {
+      return { error: "Este juego ya está en tu lista de deseos." };
+    }
+    console.error("Error al añadir a deseos:", error);
+    return { error: "Hubo un error al guardar el juego en tus deseos." };
+  }
+
+  return { success: true };
+}
+
+
