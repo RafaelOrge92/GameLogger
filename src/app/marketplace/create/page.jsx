@@ -4,7 +4,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Banknote, ArrowLeftRight, Zap, Megaphone, Gamepad2, AlertTriangle, Package } from "lucide-react";
+import { Banknote, ArrowLeftRight, Zap, Megaphone, Gamepad2, AlertTriangle, Package, Upload, Loader2 } from "lucide-react";
+import { useToast } from "@/context/ToastContext";
+
 
 const REGIONS = ["PAL-ES", "NTSC-U", "NTSC-J", "PAL-UK", "PAL-FR", "PAL-DE"];
 const CONDITIONS = [
@@ -31,6 +33,71 @@ const SkeletonItem = () => (
 
 export default function CreateOfferPage() {
   const router = useRouter();
+  const { showToast } = useToast();
+
+  // Image Upload & Vision AI Audit States
+  const [photo, setPhoto] = useState(null);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditError, setAuditError] = useState(null);
+
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Read file as base64
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result;
+      setPhoto(null);
+      setAuditError(null);
+      setIsAuditing(true);
+
+      try {
+        const res = await fetch("/api/ai/image-audit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image: base64,
+            mimeType: file.type,
+            fileName: file.name,
+          }),
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (data.isAllowed) {
+            setPhoto(base64);
+            // Autofill the game from collection if recognized
+            if (data.recognizedGame) {
+              const matchedGame = collection.find((item) =>
+                item.title.toLowerCase().includes(data.recognizedGame.gameTitle.toLowerCase())
+              );
+              if (matchedGame) {
+                setSelectedGame(matchedGame);
+                showToast(`IA: Juego detectado como "${matchedGame.title}"`, "success");
+              } else {
+                showToast(`IA: Detectado "${data.recognizedGame.gameTitle}" (${data.recognizedGame.platform})`, "info");
+              }
+            }
+          } else {
+            setAuditError("Esta foto no es válida para la publicación.");
+            showToast("La foto fue rechazada por el sistema de auditoría de seguridad.", "error");
+          }
+        } else {
+          setAuditError("Error al auditar la imagen. Por favor, vuelve a intentarlo.");
+        }
+      } catch (error) {
+        console.error(error);
+        setAuditError("Error de conexión durante la auditoría de seguridad.");
+      } finally {
+        setIsAuditing(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
 
   // Collection state
   const [collection, setCollection]     = useState([]);
@@ -155,6 +222,77 @@ export default function CreateOfferPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+
+        {/* ── Step 0 — Upload photo for AI audit and auto-detection ── */}
+        <div className="bg-bg-surface border border-border rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <Upload className="w-4 h-4 text-emerald-400" />
+            Foto del artículo físico
+          </h2>
+          <p className="text-xs text-text-secondary">
+            Sube una foto real del artículo. Nuestro sistema de IA auditará la imagen por motivos de seguridad y tratará de reconocer el juego.
+          </p>
+
+          <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-800 rounded-xl p-6 hover:border-emerald-500/40 transition-colors relative bg-bg-surface group">
+            {isAuditing ? (
+              <div className="flex flex-col items-center justify-center space-y-3 py-4">
+                <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+                <p className="text-sm font-medium text-emerald-400 animate-pulse">
+                  Auditoría de seguridad en curso...
+                </p>
+              </div>
+            ) : photo ? (
+              <div className="flex flex-col items-center space-y-4 w-full">
+                <img
+                  src={photo}
+                  alt="Vista previa del artículo"
+                  className="w-32 h-40 object-cover rounded-lg shadow-xl border border-gray-800"
+                />
+                <div className="flex gap-2">
+                  <label className="cursor-pointer px-4 py-2 bg-gray-900 border border-gray-800 hover:border-gray-750 text-gray-300 hover:text-white rounded-lg text-xs font-bold transition-all">
+                    Cambiar Foto
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setPhoto(null)}
+                    className="px-4 py-2 bg-red-950/20 border border-red-500/30 text-red-400 hover:bg-red-950/30 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center cursor-pointer w-full py-6">
+                <Upload className="w-8 h-8 text-gray-500 group-hover:text-emerald-400 transition-colors mb-2" />
+                <span className="text-sm font-semibold text-gray-300 group-hover:text-white transition-colors">
+                  Seleccionar archivo de imagen
+                </span>
+                <span className="text-xs text-gray-500 mt-1">
+                  Formatos soportados: JPG, PNG, WEBP (Max 5MB)
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
+              </label>
+            )}
+          </div>
+
+          {auditError && (
+            <div className="bg-red-950/30 border border-red-500/30 text-red-400 rounded-lg px-4 py-3 text-sm flex items-center gap-1.5 animate-[fadeIn_0.15s_ease-out]">
+              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+              <span>{auditError}</span>
+            </div>
+          )}
+        </div>
 
         {/* ── Step 1 — Pick from your collection ── */}
         <div className="bg-bg-surface border border-border rounded-xl p-5">
