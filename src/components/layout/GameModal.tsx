@@ -52,6 +52,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
   const [purchasePrice, setPurchasePrice] = useState("");
   const [edition, setEdition] = useState("");
   const [notes, setNotes] = useState("");
+  const [region, setRegion] = useState("PAL-ES");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPipeline, setShowPipeline] = useState(false);
   const [selectedRange, setSelectedRange] = useState<number>(6); // Range in months: 1, 3, 6, 12
@@ -185,7 +186,8 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
         priceVal,
         notes,
         edition,
-        game.coverUrl
+        game.coverUrl,
+        region
       );
 
       if (result.error) {
@@ -512,7 +514,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 {/* Status */}
                 <div>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Estado</label>
@@ -548,6 +550,26 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                     <option value="box_and_game">Caja y juego</option>
                     <option value="loose">Suelto</option>
                     <option value="digital">Digital</option>
+                  </select>
+                </div>
+
+                {/* Region */}
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Región</label>
+                  <select
+                    value={region}
+                    onChange={(e) => setRegion(e.target.value)}
+                    className="w-full px-3 py-2 rounded-md text-sm focus:outline-none"
+                    style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+                  >
+                    <option value="PAL-ES">PAL-ES</option>
+                    <option value="PAL-UK">PAL-UK</option>
+                    <option value="NTSC-U">NTSC-U</option>
+                    <option value="NTSC-J">NTSC-J</option>
+                    <option value="PAL-FR">PAL-FR</option>
+                    <option value="PAL-DE">PAL-DE</option>
                   </select>
                 </div>
 

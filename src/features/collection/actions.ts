@@ -11,7 +11,8 @@ export async function addGameToCollection(
   purchasePrice: number | null = null,
   notes: string | null = null,
   edition: string | null = null,
-  coverUrl: string | null = null
+  coverUrl: string | null = null,
+  region: string = "PAL-ES"
 ) {
   const supabase = await createClient();
 
@@ -62,7 +63,7 @@ export async function addGameToCollection(
           user_id: user.id,
           game_id: gameIdInt,
           condition_state: conditionState,
-          region: 'PAL-ES', // Default region
+          region: region,
           purchase_price: purchasePrice,
           acquired_at: new Date().toISOString()
         }
