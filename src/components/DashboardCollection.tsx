@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { removeGameFromCollection } from "@/features/collection/actions";
 import { Search, Filter, ArrowUpDown, X, Trash2, Gamepad2, Package } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
@@ -52,6 +52,11 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
   const [selectedGameForDetails, setSelectedGameForDetails] = useState<Game | null>(null);
 
   const { showToast } = useToast();
+
+  // Sync state when initialGames prop changes (due to router.refresh())
+  useEffect(() => {
+    setGames(initialGames);
+  }, [initialGames]);
 
   // Extract unique platforms and regions dynamically from the collection
   const uniquePlatforms = useMemo(() => {
