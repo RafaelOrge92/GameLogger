@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useToast } from "@/context/ToastContext";
 import Link from "next/link";
 import { Gamepad2, Library, Gem, Flame, Sparkles, Crown, Package, Award } from "lucide-react";
-import GameContextMenu from "@/components/GameContextMenu";
+import GameCardWithMenu from "@/components/GameCardWithMenu";
+
 
 
 // Status configuration matching page.tsx
@@ -419,84 +420,17 @@ export default function ProfileClient({
               const statusMeta = STATUS_META[item.status] || { label: item.status, color: "var(--text-primary)", bg: "transparent" };
               const conditionMeta = CONDITION_META[item.condition] || { label: item.condition, color: "text-gray-400 border-gray-800" };
               
-              const cardMarkup = (
-                <div 
-                  className="game-card flex flex-col overflow-hidden select-none w-full h-full"
-                  style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-surface)" }}
-                >
-                  {/* Cover block */}
-                  <div className="aspect-[3/4] relative w-full overflow-hidden bg-[#141517]">
-                    {item.coverUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img 
-                        src={item.coverUrl} 
-                        alt={item.title} 
-                        className="w-full h-full object-cover transition-transform duration-300"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center p-3 text-center text-xs font-bold text-[var(--text-muted)] uppercase">
-                        {item.title}
-                      </div>
-                    )}
-
-                    {/* Physical Condition floating Badge on Hover */}
-                    <div className="absolute inset-0 bg-black/45 opacity-0 hover:opacity-100 transition-opacity duration-200 flex flex-col justify-center items-center p-2 text-center pointer-events-none">
-                      <span className={`px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider border ${conditionMeta.color} shadow-lg backdrop-blur-sm scale-90 group-hover:scale-100 transition-transform duration-200`}>
-                        {conditionMeta.label}
-                      </span>
-                      {item.platform && (
-                        <span className="mt-1.5 text-[9px] text-gray-300 bg-gray-950/60 px-1.5 py-0.5 rounded font-semibold border border-gray-800">
-                          {item.platform}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Metadata below cover */}
-                  <div className="p-3 space-y-1.5 bg-[#1f2125]/50 border-t border-[var(--border)]/55 flex-1 flex flex-col justify-between">
-                    <p 
-                      className="text-xs font-bold text-white truncate leading-tight hover:text-emerald-400 transition-colors"
-                      title={item.title}
-                    >
-                      {item.title}
-                    </p>
-                    <div className="flex items-center justify-between gap-1">
-                      <span 
-                        className="text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider uppercase" 
-                        style={{ color: statusMeta.color, backgroundColor: statusMeta.bg }}
-                      >
-                        {statusMeta.label}
-                      </span>
-                      {item.purchasePrice && (stats.isPricePublic || stats.isMock) && (
-                        <span className="text-[10px] font-bold text-emerald-400">
-                          €{parseFloat(item.purchasePrice).toFixed(0)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Status bottom bar */}
-                  <div className="h-1 w-full" style={{ backgroundColor: statusMeta.color }} />
-                </div>
-              );
-
-              return isOwnProfile ? (
-                <div 
-                  key={item.id} 
-                  className="w-full h-full"
-                >
-                  {cardMarkup}
-                </div>
-              ) : (
-                <GameContextMenu
+              return (
+                <GameCardWithMenu
                   key={item.id}
-                  game={item}
-                  ownerId={profile.id}
+                  item={item}
+                  statusMeta={statusMeta}
+                  conditionMeta={conditionMeta}
+                  stats={stats}
+                  profile={profile}
                   currentUser={currentUser}
-                >
-                  {cardMarkup}
-                </GameContextMenu>
+                  isOwnProfile={isOwnProfile}
+                />
               );
             })}
           </div>
