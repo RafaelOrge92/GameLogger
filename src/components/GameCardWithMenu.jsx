@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeftRight, Bookmark, MoreHorizontal } from "lucide-react";
+import { ArrowLeftRight, Bookmark, MoreHorizontal, Image } from "lucide-react";
 import { addGameToWishlist } from "@/features/collection/actions";
 import { useToast } from "@/context/ToastContext";
 import TradeProposalModal from "@/components/TradeProposalModal";
+import GameGalleryModal from "@/components/GameGalleryModal";
 
 export default function GameCardWithMenu({
   item,
@@ -18,6 +19,7 @@ export default function GameCardWithMenu({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const menuRef = useRef(null);
   const cardRef = useRef(null);
@@ -89,6 +91,12 @@ export default function GameCardWithMenu({
 
     setCoords({ x, y });
     setIsOpen(true);
+  };
+
+  const handleOpenGallery = (e) => {
+    e.stopPropagation();
+    setIsOpen(false);
+    setIsGalleryOpen(true);
   };
 
   const handleProposeTrade = (e) => {
@@ -234,6 +242,16 @@ export default function GameCardWithMenu({
             <Bookmark className="w-4 h-4 shrink-0" />
             <span>Añadir a Mis Deseos</span>
           </button>
+          {item.imagesUrls && item.imagesUrls.length > 0 && (
+            <button
+              onClick={handleOpenGallery}
+              type="button"
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer border-t border-gray-800/50"
+            >
+              <Image className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Ver fotos del coleccionista</span>
+            </button>
+          )}
         </div>
       )}
       {/* 4. Modal de Propuesta de Intercambio */}
@@ -243,6 +261,15 @@ export default function GameCardWithMenu({
           ownerId={profile.id}
           currentUser={currentUser}
           onClose={() => setIsProposalModalOpen(false)}
+        />
+      )}
+
+      {/* 5. Modal de Galería de Fotos */}
+      {isGalleryOpen && (
+        <GameGalleryModal
+          images={item.imagesUrls}
+          gameTitle={item.title}
+          onClose={() => setIsGalleryOpen(false)}
         />
       )}
     </div>

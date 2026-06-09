@@ -56,7 +56,7 @@ export default async function UserProfilePage({ params }) {
     };
 
     displayCollection = [
-      { id: "mock-1", gameId: "119133", title: "Chrono Trigger", coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co87df.jpg", platform: "SNES", status: "completed", condition: "cib", purchasePrice: "320" },
+      { id: "mock-1", gameId: "119133", title: "Chrono Trigger", coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co87df.jpg", platform: "SNES", status: "completed", condition: "cib", purchasePrice: "320", imagesUrls: ["https://images.igdb.com/igdb/image/upload/t_cover_big/co87df.jpg", "https://images.igdb.com/igdb/image/upload/t_cover_big/co53m8.jpg"] },
       { id: "mock-2", gameId: "68", title: "Super Mario Sunshine", coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co68sg.jpg", platform: "GameCube", status: "completed", condition: "cib", purchasePrice: "34" },
       { id: "mock-3", gameId: "33", title: "Metal Gear Solid", coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/cobpao.jpg", platform: "PlayStation", status: "completed", condition: "cib", purchasePrice: "55" },
       { id: "mock-4", gameId: "40", title: "Zelda: Ocarina of Time", coverUrl: "https://images.igdb.com/igdb/image/upload/t_cover_big/co3nnx.jpg", platform: "Nintendo 64", status: "playing", condition: "loose", purchasePrice: "120" },
@@ -141,7 +141,8 @@ export default async function UserProfilePage({ params }) {
         status: c.status || "owned",
         condition: physicalItem?.condition_state || c.condition || "cib",
         purchasePrice: physicalItem?.purchase_price || c.purchase_price || null,
-        region: physicalItem?.region || "PAL-ES"
+        region: physicalItem?.region || "PAL-ES",
+        imagesUrls: c.images_urls || []
       };
     });
 

@@ -5,6 +5,10 @@ import { getGameMarketData, getGamePriceHistory } from "@/features/market/action
 import { addGameToCollection } from "@/features/collection/actions";
 import DataPipelineDiagram from "@/components/layout/DataPipelineDiagram";
 import { useToast } from "@/context/ToastContext";
+// @ts-ignore
+import ImageUploaderWithAI from "@/components/ImageUploaderWithAI";
+
+const Uploader = ImageUploaderWithAI as any;
 
 interface GameModalProps {
   game: {
@@ -56,6 +60,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPipeline, setShowPipeline] = useState(false);
   const [selectedRange, setSelectedRange] = useState<number>(6); // Range in months: 1, 3, 6, 12
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const [sales, setSales] = useState<HistoricalSale[]>([]);
   const [isLoadingSales, setIsLoadingSales] = useState(false);
@@ -187,7 +192,8 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
         notes,
         edition,
         game.coverUrl,
-        region
+        region,
+        uploadedImages
       );
 
       if (result.error) {
@@ -602,6 +608,15 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                   style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                   onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
                   onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+                />
+              </div>
+
+              {/* Fotos del estado real */}
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Fotos del estado real (opcional)</label>
+                <Uploader
+                  images={uploadedImages}
+                  onChange={setUploadedImages}
                 />
               </div>
 

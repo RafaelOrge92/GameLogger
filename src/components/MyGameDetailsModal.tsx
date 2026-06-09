@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import { updateGameInCollection, removeGameFromCollection } from "@/features/collection/actions";
-import { X, Gamepad2, Tag, Calendar, DollarSign, Edit3, Trash2, Save, Globe, Award } from "lucide-react";
+import { X, Gamepad2, Tag, Calendar, DollarSign, Edit3, Trash2, Save, Globe, Award, Image } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+// @ts-ignore
+import GameGalleryModal from "@/components/GameGalleryModal";
+
+const GalleryModal = GameGalleryModal as any;
 
 interface Game {
   id: string;
@@ -18,6 +22,7 @@ interface Game {
   added_at: string;
   notes?: string | null;
   edition?: string | null;
+  images_urls?: string[] | null;
 }
 
 interface MyGameDetailsModalProps {
@@ -54,6 +59,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
   const [edition, setEdition] = useState(game.edition || "");
   const [notes, setNotes] = useState(game.notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   const { showToast } = useToast();
 
@@ -151,6 +157,17 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                 </div>
               )}
             </div>
+
+            {game.images_urls && game.images_urls.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsGalleryOpen(true)}
+                className="w-full py-2 bg-emerald-950/20 hover:bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 hover:text-emerald-300 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Image className="w-3.5 h-3.5" />
+                <span>Ver fotos físicas ({game.images_urls.length})</span>
+              </button>
+            )}
 
             <div className="text-center md:text-left space-y-2 w-full">
               <h2 className="font-bold text-white text-base md:text-lg leading-tight">{game.title}</h2>
@@ -382,6 +399,13 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
           </div>
         </div>
       </div>
+      {isGalleryOpen && game.images_urls && game.images_urls.length > 0 && (
+        <GalleryModal
+          images={game.images_urls}
+          gameTitle={game.title}
+          onClose={() => setIsGalleryOpen(false)}
+        />
+      )}
     </div>
   );
 }
