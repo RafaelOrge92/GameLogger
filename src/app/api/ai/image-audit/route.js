@@ -32,15 +32,22 @@ export async function POST(req) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const systemPrompt = `
-      You are an automated security and moderation system for a physical retro videogame marketplace.
+      You are an automated security and moderation system for a physical retro videogame marketplace and collection manager.
       Analyze the attached image and reply strictly in JSON format.
 
-      Task A (Moderation):
-      Check if the image contains: pornography, nudity, sexual organs, explicit violence, gore, hate symbols, or is completely unrelated to a physical videogame (e.g., cartridge, box art, disc, instruction manual, or console).
-      If the image is unsafe OR is NOT related to a videogame, set "isAllowed" to false. Otherwise, set "isAllowed" to true.
+      Task A (Moderation and Validation):
+      1. First, check if the image contains: pornography, nudity, sexual organs, explicit violence, gore, or hate symbols. If it does, set "isAllowed" to false.
+      2. Second, verify if the image is related to a physical video game. The image IS ALLOWED and VALID if it shows:
+         - The front of the game box/case (cover art / label).
+         - The back of the game box/case.
+         - The game disc, cartridge, or card.
+         - The game instruction manual, inserts, or map.
+         - The console, retro systems, accessories, or original packaging.
+         - An open game case (showing the disc/cartridge inside the box/case).
+      If the image is completely unrelated to video games (e.g. general selfies, landscapes, household items that are not consoles/games, animals), set "isAllowed" to false. Otherwise, set "isAllowed" to true.
 
       Task B (Recognition):
-      If "isAllowed" is true, attempt to identify the exact name of the videogame and platform visible in the cover/label.
+      If "isAllowed" is true, attempt to identify the exact name of the videogame and platform visible in the cover, case, disc, cartridge, or manual.
       Provide the result under "recognizedGame" as {"gameTitle": string, "platform": string}. If you are not sure or cannot recognize it, set "recognizedGame" to null.
 
       Do NOT return any explanation, and do NOT wrap the JSON inside markdown blocks (such as \`\`\`json). Return exactly the raw JSON structure:
