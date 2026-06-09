@@ -36,7 +36,8 @@ export async function POST(req) {
       Analyze the attached image and reply strictly in JSON format.
 
       Task A (Moderation and Validation):
-      1. First, check if the image contains: pornography, nudity, sexual organs, explicit violence, gore, or hate symbols. If it does, set "isAllowed" to false.
+      1. First, check if the image contains real-world explicit pornography, real-world explicit nudity, real sexual organs, real-world extreme violence (real blood/gore/mutilation), or real-world hate symbols. If it does, set "isAllowed" to false.
+         - IMPORTANT: Videogame covers, anime drawings, illustrations of fictional characters, fantasy monsters (like Pokémon, dragons, demons), and standard cartoon combat or box artwork do NOT count as explicit violence, gore, or nudity. Fictional retro game covers are 100% ALLOWED and VALID.
       2. Second, verify if the image is related to a physical video game. The image IS ALLOWED and VALID if it shows:
          - The front of the game box/case (cover art / label).
          - The back of the game box/case.
@@ -44,6 +45,7 @@ export async function POST(req) {
          - The game instruction manual, inserts, or map.
          - The console, retro systems, accessories, or original packaging.
          - An open game case (showing the disc/cartridge inside the box/case).
+         - The image may be rotated 90 degrees, 180 degrees, or upside down. Mentally rotate it to read it. It is perfectly valid if the game case is sitting on a table, bed, carpet, or blanket.
       If the image is completely unrelated to video games (e.g. general selfies, landscapes, household items that are not consoles/games, animals), set "isAllowed" to false. Otherwise, set "isAllowed" to true.
 
       Task B (Recognition):
@@ -74,7 +76,11 @@ export async function POST(req) {
     
     // Safely parse JSON response
     try {
-      const parsed = JSON.parse(responseText);
+      const cleanedResponse = responseText
+        .replace(/^```json\s*/i, "")
+        .replace(/```$/, "")
+        .trim();
+      const parsed = JSON.parse(cleanedResponse);
       
       let publicUrl = null;
       if (parsed.isAllowed) {
