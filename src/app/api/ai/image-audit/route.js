@@ -27,29 +27,39 @@ export async function POST(req) {
       );
     }
 
-    // 2. Initialize Gemini client and perform real Vision Auditing
+    // 2. Initialize Gemini client and perform real Vision Auditing with Structured JSON output
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: { responseMimeType: "application/json" }
+    });
 
     const systemPrompt = `
-      You are an automated security and moderation system for a physical retro videogame marketplace.
+      You are an automated security and moderation system for a physical retro videogame marketplace and collection manager.
       Analyze the attached image and reply strictly in JSON format.
 
-      Task A (Moderation):
-      Check if the image contains: pornography, nudity, sexual organs, explicit violence, gore, hate symbols, or is completely unrelated to a physical videogame (e.g., cartridge, box art, disc, instruction manual, or console).
-      If the image is unsafe OR is NOT related to a videogame, set "isAllowed" to false. Otherwise, set "isAllowed" to true.
+      Task A (Moderation and Validation):
+      1. First, check if the image contains real-world explicit pornography, real-world explicit nudity, real sexual organs, real-world extreme violence (real blood/gore/mutilation), or real-world hate symbols. If it does, set "isAllowed" to false.
+         - IMPORTANT: Videogame covers, anime drawings, illustrations of fictional characters, fantasy monsters (like Pokémon, dragons, demons), and standard cartoon combat or box artwork do NOT count as explicit violence, gore, or nudity. Fictional retro game covers are 100% ALLOWED and VALID.
+      2. Second, verify if the image is related to a physical video game. The image IS ALLOWED and VALID if it shows:
+         - The front of the game box/case (cover art / label).
+         - The back of the game box/case.
+         - The game disc, cartridge, or card.
+         - The game instruction manual, inserts, or map.
+         - The console, retro systems, accessories, or original packaging.
+         - An open game case (showing the disc/cartridge inside the box/case).
+         - The image may be rotated 90 degrees, 180 degrees, or upside down. Mentally rotate it to read it. It is perfectly valid if the game case is sitting on a table, bed, carpet, or blanket.
+      If the image is completely unrelated to video games (e.g. general selfies, landscapes, household items that are not consoles/games, animals), set "isAllowed" to false. Otherwise, set "isAllowed" to true.
 
       Task B (Recognition):
-      If "isAllowed" is true, attempt to identify the exact name of the videogame and platform visible in the cover/label.
-      Provide the result under "recognizedGame" as {"gameTitle": string, "platform": string}. If you are not sure or cannot recognize it, set "recognizedGame" to null.
+      If "isAllowed" is true, attempt to identify the exact name of the videogame and platform visible in the cover, case, disc, cartridge, or manual.
+      Provide the result under "gameTitle" as a string and "platform" as a string. If you are not sure or cannot recognize it, set them to null.
 
       Do NOT return any explanation, and do NOT wrap the JSON inside markdown blocks (such as \`\`\`json). Return exactly the raw JSON structure:
       {
         "isAllowed": boolean,
-        "recognizedGame": {
-          "gameTitle": string,
-          "platform": string
-        } | null
+        "gameTitle": string | null,
+        "platform": string | null
       }
     `;
 
@@ -67,8 +77,18 @@ export async function POST(req) {
     
     // Safely parse JSON response
     try {
-      const parsed = JSON.parse(responseText);
+      const cleanedResponse = responseText
+        .replace(/^```json\s*/i, "")
+        .replace(/```$/, "")
+        .trim();
+      const parsed = JSON.parse(cleanedResponse);
       
+      // Normalize gameTitle or recognizedGame to be tolerant and match frontend expectation
+      const rawRecognized = parsed.gameTitle || parsed.recognizedGame || null;
+      const recognizedGame = rawRecognized 
+        ? (typeof rawRecognized === "string" ? { gameTitle: rawRecognized, platform: parsed.platform || null } : rawRecognized)
+        : null;
+
       let publicUrl = null;
       if (parsed.isAllowed) {
         try {
@@ -120,7 +140,7 @@ export async function POST(req) {
       return NextResponse.json({
         success: true,
         isAllowed: !!parsed.isAllowed,
-        recognizedGame: parsed.recognizedGame || null,
+        recognizedGame,
         publicUrl,
       });
     } catch (parseError) {
