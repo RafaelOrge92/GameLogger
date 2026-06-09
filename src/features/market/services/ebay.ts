@@ -120,7 +120,7 @@ export async function searchEbayListings(query: string): Promise<EbayListing[]> 
       return [];
     }
 
-    const items = data.itemSummaries.map((item: any) => {
+    const items: EbayListing[] = data.itemSummaries.map((item: any) => {
       // Classify condition based on title
       const cond = classifyCondition(item.title) || "cib";
       return {
