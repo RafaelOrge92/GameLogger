@@ -303,10 +303,10 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                       </p>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {marketData.ebayListings.slice(0, 4).map((item) => (
+                        {marketData.ebayListings.map((item) => (
                           <div
                             key={item.id}
-                            className="flex gap-2 p-2 rounded-md"
+                            className="flex gap-2 p-2 rounded-md hover:border-gray-750 transition-colors"
                             style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
                           >
                             {item.imageUrl ? (
@@ -319,7 +319,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                                 href={item.itemUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[10px] truncate"
+                                className="text-[10px] truncate hover:text-emerald-400 transition-colors"
                                 style={{ color: 'var(--text-secondary)' }}
                                 title={item.title}
                               >
@@ -333,7 +333,13 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                                 >
                                   €{item.price} — usar
                                 </button>
-                                <span className="text-[9px] uppercase" style={{ color: 'var(--text-muted)' }}>{item.condition}</span>
+                                <span className={`text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
+                                  item.condition === 'sealed' ? 'text-amber-400 border-amber-500/20 bg-amber-950/20' :
+                                  item.condition === 'cib' ? 'text-cyan-400 border-cyan-500/20 bg-cyan-950/20' :
+                                  'text-rose-400 border-rose-500/20 bg-rose-950/20'
+                                }`}>
+                                  {item.condition === 'sealed' ? 'Precintado' : item.condition === 'cib' ? 'Completo' : 'Cartucho/Disco'}
+                                </span>
                               </div>
                             </div>
                           </div>

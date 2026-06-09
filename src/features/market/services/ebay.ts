@@ -1,5 +1,7 @@
 "use server";
 
+import { classifyCondition } from "./ebay-pricing";
+
 // Cache token in memory during the execution lifecycle
 let cachedToken: string | null = null;
 let tokenExpiresAt: number = 0; // Epoch timestamp in ms
@@ -89,8 +91,8 @@ export async function searchEbayListings(query: string): Promise<EbayListing[]> 
       : "https://api.ebay.com/buy/browse/v1";
 
     // Build search request
-    // Limit to 6 items to keep layout clean
-    const searchUrl = `${baseUrl}/item_summary/search?q=${encodeURIComponent(query)}&limit=6`;
+    // Request up to 100 items to classify them and extract the most relevant per condition
+    const searchUrl = `${baseUrl}/item_summary/search?q=${encodeURIComponent(query)}&limit=100`;
 
     const response = await fetch(searchUrl, {
       method: "GET",
@@ -118,15 +120,40 @@ export async function searchEbayListings(query: string): Promise<EbayListing[]> 
       return [];
     }
 
-    return data.itemSummaries.map((item: any) => ({
-      id: item.itemId,
-      title: item.title,
-      price: item.price?.value || "0.00",
-      currency: item.price?.currency || "EUR",
-      itemUrl: item.itemWebUrl,
-      imageUrl: item.image?.imageUrl || null,
-      condition: item.condition || "Usado",
-    }));
+    const items = data.itemSummaries.map((item: any) => {
+      // Classify condition based on title
+      const cond = classifyCondition(item.title) || "cib";
+      return {
+        id: item.itemId,
+        title: item.title,
+        price: item.price?.value || "0.00",
+        currency: item.price?.currency || "EUR",
+        itemUrl: item.itemWebUrl,
+        imageUrl: item.image?.imageUrl || null,
+        condition: cond,
+      };
+    });
+
+    // Group items by condition
+    const looseGroup = items.filter(i => i.condition === "loose");
+    const cibGroup = items.filter(i => i.condition === "cib");
+    const sealedGroup = items.filter(i => i.condition === "sealed");
+
+    // Sort descending by price and take up to 2 items
+    const processGroup = (group: any[]) => {
+      return group
+        .sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
+        .slice(0, 2);
+    };
+
+    // Combine results: first sealed, then cib, then loose
+    const finalResults = [
+      ...processGroup(sealedGroup),
+      ...processGroup(cibGroup),
+      ...processGroup(looseGroup)
+    ];
+
+    return finalResults;
 
   } catch (error) {
     console.error("Error fetching eBay listings:", error);

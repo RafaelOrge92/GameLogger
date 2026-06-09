@@ -168,7 +168,7 @@ export async function fetchSoldListings(
         Authorization: `Bearer ${token}`,
         'X-EBAY-SOA-GLOBAL-ID': 'EBAY-ES',
       },
-      cache: 'no-store',
+      next: { revalidate: 7200 }, // Cache completed listings searches for 2 hours to speed up the interface
     });
 
     if (!res.ok) {
