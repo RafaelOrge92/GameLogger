@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Edit3 } from "lucide-react";
 
-export default function GameGalleryModal({ images = [], gameTitle, onClose }) {
+export default function GameGalleryModal({ images = [], gameTitle, onClose, onEdit }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (!images || images.length === 0) return null;
@@ -28,6 +28,19 @@ export default function GameGalleryModal({ images = [], gameTitle, onClose }) {
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-3xl flex flex-col items-center relative"
       >
+        {/* Edit Button */}
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            type="button"
+            className="absolute -top-12 right-12 text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer bg-emerald-950/30 hover:bg-emerald-950/50 px-3 py-1.5 rounded-lg border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 shadow-md"
+            title="Editar detalles y fotos"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            <span>Editar y Añadir Fotos</span>
+          </button>
+        )}
+
         {/* Close Button */}
         <button
           onClick={onClose}

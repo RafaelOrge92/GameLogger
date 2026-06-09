@@ -9,6 +9,11 @@ import GameGalleryModal from "@/components/GameGalleryModal";
 
 const GalleryModal = GameGalleryModal as any;
 
+// @ts-ignore
+import ImageUploaderWithAI from "@/components/ImageUploaderWithAI";
+
+const Uploader = ImageUploaderWithAI as any;
+
 interface Game {
   id: string;
   game_id: string;
@@ -60,6 +65,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
   const [notes, setNotes] = useState(game.notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>(game.images_urls || []);
 
   const { showToast } = useToast();
 
@@ -76,7 +82,8 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
         priceVal,
         notes || null,
         edition || null,
-        region
+        region,
+        uploadedImages
       );
 
       if (res.error) {
@@ -91,6 +98,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
           region,
           edition: edition || null,
           notes: notes || null,
+          images_urls: uploadedImages,
         });
         setIsEditing(false);
       }
@@ -283,6 +291,15 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                   />
                 </div>
 
+                {/* Fotos del estado real */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1.5">Fotos del estado real (opcional)</label>
+                  <Uploader
+                    images={uploadedImages}
+                    onChange={setUploadedImages}
+                  />
+                </div>
+
                 {/* Save and Cancel buttons */}
                 <div className="flex justify-end gap-2 pt-2">
                   <button
@@ -404,6 +421,10 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
           images={game.images_urls}
           gameTitle={game.title}
           onClose={() => setIsGalleryOpen(false)}
+          onEdit={() => {
+            setIsGalleryOpen(false);
+            setIsEditing(true);
+          }}
         />
       )}
     </div>

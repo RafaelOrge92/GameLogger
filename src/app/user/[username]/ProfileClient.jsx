@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/context/ToastContext";
 import Link from "next/link";
 import { Gamepad2, Library, Gem, Flame, Sparkles, Crown, Package, Award } from "lucide-react";
 import GameCardWithMenu from "@/components/GameCardWithMenu";
+import MyGameDetailsModal from "@/components/MyGameDetailsModal";
 
 
 
@@ -38,9 +39,44 @@ export default function ProfileClient({
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [followerCount, setFollowerCount] = useState(initialFollowerCount);
   const [isLoadingFollow, setIsLoadingFollow] = useState(false);
+  const [localCollection, setLocalCollection] = useState(collection);
+  const [selectedGameForDetails, setSelectedGameForDetails] = useState(null);
   const { showToast } = useToast();
 
   const isOwnProfile = currentUser && currentUser.id === profile.id;
+
+  // Sync state if collection changes from page props
+  useEffect(() => {
+    setLocalCollection(collection);
+  }, [collection]);
+
+  const handleGameUpdate = (updatedGame) => {
+    const mappedUpdated = {
+      id: updatedGame.id,
+      gameId: updatedGame.game_id,
+      title: updatedGame.title,
+      coverUrl: updatedGame.cover_url,
+      platform: updatedGame.platform,
+      status: updatedGame.status,
+      condition: updatedGame.condition,
+      purchasePrice: updatedGame.purchase_price,
+      region: updatedGame.region,
+      imagesUrls: updatedGame.images_urls || [],
+      notes: updatedGame.notes || "",
+      edition: updatedGame.edition || "",
+      addedAt: updatedGame.added_at
+    };
+
+    setLocalCollection((prev) =>
+      prev.map((g) => (g.id === mappedUpdated.id ? mappedUpdated : g))
+    );
+    setSelectedGameForDetails(mappedUpdated);
+  };
+
+  const handleGameDelete = (id) => {
+    setLocalCollection((prev) => prev.filter((g) => g.id !== id));
+    setSelectedGameForDetails(null);
+  };
 
   const handleFollowToggle = async () => {
     if (!currentUser) {
@@ -399,11 +435,11 @@ export default function ProfileClient({
             <Gamepad2 className="w-4 h-4 text-emerald-400" /> Colección Completa
           </h3>
           <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-            {collection.length} juegos en propiedad
+            {localCollection.length} juegos en propiedad
           </span>
         </div>
 
-        {collection.length === 0 ? (
+        {localCollection.length === 0 ? (
           <div 
             className="rounded-xl flex flex-col items-center justify-center text-center py-16 px-6 border"
             style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}
@@ -416,7 +452,7 @@ export default function ProfileClient({
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-            {collection.map((item) => {
+            {localCollection.map((item) => {
               const statusMeta = STATUS_META[item.status] || { label: item.status, color: "var(--text-primary)", bg: "transparent" };
               const conditionMeta = CONDITION_META[item.condition] || { label: item.condition, color: "text-gray-400 border-gray-800" };
               
@@ -430,12 +466,36 @@ export default function ProfileClient({
                   profile={profile}
                   currentUser={currentUser}
                   isOwnProfile={isOwnProfile}
+                  onEdit={(game) => setSelectedGameForDetails(game)}
                 />
               );
             })}
           </div>
         )}
       </div>
+
+      {selectedGameForDetails && (
+        <MyGameDetailsModal
+          game={{
+            id: selectedGameForDetails.id,
+            game_id: selectedGameForDetails.gameId,
+            title: selectedGameForDetails.title,
+            cover_url: selectedGameForDetails.coverUrl,
+            platform: selectedGameForDetails.platform,
+            status: selectedGameForDetails.status,
+            condition: selectedGameForDetails.condition,
+            purchase_price: selectedGameForDetails.purchasePrice,
+            region: selectedGameForDetails.region,
+            added_at: selectedGameForDetails.addedAt || new Date().toISOString(),
+            notes: selectedGameForDetails.notes || "",
+            edition: selectedGameForDetails.edition || "",
+            images_urls: selectedGameForDetails.imagesUrls || []
+          }}
+          onClose={() => setSelectedGameForDetails(null)}
+          onUpdate={handleGameUpdate}
+          onDelete={handleGameDelete}
+        />
+      )}
 
     </div>
   );

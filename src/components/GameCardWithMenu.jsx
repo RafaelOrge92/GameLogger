@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeftRight, Bookmark, MoreHorizontal, Image } from "lucide-react";
+import { ArrowLeftRight, Bookmark, MoreHorizontal, Image, Edit3 } from "lucide-react";
 import { addGameToWishlist } from "@/features/collection/actions";
 import { useToast } from "@/context/ToastContext";
 import TradeProposalModal from "@/components/TradeProposalModal";
@@ -16,6 +16,7 @@ export default function GameCardWithMenu({
   profile,
   currentUser,
   isOwnProfile,
+  onEdit,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
@@ -142,22 +143,27 @@ export default function GameCardWithMenu({
       onContextMenu={handleContextMenu}
       className="relative w-full h-full group select-none"
     >
-      {/* 1. El Activador Visual (Botón de 3 Puntos) — Only for visitors */}
-      {!isOwnProfile && (
-        <button
-          onClick={handleButtonClick}
-          type="button"
-          className="absolute top-2.5 right-2.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer flex items-center justify-center w-7 h-7 text-gray-400 hover:text-white bg-gray-950/80 hover:bg-gray-900 border border-gray-800 rounded-md backdrop-blur-xs shadow-lg"
-          aria-label="Opciones comerciales"
-        >
-          <MoreHorizontal className="w-4 h-4" />
-        </button>
-      )}
+      {/* 1. El Activador Visual (Botón de 3 Puntos) */}
+      <button
+        onClick={handleButtonClick}
+        type="button"
+        className="absolute top-2.5 right-2.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer flex items-center justify-center w-7 h-7 text-gray-400 hover:text-white bg-gray-950/80 hover:bg-gray-900 border border-gray-800 rounded-md backdrop-blur-xs shadow-lg"
+        aria-label="Opciones"
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </button>
 
       {/* 2. Tarjeta de Videojuego */}
       <div
-        className="game-card flex flex-col overflow-hidden w-full h-full"
+        className={`game-card flex flex-col overflow-hidden w-full h-full ${isOwnProfile ? 'cursor-pointer hover:border-emerald-500/50 transition-colors' : ''}`}
         style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-surface)" }}
+        onClick={(e) => {
+          if (isOwnProfile && onEdit) {
+            e.preventDefault();
+            e.stopPropagation();
+            onEdit(item);
+          }
+        }}
       >
         {/* Cover block */}
         <div className="aspect-[3/4] relative w-full overflow-hidden bg-[#141517]">
@@ -226,31 +232,60 @@ export default function GameCardWithMenu({
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <button
-            onClick={handleProposeTrade}
-            type="button"
-            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer"
-          >
-            <ArrowLeftRight className="w-4 h-4 shrink-0" />
-            <span>Proponer Intercambio</span>
-          </button>
-          <button
-            onClick={handleAddToWishlist}
-            type="button"
-            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer border-t border-gray-800/50"
-          >
-            <Bookmark className="w-4 h-4 shrink-0" />
-            <span>Añadir a Mis Deseos</span>
-          </button>
-          {item.imagesUrls && item.imagesUrls.length > 0 && (
-            <button
-              onClick={handleOpenGallery}
-              type="button"
-              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer border-t border-gray-800/50"
-            >
-              <Image className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Ver fotos del coleccionista</span>
-            </button>
+          {isOwnProfile ? (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(false);
+                  if (onEdit) onEdit(item);
+                }}
+                type="button"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer"
+              >
+                <Edit3 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Editar detalles</span>
+              </button>
+              {item.imagesUrls && item.imagesUrls.length > 0 && (
+                <button
+                  onClick={handleOpenGallery}
+                  type="button"
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer border-t border-gray-800/50"
+                >
+                  <Image className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Ver mis fotos</span>
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleProposeTrade}
+                type="button"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer"
+              >
+                <ArrowLeftRight className="w-4 h-4 shrink-0" />
+                <span>Proponer Intercambio</span>
+              </button>
+              <button
+                onClick={handleAddToWishlist}
+                type="button"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer border-t border-gray-800/50"
+              >
+                <Bookmark className="w-4 h-4 shrink-0" />
+                <span>Añadir a Mis Deseos</span>
+              </button>
+              {item.imagesUrls && item.imagesUrls.length > 0 && (
+                <button
+                  onClick={handleOpenGallery}
+                  type="button"
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer border-t border-gray-800/50"
+                >
+                  <Image className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Ver fotos del coleccionista</span>
+                </button>
+              )}
+            </>
           )}
         </div>
       )}
@@ -270,6 +305,10 @@ export default function GameCardWithMenu({
           images={item.imagesUrls}
           gameTitle={item.title}
           onClose={() => setIsGalleryOpen(false)}
+          onEdit={isOwnProfile ? () => {
+            setIsGalleryOpen(false);
+            if (onEdit) onEdit(item);
+          } : undefined}
         />
       )}
     </div>

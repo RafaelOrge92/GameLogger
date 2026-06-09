@@ -147,7 +147,8 @@ export async function updateGameInCollection(
   purchasePrice: number | null,
   notes: string | null,
   edition: string | null,
-  region: string
+  region: string,
+  imagesUrls: string[] = []
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -163,7 +164,8 @@ export async function updateGameInCollection(
       condition,
       purchase_price: purchasePrice,
       notes,
-      edition
+      edition,
+      images_urls: imagesUrls
     })
     .eq("id", id)
     .eq("user_id", user.id);

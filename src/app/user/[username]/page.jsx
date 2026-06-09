@@ -142,7 +142,10 @@ export default async function UserProfilePage({ params }) {
         condition: physicalItem?.condition_state || c.condition || "cib",
         purchasePrice: physicalItem?.purchase_price || c.purchase_price || null,
         region: physicalItem?.region || "PAL-ES",
-        imagesUrls: c.images_urls || []
+        imagesUrls: c.images_urls || [],
+        notes: c.notes || "",
+        edition: c.edition || "",
+        addedAt: c.added_at || new Date().toISOString()
       };
     });
 
