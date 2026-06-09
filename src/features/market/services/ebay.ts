@@ -69,6 +69,33 @@ async function getEbayAccessToken(): Promise<string> {
 /**
  * Searches eBay listings for a specific game query.
  */
+function cleanQueryForEbay(query: string): string {
+  let cleaned = query;
+  // Reemplazar plataformas comunes
+  cleaned = cleaned.replace(/nintendo wii/i, "Wii");
+  cleaned = cleaned.replace(/playstation 1|playstation 1|ps1|psx/i, "PS1");
+  cleaned = cleaned.replace(/playstation 2|ps2/i, "PS2");
+  cleaned = cleaned.replace(/playstation 3|ps3/i, "PS3");
+  cleaned = cleaned.replace(/playstation 4|ps4/i, "PS4");
+  cleaned = cleaned.replace(/playstation 5|ps5/i, "PS5");
+  cleaned = cleaned.replace(/nintendo switch|switch/i, "Switch");
+  cleaned = cleaned.replace(/nintendo 64|n64/i, "N64");
+  cleaned = cleaned.replace(/super nintendo|snes/i, "SNES");
+  cleaned = cleaned.replace(/sega mega drive|mega drive/i, "Mega Drive");
+  cleaned = cleaned.replace(/game boy advance|gba/i, "GBA");
+  cleaned = cleaned.replace(/game boy color|gbc/i, "GBC");
+  cleaned = cleaned.replace(/game boy/i, "Game Boy");
+  cleaned = cleaned.replace(/nintendo ds|nds/i, "DS");
+  cleaned = cleaned.replace(/nintendo 3ds|3ds/i, "3DS");
+  
+  // Limpiar caracteres especiales que confunden a la API de eBay
+  cleaned = cleaned.replace(/[\.\:\-\,\(\)]/g, " ");
+  // Eliminar espacios múltiples
+  cleaned = cleaned.replace(/\s+/g, " ").trim();
+  
+  return cleaned;
+}
+
 export async function searchEbayListings(query: string): Promise<EbayListing[]> {
   if (!query) return [];
 
@@ -90,9 +117,11 @@ export async function searchEbayListings(query: string): Promise<EbayListing[]> 
       ? "https://api.sandbox.ebay.com/buy/browse/v1"
       : "https://api.ebay.com/buy/browse/v1";
 
+    const cleanedQuery = cleanQueryForEbay(query);
+
     // Build search request
-    // Request up to 100 items to classify them and extract the most relevant per condition
-    const searchUrl = `${baseUrl}/item_summary/search?q=${encodeURIComponent(query)}&limit=100`;
+    // Request up to 50 items (balance between speed and search accuracy)
+    const searchUrl = `${baseUrl}/item_summary/search?q=${encodeURIComponent(cleanedQuery)}&limit=50`;
 
     const response = await fetch(searchUrl, {
       method: "GET",

@@ -88,24 +88,32 @@ async function getEbayAccessToken(): Promise<string> {
 const CONDITION_RULES: Array<{ keywords: string[]; state: ConditionState }> = [
   {
     // Sealed / factory new — must be checked FIRST (higher precedence)
-    keywords: ['precintado', 'sealed', 'nuevo a estrenar', 'new sealed', 'factory sealed'],
+    keywords: [
+      'precintado', 'precintada', 'sealed', 'nuevo a estrenar', 'new sealed', 
+      'factory sealed', 'brand new', 'nuevo precintado', 'sin abrir', 'unopened'
+    ],
     state: 'sealed',
+  },
+  {
+    // Loose — cartridge/disc only — checked BEFORE CIB to prevent false classification (e.g. "sin caja ni manual")
+    keywords: [
+      'cartucho', 'solo disco', 'solo cartucho', 'loose', 'sin caja',
+      'sin manual', 'solo juego', 'only game', 'cart only', 'suelto', 
+      'disco suelto', 'solo el disco', 'only disc', 'only cartridge', 
+      'sin caja ni manual', 'sin caratula', 'sin portada', 'solo dvd', 
+      'no box', 'no manual', 'disc only', 'no cover', 'solo el cd', 
+      'cd suelto', 'solo cd', 'sin instrucciones'
+    ],
+    state: 'loose',
   },
   {
     // Complete In Box
     keywords: [
       'completo', 'cib', 'complete in box', 'caja y manual', 'con caja',
-      'con manual', 'boxed', 'complet',
+      'con manual', 'boxed', 'complet', 'caja original', 'with manual',
+      'manuales', 'manual original', 'instrucciones'
     ],
     state: 'cib',
-  },
-  {
-    // Loose — cartridge/disc only
-    keywords: [
-      'cartucho', 'solo disco', 'solo cartucho', 'loose', 'sin caja',
-      'sin manual', 'solo juego', 'only game', 'cart only',
-    ],
-    state: 'loose',
   },
 ];
 
@@ -131,6 +139,33 @@ export function classifyCondition(title: string): ConditionState | null {
  * Returns an empty array on any error so the caller can continue with
  * the next game without crashing the entire cron run.
  */
+function cleanQueryForEbay(query: string): string {
+  let cleaned = query;
+  // Reemplazar plataformas comunes
+  cleaned = cleaned.replace(/nintendo wii/i, "Wii");
+  cleaned = cleaned.replace(/playstation 1|playstation 1|ps1|psx/i, "PS1");
+  cleaned = cleaned.replace(/playstation 2|ps2/i, "PS2");
+  cleaned = cleaned.replace(/playstation 3|ps3/i, "PS3");
+  cleaned = cleaned.replace(/playstation 4|ps4/i, "PS4");
+  cleaned = cleaned.replace(/playstation 5|ps5/i, "PS5");
+  cleaned = cleaned.replace(/nintendo switch|switch/i, "Switch");
+  cleaned = cleaned.replace(/nintendo 64|n64/i, "N64");
+  cleaned = cleaned.replace(/super nintendo|snes/i, "SNES");
+  cleaned = cleaned.replace(/sega mega drive|mega drive/i, "Mega Drive");
+  cleaned = cleaned.replace(/game boy advance|gba/i, "GBA");
+  cleaned = cleaned.replace(/game boy color|gbc/i, "GBC");
+  cleaned = cleaned.replace(/game boy/i, "Game Boy");
+  cleaned = cleaned.replace(/nintendo ds|nds/i, "DS");
+  cleaned = cleaned.replace(/nintendo 3ds|3ds/i, "3DS");
+  
+  // Limpiar caracteres especiales que confunden a la API de eBay
+  cleaned = cleaned.replace(/[\.\:\-\,\(\)]/g, " ");
+  // Eliminar espacios múltiples
+  cleaned = cleaned.replace(/\s+/g, " ").trim();
+  
+  return cleaned;
+}
+
 export async function fetchSoldListings(
   gameTitle: string,
   maxResults = 100,
@@ -138,6 +173,7 @@ export async function fetchSoldListings(
   try {
     const token = await getEbayAccessToken();
     const isSandbox = process.env.EBAY_ENVIRONMENT === 'sandbox';
+    const cleanedTitle = cleanQueryForEbay(gameTitle);
 
     // The Finding API endpoint (XML REST variant)
     const baseUrl = isSandbox
@@ -158,7 +194,7 @@ export async function fetchSoldListings(
       'itemFilter(1).value': 'ES',
       // Video Games category (1249) keeps results tight
       'categoryId': '1249',
-      'keywords': gameTitle,
+      'keywords': cleanedTitle,
       'paginationInput.entriesPerPage': String(Math.min(maxResults, 100)),
       'sortOrder': 'EndTimeSoonest',
     });
