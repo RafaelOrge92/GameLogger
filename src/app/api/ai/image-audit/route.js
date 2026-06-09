@@ -27,9 +27,12 @@ export async function POST(req) {
       );
     }
 
-    // 2. Initialize Gemini client and perform real Vision Auditing
+    // 2. Initialize Gemini client and perform real Vision Auditing with Structured JSON output
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: { responseMimeType: "application/json" }
+    });
 
     const systemPrompt = `
       You are an automated security and moderation system for a physical retro videogame marketplace and collection manager.
@@ -50,15 +53,13 @@ export async function POST(req) {
 
       Task B (Recognition):
       If "isAllowed" is true, attempt to identify the exact name of the videogame and platform visible in the cover, case, disc, cartridge, or manual.
-      Provide the result under "recognizedGame" as {"gameTitle": string, "platform": string}. If you are not sure or cannot recognize it, set "recognizedGame" to null.
+      Provide the result under "gameTitle" as a string and "platform" as a string. If you are not sure or cannot recognize it, set them to null.
 
       Do NOT return any explanation, and do NOT wrap the JSON inside markdown blocks (such as \`\`\`json). Return exactly the raw JSON structure:
       {
         "isAllowed": boolean,
-        "recognizedGame": {
-          "gameTitle": string,
-          "platform": string
-        } | null
+        "gameTitle": string | null,
+        "platform": string | null
       }
     `;
 
@@ -82,6 +83,12 @@ export async function POST(req) {
         .trim();
       const parsed = JSON.parse(cleanedResponse);
       
+      // Normalize gameTitle or recognizedGame to be tolerant and match frontend expectation
+      const rawRecognized = parsed.gameTitle || parsed.recognizedGame || null;
+      const recognizedGame = rawRecognized 
+        ? (typeof rawRecognized === "string" ? { gameTitle: rawRecognized, platform: parsed.platform || null } : rawRecognized)
+        : null;
+
       let publicUrl = null;
       if (parsed.isAllowed) {
         try {
@@ -133,7 +140,7 @@ export async function POST(req) {
       return NextResponse.json({
         success: true,
         isAllowed: !!parsed.isAllowed,
-        recognizedGame: parsed.recognizedGame || null,
+        recognizedGame,
         publicUrl,
       });
     } catch (parseError) {
