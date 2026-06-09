@@ -29,7 +29,7 @@ export async function POST(req) {
 
     // 2. Initialize Gemini client and perform real Vision Auditing
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const systemPrompt = `
       You are an automated security and moderation system for a physical retro videogame marketplace and collection manager.
