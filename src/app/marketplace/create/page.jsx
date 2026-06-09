@@ -68,7 +68,7 @@ export default function CreateOfferPage() {
         const data = await res.json();
         if (res.ok && data.success) {
           if (data.isAllowed) {
-            setPhoto(base64);
+            setPhoto(data.publicUrl || base64);
             // Autofill the game from collection if recognized
             if (data.recognizedGame) {
               const matchedGame = collection.find((item) =>

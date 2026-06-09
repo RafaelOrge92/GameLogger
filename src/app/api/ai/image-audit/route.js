@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createAdminClient } from "@/lib/supabase/admin";
+import sharp from "sharp";
+import crypto from "crypto";
 
 export async function POST(req) {
   try {
@@ -16,41 +19,12 @@ export async function POST(req) {
     // Extract base64 clean data (strip data:image/jpeg;base64, if present)
     const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
 
-    // 1. Fallback to mock simulation if GEMINI_API_KEY is not configured
+    // Ensure Gemini API Key is configured
     if (!process.env.GEMINI_API_KEY) {
-      console.warn("GEMINI_API_KEY is not defined. Using mock vision auditor.");
-      
-      // Artificial delay to mimic AI inference latency
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      const fileLower = (fileName || "").toLowerCase();
-      
-      // Simple mock filter: block images containing 'blocked' or 'nsfw' or 'ofensivo' in filename
-      if (fileLower.includes("blocked") || fileLower.includes("nsfw") || fileLower.includes("ofensivo")) {
-        return NextResponse.json({
-          success: true,
-          isAllowed: false,
-          recognizedGame: null,
-        });
-      }
-
-      // Mock recognition logic based on filename keywords
-      let recognizedGame = null;
-      if (fileLower.includes("mario")) {
-        recognizedGame = { gameTitle: "Super Mario 64", platform: "N64" };
-      } else if (fileLower.includes("silent")) {
-        recognizedGame = { gameTitle: "Silent Hill", platform: "PlayStation" };
-      } else if (fileLower.includes("chrono")) {
-        recognizedGame = { gameTitle: "Chrono Trigger", platform: "SNES" };
-      } else if (fileLower.includes("zelda")) {
-        recognizedGame = { gameTitle: "The Legend of Zelda: Ocarina of Time", platform: "Nintendo 64" };
-      }
-
-      return NextResponse.json({
-        success: true,
-        isAllowed: true,
-        recognizedGame,
-      });
+      return NextResponse.json(
+        { error: "La clave de API de Gemini (GEMINI_API_KEY) no está configurada." },
+        { status: 500 }
+      );
     }
 
     // 2. Initialize Gemini client and perform real Vision Auditing
@@ -94,10 +68,60 @@ export async function POST(req) {
     // Safely parse JSON response
     try {
       const parsed = JSON.parse(responseText);
+      
+      let publicUrl = null;
+      if (parsed.isAllowed) {
+        try {
+          const buffer = Buffer.from(base64Data, "base64");
+          const optimizedBuffer = await sharp(buffer)
+            .resize({ width: 1080, withoutEnlargement: true })
+            .webp({ quality: 75 })
+            .toBuffer();
+
+          const supabase = createAdminClient();
+          const cleanFileName = (fileName || "game_photo")
+            .replace(/\.[^/.]+$/, "")
+            .replace(/[^a-zA-Z0-9_]/g, "_");
+          const uniqueFileName = `${cleanFileName}_${crypto.randomUUID()}.webp`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("game-photos")
+            .upload(uniqueFileName, optimizedBuffer, {
+              contentType: "image/webp",
+              upsert: true
+            });
+
+          if (uploadError) {
+            console.warn("Storage upload failed, attempting to create bucket:", uploadError);
+            // Create bucket if it doesn't exist
+            await supabase.storage.createBucket("game-photos", {
+              public: true
+            });
+            const { error: retryError } = await supabase.storage
+              .from("game-photos")
+              .upload(uniqueFileName, optimizedBuffer, {
+                contentType: "image/webp",
+                upsert: true
+              });
+            if (retryError) throw retryError;
+          }
+
+          const { data } = supabase.storage
+            .from("game-photos")
+            .getPublicUrl(uniqueFileName);
+          
+          publicUrl = data?.publicUrl || null;
+        } catch (storageError) {
+          console.error("Supabase Storage upload/optimization error:", storageError);
+          throw storageError;
+        }
+      }
+
       return NextResponse.json({
         success: true,
         isAllowed: !!parsed.isAllowed,
         recognizedGame: parsed.recognizedGame || null,
+        publicUrl,
       });
     } catch (parseError) {
       console.error("Gemini Vision response parse error. Response was:", responseText, parseError);

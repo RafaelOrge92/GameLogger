@@ -19,6 +19,7 @@ interface Game {
   added_at: string;
   notes?: string | null;
   edition?: string | null;
+  images_urls?: string[] | null;
 }
 
 interface DashboardCollectionProps {
