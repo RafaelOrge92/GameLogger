@@ -19,7 +19,7 @@ interface EbayListing {
 /**
  * Retrieves an access token from eBay using the Client Credentials flow.
  */
-async function getEbayAccessToken(): Promise<string> {
+export async function getEbayAccessToken(): Promise<string> {
   const clientId = process.env.EBAY_CLIENT_ID;
   const clientSecret = process.env.EBAY_CLIENT_SECRET;
   const environment = process.env.EBAY_ENVIRONMENT || "production"; // default to production

@@ -11,6 +11,27 @@ interface MarketData {
 }
 
 /**
+ * Helper to wrap promises in a timeout and return a default value if exceeded.
+ */
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, defaultValue: T): Promise<T> {
+  let timeoutId: NodeJS.Timeout;
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timeoutId = setTimeout(() => {
+      console.warn(`eBay API call exceeded timeout of ${timeoutMs}ms. Using default/fallback value.`);
+      resolve(defaultValue);
+    }, timeoutMs);
+  });
+
+  return Promise.race([
+    promise.then((res) => {
+      clearTimeout(timeoutId);
+      return res;
+    }),
+    timeoutPromise
+  ]);
+}
+
+/**
  * Fetches market prices from both CheapShark (digital) and eBay (physical) in parallel.
  */
 export async function getGameMarketData(title: string): Promise<MarketData> {
@@ -24,10 +45,14 @@ export async function getGameMarketData(title: string): Promise<MarketData> {
         console.error("Failed to fetch CheapShark deals:", err);
         return [];
       }),
-      searchEbayListings(title).catch((err) => {
-        console.error("Failed to fetch eBay listings:", err);
-        return [];
-      })
+      withTimeout(
+        searchEbayListings(title).catch((err) => {
+          console.error("Failed to fetch eBay listings:", err);
+          return [];
+        }),
+        3500,
+        []
+      )
     ]);
 
     return {
@@ -297,56 +322,71 @@ export async function getGamePriceHistory(
   const sales: HistoricalSale[] = [];
   const selectedPlatform = platform || "All";
 
-  // 1. Try to fetch historical prices from Supabase
   try {
-    const numericGameId = parseInt(gameId, 10);
-    if (!isNaN(numericGameId)) {
-      const supabase = await createClient();
-      const { data: dbPrices, error } = await supabase
-        .from("historical_prices")
-        .select("id, recorded_date, market_price_cleaned, condition_state, region")
-        .eq("game_id", numericGameId)
-        .order("recorded_date", { ascending: false });
+    const [dbPricesResult, ebaySoldResult] = await Promise.all([
+      // 1. Fetch historical prices from Supabase
+      (async () => {
+        const numericGameId = parseInt(gameId, 10);
+        if (isNaN(numericGameId)) return [];
+        const supabase = await createClient();
+        const { data: dbPrices, error } = await supabase
+          .from("historical_prices")
+          .select("id, recorded_date, market_price_cleaned, condition_state, region")
+          .eq("game_id", numericGameId)
+          .order("recorded_date", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching historical_prices from DB:", error);
-      } else if (dbPrices && dbPrices.length > 0) {
-        dbPrices.forEach((row: any) => {
-          sales.push({
-            id: `db-${row.id}`,
-            date: new Date(row.recorded_date).toISOString(),
-            price: Number(row.market_price_cleaned),
-            condition: row.condition_state as "loose" | "cib" | "sealed",
-            platform: selectedPlatform,
-          });
+        if (error) {
+          console.error("Error fetching historical_prices from DB:", error);
+          return [];
+        }
+        return dbPrices || [];
+      })().catch((dbErr) => {
+        console.error("Database price history lookup failed:", dbErr);
+        return [];
+      }),
+      // 2. Fetch live sold listings from eBay ES in real-time (with a 3.5s Timeout)
+      withTimeout(
+        fetchSoldListings(title).catch((ebayErr) => {
+          console.error("eBay sold listings real-time fetch failed:", ebayErr);
+          return [];
+        }),
+        3500,
+        []
+      )
+    ]);
+
+    // Process Supabase results
+    if (dbPricesResult && dbPricesResult.length > 0) {
+      dbPricesResult.forEach((row: any) => {
+        sales.push({
+          id: `db-${row.id}`,
+          date: new Date(row.recorded_date).toISOString(),
+          price: Number(row.market_price_cleaned),
+          condition: row.condition_state as "loose" | "cib" | "sealed",
+          platform: selectedPlatform,
         });
-      }
+      });
     }
-  } catch (dbErr) {
-    console.error("Database price history lookup failed:", dbErr);
-  }
 
-  // 2. Fetch live sold listings from eBay ES in real-time
-  try {
-    const ebaySold = await fetchSoldListings(title);
-    if (ebaySold && ebaySold.length > 0) {
-      ebaySold.forEach((item, index) => {
+    // Process eBay results
+    if (ebaySoldResult && ebaySoldResult.length > 0) {
+      ebaySoldResult.forEach((item, index) => {
         const cond = classifyCondition(item.title);
         sales.push({
           id: `ebay-${index}-${Date.now()}`,
           date: item.date || new Date().toISOString(),
           price: item.price,
-          condition: cond || "cib", // default to cib
+          condition: cond || "cib",
           platform: selectedPlatform,
           isRealEbay: true,
         });
       });
     }
-  } catch (ebayErr) {
-    console.error("eBay sold listings real-time fetch failed:", ebayErr);
+  } catch (error) {
+    console.error("Error in parallel fetch in getGamePriceHistory:", error);
   }
 
-  // 3. Fallback to mock/dynamic data if we got absolutely nothing (due to Finding API deprecation)
+  // 3. Fallback to mock/dynamic data if we got absolutely nothing (due to Finding API deprecation or timeout)
   if (sales.length === 0) {
     const lowerTitle = title.toLowerCase();
     const matchedConfig = MOCK_GAMES.find(cfg => 
@@ -356,9 +396,13 @@ export async function getGamePriceHistory(
       const mockSales = generateMockHistory(matchedConfig, selectedPlatform);
       sales.push(...mockSales);
     } else {
-      // Fetch active listings to get a realistic base price
+      // Fetch active listings to get a realistic base price (with a 3.5s Timeout)
       try {
-        const activeListings = await searchEbayListings(title).catch(() => []);
+        const activeListings = await withTimeout(
+          searchEbayListings(title).catch(() => []),
+          3500,
+          []
+        );
         let basePrice = 50; // default fallback
         if (activeListings && activeListings.length > 0) {
           const prices = activeListings.map(item => parseFloat(item.price)).filter(p => !isNaN(p) && p > 0);

@@ -16,10 +16,7 @@
  * most queries. Switch EBAY_ENVIRONMENT=production when ready for real data.
  */
 
-// ─── Token cache (module-level, lives for the lifetime of the server process) ─
-
-let cachedToken: string | null = null;
-let tokenExpiresAt = 0;
+import { getEbayAccessToken } from "./ebay";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,54 +30,6 @@ export interface EbayRawListing {
 
 export interface ClassifiedListing extends EbayRawListing {
   condition: ConditionState | null; // null = unclassified / skip
-}
-
-// ─── Token management ─────────────────────────────────────────────────────────
-
-async function getEbayAccessToken(): Promise<string> {
-  const clientId = process.env.EBAY_CLIENT_ID!;
-  const clientSecret = process.env.EBAY_CLIENT_SECRET!;
-
-  if (!clientId || !clientSecret) {
-    throw new Error('EBAY_CLIENT_ID / EBAY_CLIENT_SECRET not configured.');
-  }
-
-  // Return cached token if still valid (with 60s safety buffer)
-  if (cachedToken && tokenExpiresAt > Date.now() + 60_000) {
-    return cachedToken;
-  }
-
-  const isSandbox = process.env.EBAY_ENVIRONMENT === 'sandbox';
-  const tokenUrl = isSandbox
-    ? 'https://api.sandbox.ebay.com/identity/v1/oauth2/token'
-    : 'https://api.ebay.com/identity/v1/oauth2/token';
-
-  const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-
-  const res = await fetch(tokenUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${authHeader}`,
-    },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      scope: 'https://api.ebay.com/oauth/api_scope',
-    }),
-    // Never cache the token request itself
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`eBay token fetch failed (${res.status}): ${text}`);
-  }
-
-  const json = await res.json();
-  cachedToken = json.access_token as string;
-  tokenExpiresAt = Date.now() + json.expires_in * 1000;
-
-  return cachedToken!;
 }
 
 // ─── Condition classifier ─────────────────────────────────────────────────────
