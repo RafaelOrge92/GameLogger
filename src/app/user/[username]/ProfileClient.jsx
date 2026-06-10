@@ -12,10 +12,12 @@ import TradeProposalModal from "@/components/TradeProposalModal";
 
 // Status configuration matching page.tsx
 const STATUS_META = {
-  playing:      { label: "Jugando",       color: "var(--status-playing)", bg: "rgba(76, 168, 212, 0.1)" },
-  completed:    { label: "Completado",    color: "var(--status-completed)", bg: "rgba(67, 185, 79, 0.1)" },
-  plan_to_play: { label: "Pendiente",     color: "var(--status-plan)", bg: "rgba(167, 139, 250, 0.1)" },
-  dropped:      { label: "Abandonado",    color: "var(--status-dropped)", bg: "rgba(248, 113, 113, 0.1)" },
+  collection:   { label: "En colección",  color: "var(--status-owned)", bg: "rgba(251, 146, 60, 0.1)" },
+  wishlist:     { label: "En deseados",    color: "var(--status-plan)", bg: "rgba(167, 139, 250, 0.1)" },
+  playing:      { label: "En colección",  color: "var(--status-owned)", bg: "rgba(251, 146, 60, 0.1)" },
+  completed:    { label: "En colección",  color: "var(--status-owned)", bg: "rgba(251, 146, 60, 0.1)" },
+  plan_to_play: { label: "En deseados",    color: "var(--status-plan)", bg: "rgba(167, 139, 250, 0.1)" },
+  dropped:      { label: "En deseados",    color: "var(--status-plan)", bg: "rgba(167, 139, 250, 0.1)" },
   owned:        { label: "En colección",  color: "var(--status-owned)", bg: "rgba(251, 146, 60, 0.1)" },
 };
 
@@ -514,51 +516,58 @@ export default function ProfileClient({
       )}
 
       {profileTab === "coleccion" ? (
-        /* 4. La Cuadrícula de la Colección */
-        <div className="space-y-4">
-          <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-3">
-            <h3 className="text-base font-bold text-white tracking-tight uppercase flex items-center gap-1.5">
-              <Gamepad2 className="w-4 h-4 text-emerald-400" /> Colección Completa
-            </h3>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-              {localCollection.length} juegos en propiedad
-            </span>
-          </div>
+        (() => {
+          const displayedCollection = localCollection.filter(
+            (item) => item.status === "collection" || item.status === "owned" || item.status === "playing" || item.status === "completed" || !item.status
+          );
+          return (
+            /* 4. La Cuadrícula de la Colección */
+            <div className="space-y-4">
+              <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-3">
+                <h3 className="text-base font-bold text-white tracking-tight uppercase flex items-center gap-1.5">
+                  <Gamepad2 className="w-4 h-4 text-emerald-400" /> Colección Completa
+                </h3>
+                <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  {displayedCollection.length} juegos en propiedad
+                </span>
+              </div>
 
-          {localCollection.length === 0 ? (
-            <div 
-              className="rounded-xl flex flex-col items-center justify-center text-center py-16 px-6 border"
-              style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}
-            >
-              <Package className="w-10 h-10 text-gray-500 mb-3" />
-              <h4 className="text-sm font-bold text-white mb-1">Sin juegos públicos</h4>
-              <p className="text-xs max-w-xs" style={{ color: "var(--text-secondary)" }}>
-                Este usuario no tiene ningún juego registrado o su colección es totalmente privada.
-              </p>
+              {displayedCollection.length === 0 ? (
+                <div 
+                  className="rounded-xl flex flex-col items-center justify-center text-center py-16 px-6 border"
+                  style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}
+                >
+                  <Package className="w-10 h-10 text-gray-500 mb-3" />
+                  <h4 className="text-sm font-bold text-white mb-1">Sin juegos públicos</h4>
+                  <p className="text-xs max-w-xs" style={{ color: "var(--text-secondary)" }}>
+                    Este usuario no tiene ningún juego registrado o su colección es totalmente privada.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                  {displayedCollection.map((item) => {
+                    const statusMeta = STATUS_META[item.status] || { label: item.status, color: "var(--text-primary)", bg: "transparent" };
+                    const conditionMeta = CONDITION_META[item.condition] || { label: item.condition, color: "text-gray-400 border-gray-800" };
+                    
+                    return (
+                      <GameCardWithMenu
+                        key={item.id}
+                        item={item}
+                        statusMeta={statusMeta}
+                        conditionMeta={conditionMeta}
+                        stats={stats}
+                        profile={profile}
+                        currentUser={currentUser}
+                        isOwnProfile={isOwnProfile}
+                        onEdit={(game) => setSelectedGameForDetails(game)}
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-              {localCollection.map((item) => {
-                const statusMeta = STATUS_META[item.status] || { label: item.status, color: "var(--text-primary)", bg: "transparent" };
-                const conditionMeta = CONDITION_META[item.condition] || { label: item.condition, color: "text-gray-400 border-gray-800" };
-                
-                return (
-                  <GameCardWithMenu
-                    key={item.id}
-                    item={item}
-                    statusMeta={statusMeta}
-                    conditionMeta={conditionMeta}
-                    stats={stats}
-                    profile={profile}
-                    currentUser={currentUser}
-                    isOwnProfile={isOwnProfile}
-                    onEdit={(game) => setSelectedGameForDetails(game)}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </div>
+          );
+        })()
       ) : (
         /* Comparador de Colecciones Tab */
         <div className="space-y-6">

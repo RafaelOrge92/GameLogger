@@ -38,11 +38,13 @@ interface MyGameDetailsModalProps {
 }
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-  playing:      { label: "Jugando",       color: "var(--status-playing)", bg: "rgba(76, 168, 212, 0.1)" },
-  completed:    { label: "Completado",    color: "var(--status-completed)", bg: "rgba(67, 185, 79, 0.1)" },
-  plan_to_play: { label: "Pendiente",     color: "var(--status-plan)", bg: "rgba(167, 139, 250, 0.1)" },
-  dropped:      { label: "Abandonado",    color: "var(--status-dropped)", bg: "rgba(248, 113, 113, 0.1)" },
+  collection: { label: "En colección",  color: "var(--status-owned)", bg: "rgba(251, 146, 60, 0.1)" },
+  wishlist:   { label: "En deseados",    color: "var(--status-plan)", bg: "rgba(167, 139, 250, 0.1)" },
   owned:        { label: "En colección",  color: "var(--status-owned)", bg: "rgba(251, 146, 60, 0.1)" },
+  playing:      { label: "En colección",  color: "var(--status-owned)", bg: "rgba(251, 146, 60, 0.1)" },
+  completed:    { label: "En colección",  color: "var(--status-owned)", bg: "rgba(251, 146, 60, 0.1)" },
+  plan_to_play: { label: "En deseados",    color: "var(--status-plan)", bg: "rgba(167, 139, 250, 0.1)" },
+  dropped:      { label: "En deseados",    color: "var(--status-plan)", bg: "rgba(167, 139, 250, 0.1)" },
 };
 
 const CONDITION_META: Record<string, { label: string; color: string }> = {
@@ -209,27 +211,8 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                       onChange={(e) => setStatus(e.target.value)}
                       className="w-full bg-[#0f0f10] text-gray-300 text-xs rounded-lg px-3 py-2 border border-gray-800 focus:border-emerald-500 focus:outline-none cursor-pointer"
                     >
-                      <option value="owned">En colección</option>
-                      <option value="playing">Jugando</option>
-                      <option value="completed">Completado</option>
-                      <option value="plan_to_play">Pendiente</option>
-                      <option value="dropped">Abandonado</option>
-                    </select>
-                  </div>
-
-                  {/* Condition */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1.5">Formato / Estado físico</label>
-                    <select
-                      value={condition}
-                      onChange={(e) => setCondition(e.target.value)}
-                      className="w-full bg-[#0f0f10] text-gray-300 text-xs rounded-lg px-3 py-2 border border-gray-800 focus:border-emerald-500 focus:outline-none cursor-pointer"
-                    >
-                      <option value="cib">CIB (Completo en caja)</option>
-                      <option value="sealed">Sealed (Nuevo/Precintado)</option>
-                      <option value="loose">Loose (Solo cartucho/disco)</option>
-                      <option value="box_and_game">Caja y juego</option>
-                      <option value="digital">Digital</option>
+                      <option value="collection">En colección</option>
+                      <option value="wishlist">En deseados</option>
                     </select>
                   </div>
 
@@ -248,7 +231,9 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                       ))}
                     </select>
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Purchase Price */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-400 mb-1.5">Precio de compra (€)</label>
@@ -330,9 +315,9 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
               <div className="space-y-6 flex flex-col h-full justify-between">
                 <div className="space-y-4">
                   {/* Grid details */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     {/* Status card */}
-                    <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80">
+                    <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80 col-span-1">
                       <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Estado</p>
                       <div className="flex items-center gap-1.5 mt-1">
                         <span
@@ -343,18 +328,8 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                       </div>
                     </div>
 
-                    {/* Condition card */}
-                    <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80">
-                      <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Formato</p>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded border ${conditionInfo.color}`}>
-                          {conditionInfo.label}
-                        </span>
-                      </div>
-                    </div>
-
                     {/* Region card */}
-                    <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80">
+                    <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80 col-span-1">
                       <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider flex items-center gap-1">
                         <Globe className="w-3 h-3 text-gray-500" /> Región original
                       </p>
@@ -362,7 +337,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                     </div>
 
                     {/* Purchase Price card */}
-                    <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80">
+                    <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80 col-span-1">
                       <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider flex items-center gap-1">
                         <DollarSign className="w-3 h-3 text-gray-500" /> Adquisición
                       </p>

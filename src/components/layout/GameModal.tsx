@@ -51,7 +51,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
   const { showToast } = useToast();
   const [isLoadingMarket, setIsLoadingMarket] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState("");
-  const [status, setStatus] = useState<"owned" | "playing" | "completed" | "plan_to_play" | "dropped">("owned");
+  const [status, setStatus] = useState<"collection" | "wishlist">("collection");
   const [condition, setCondition] = useState<"sealed" | "cib" | "box_and_game" | "loose" | "digital">("cib");
   const [purchasePrice, setPurchasePrice] = useState("");
   const [edition, setEdition] = useState("");
@@ -526,7 +526,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {/* Status */}
                 <div>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Estado</label>
@@ -538,30 +538,8 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                     onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
                     onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
-                    <option value="owned">En colección</option>
-                    <option value="playing">Jugando</option>
-                    <option value="completed">Completado</option>
-                    <option value="plan_to_play">Pendiente</option>
-                    <option value="dropped">Abandonado</option>
-                  </select>
-                </div>
-
-                {/* Condition */}
-                <div>
-                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Condición</label>
-                  <select
-                    value={condition}
-                    onChange={(e) => setCondition(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-md text-sm focus:outline-none"
-                    style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-                  >
-                    <option value="cib">CIB (Completo)</option>
-                    <option value="sealed">Precintado</option>
-                    <option value="box_and_game">Caja y juego</option>
-                    <option value="loose">Suelto</option>
-                    <option value="digital">Digital</option>
+                    <option value="collection">En colección</option>
+                    <option value="wishlist">En deseados</option>
                   </select>
                 </div>
 
