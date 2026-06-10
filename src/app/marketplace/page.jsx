@@ -126,7 +126,7 @@ export default function MarketplacePage() {
       { }
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white font-retro flex items-center gap-2">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white flex items-center gap-2">
             <Gamepad2 className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400" /> Mercado de la Comunidad
           </h1>
           <p className="text-sm text-text-secondary mt-1">
