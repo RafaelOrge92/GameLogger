@@ -2,8 +2,9 @@ import { getCollection, removeGameFromCollection } from "@/features/collection/a
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { TrendingUp, Gamepad2, Sliders, BarChart3 } from "lucide-react";
+import { TrendingUp, Gamepad2, Sliders, BarChart3, Camera, Users, ArrowLeftRight } from "lucide-react";
 import DashboardCollection from "@/components/DashboardCollection";
+import LandingMockChart from "@/components/LandingMockChart";
 
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
@@ -95,10 +96,10 @@ export default async function Home(props: { searchParams: Promise<any> }) {
             <BarChart3 className="w-3.5 h-3.5" /> El control financiero de tu colección
           </div>
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1] font-sans">
-            RetroLogger: Indexa, Tasa y Evoluciona tu Colección Retro
+            GameLogger: La Suite Definitiva para Coleccionistas
           </h1>
           <p className="text-base sm:text-xl text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
-            El primer portafolio financiero de activos coleccionables impulsado por datos reales de mercado.
+            Catalogación inteligente mediante fotografía, valoraciones de mercado en tiempo real, mercado directo entre coleccionistas y comparación de estanterías.
           </p>
           <div className="pt-4">
             <Link
@@ -226,12 +227,11 @@ export default async function Home(props: { searchParams: Promise<any> }) {
             </div>
 
             { }
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 { label: "Total Juegos", value: "142", sub: "+5 este mes" },
                 { label: "Valor de Mercado", value: "€5,280.00", sub: "▲ +12.4% vs adquis.", highlight: true },
-                { label: "Completados", value: "84", sub: "59.1% del total" },
-                { label: "Alertas de Caza", value: "3 Activas", sub: "Precios de ganga" }
+                { label: "Completados", value: "84", sub: "59.1% del total" }
               ].map((stat, i) => (
                 <div 
                   key={i} 
@@ -252,63 +252,14 @@ export default async function Home(props: { searchParams: Promise<any> }) {
                 className="md:col-span-2 p-5 rounded-xl border space-y-4 flex flex-col justify-between"
                 style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pb-2">
                   <div>
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Evolución Histórica y Comparativa (1 año)</h4>
-                    <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Super Mario Sunshine (Historial por Estado de Conservación)</p>
-                  </div>
-                  <div className="flex gap-3 text-[9px] font-bold">
-                    <span className="flex items-center gap-1 text-[#fbbf24]"><span className="w-1.5 h-1.5 rounded-full bg-[#fbbf24]"/>Sealed</span>
-                    <span className="flex items-center gap-1 text-[#10b981]"><span className="w-1.5 h-1.5 rounded-full bg-[#10b981]"/>CIB</span>
-                    <span className="flex items-center gap-1 text-[#06b6d4]"><span className="w-1.5 h-1.5 rounded-full bg-[#06b6d4]"/>Loose</span>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Evolución de Cartera (1 año)</h4>
+                    <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Tasación del Portafolio: Inversión vs Valor de Mercado</p>
                   </div>
                 </div>
                 
-                { }
-                <div className="h-40 w-full flex items-end">
-                  <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="gradSealed" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.08"/>
-                        <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.0"/>
-                      </linearGradient>
-                      <linearGradient id="gradCIB" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.08"/>
-                        <stop offset="100%" stopColor="#10b981" stopOpacity="0.0"/>
-                      </linearGradient>
-                      <linearGradient id="gradLoose" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.08"/>
-                        <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0"/>
-                      </linearGradient>
-                    </defs>
-                    
-                    <line x1="0" y1="10" x2="100" y2="10" stroke="#ffffff" strokeOpacity="0.03" strokeWidth="0.5" />
-                    <line x1="0" y1="20" x2="100" y2="20" stroke="#ffffff" strokeOpacity="0.03" strokeWidth="0.5" />
-                    <line x1="0" y1="30" x2="100" y2="30" stroke="#ffffff" strokeOpacity="0.03" strokeWidth="0.5" />
-
-                    <path d="M0 40 L0 10 L15 8 L30 9 L45 6 L60 5 L75 7 L90 4 L100 3 L100 40 Z" fill="url(#gradSealed)" />
-                    <path d="M0 40 L0 22 L15 20 L30 23 L45 18 L60 15 L75 17 L90 12 L100 10 L100 40 Z" fill="url(#gradCIB)" />
-                    <path d="M0 40 L0 32 L15 31 L30 33 L45 29 L60 28 L75 30 L90 26 L100 25 L100 40 Z" fill="url(#gradLoose)" />
-
-                    <path d="M0 10 L15 8 L30 9 L45 6 L60 5 L75 7 L90 4 L100 3" fill="none" stroke="#fbbf24" strokeWidth="1.2" strokeLinecap="round" />
-                    <path d="M0 22 L15 20 L30 23 L45 18 L60 15 L75 17 L90 12 L100 10" fill="none" stroke="#10b981" strokeWidth="1.2" strokeLinecap="round" />
-                    <path d="M0 32 L15 31 L30 33 L45 29 L60 28 L75 30 L90 26 L100 25" fill="none" stroke="#06b6d4" strokeWidth="1.2" strokeLinecap="round" />
-
-                    <circle cx="60" cy="5" r="1" fill="#fbbf24" />
-                    <circle cx="100" cy="3" r="1" fill="#fbbf24" />
-                    
-                    <circle cx="60" cy="15" r="1" fill="#10b981" />
-                    <circle cx="100" cy="10" r="1" fill="#10b981" />
-
-                    <circle cx="60" cy="28" r="1" fill="#06b6d4" />
-                    <circle cx="100" cy="25" r="1" fill="#06b6d4" />
-                  </svg>
-                </div>
-                <div className="flex justify-between text-[9px] text-[var(--text-muted)] pt-2 border-t border-[var(--border)]">
-                  <span>Jun 2025</span>
-                  <span>Dic 2025</span>
-                  <span>May 2026</span>
-                </div>
+                <LandingMockChart />
               </div>
 
               { }
@@ -344,22 +295,27 @@ export default async function Home(props: { searchParams: Promise<any> }) {
             <p className="text-sm text-[var(--text-secondary)]">La precisión analítica que tu colección de videojuegos se merece.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                title: "Valuación Real del Mercado",
-                desc: "Consultamos los precios de mercado en tiempo real y ventas recientes para ofrecerte estimaciones limpias y realistas de tus juegos.",
+                title: "Catalogación por Foto",
+                desc: "Sube una foto de tu cartucho, caja o portada física y nuestro reconocimiento inteligente agregará el título, consola y región al instante a tu colección.",
+                icon: Camera
+              },
+              {
+                title: "Valoración Real de Mercado",
+                desc: "Accede a valoraciones actualizadas según ventas reales del mercado. Filtramos automáticamente anuncios anómalos o subastas sospechosas.",
                 icon: TrendingUp
               },
               {
-                title: "Limpieza IQR de Outliers",
-                desc: "Filtramos anuncios anómalos o sospechosos (lotes vacíos, reproducciones baratas) para obtener valores fiables basados en datos puros.",
-                icon: Sliders
+                title: "Comparador de Estanterías",
+                desc: "Compara tu catálogo con el de otros coleccionistas de forma instantánea. Encuentra juegos en común, títulos exclusivos y cruces con listas de deseos.",
+                icon: Users
               },
               {
-                title: "Indexación por Estado y Región",
-                desc: "Registra tus piezas especificando si son cartuchos sueltos (Loose), completos (CIB) o precintados (Sealed), adaptados a su región original.",
-                icon: Gamepad2
+                title: "Mercado entre Coleccionistas",
+                desc: "Publica ofertas de venta, intercambio o ambas. Propón tratos directos a otros usuarios y gestiona negociaciones con notificaciones en vivo.",
+                icon: ArrowLeftRight
               }
             ].map((feat, i) => {
               const IconComponent = feat.icon;
