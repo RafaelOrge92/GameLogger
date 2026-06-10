@@ -18,10 +18,10 @@ export default function Header({ user }: { user: any }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedGameForModal, setSelectedGameForModal] = useState<any | null>(null);
   
-  const debouncedQuery = useDebounce(query, 500); // 500ms delay
+  const debouncedQuery = useDebounce(query, 500); 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown if clicked outside
+  
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -32,7 +32,7 @@ export default function Header({ user }: { user: any }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Effect to handle search automatically
+  
   useEffect(() => {
     async function performSearch() {
       if (!debouncedQuery.trim()) {
@@ -58,7 +58,7 @@ export default function Header({ user }: { user: any }) {
   return (
     <header className="h-16 bg-[#050505] border-b-2 border-[#ff6b00] flex items-center justify-between px-6 shrink-0 relative z-50">
       
-      {/* Search Bar Container */}
+      { }
       <div className="flex-1 max-w-2xl relative" ref={dropdownRef}>
         <div className="relative">
           <svg 
@@ -82,7 +82,7 @@ export default function Header({ user }: { user: any }) {
           )}
         </div>
 
-        {/* Dropdown Results */}
+        { }
         {showDropdown && (query.trim().length > 0) && (
           <div className="absolute top-full left-0 w-full mt-2 bg-[#050505] border-2 border-[#ff6b00] shadow-[4px_4px_0px_#ff6b00] max-h-96 overflow-y-auto">
             {isSearching ? (
@@ -116,7 +116,7 @@ export default function Header({ user }: { user: any }) {
                     <div className="flex gap-2 shrink-0">
                       <button 
                         onClick={(e) => {
-                          e.stopPropagation(); // Avoid triggering parent row click
+                          e.stopPropagation(); 
                           setSelectedGameForModal(game);
                           setShowDropdown(false);
                         }}
@@ -133,7 +133,7 @@ export default function Header({ user }: { user: any }) {
         )}
       </div>
 
-      {/* Profile Actions */}
+      { }
       <div className="flex items-center gap-4 ml-4">
         {user ? (
           <>
@@ -157,7 +157,7 @@ export default function Header({ user }: { user: any }) {
         )}
       </div>
 
-      {/* Game Details & Pricing Modal */}
+      { }
       {selectedGameForModal && (
         <GameModal
           game={selectedGameForModal}
@@ -165,7 +165,7 @@ export default function Header({ user }: { user: any }) {
           onSuccess={() => {
             setQuery("");
             setShowDropdown(false);
-            router.refresh(); // Refresh layout and page server component data smoothly
+            router.refresh(); 
           }}
         />
       )}

@@ -21,7 +21,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
 
-    // Auto dismiss after 4 seconds
+    
     setTimeout(() => {
       setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, 4000);
@@ -31,7 +31,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
 
-      {/* Toast stack — top-right, Backloggd-style */}
+      { }
       <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-2 max-w-xs w-full pointer-events-none">
         {toasts.map((toast) => {
           const isSuccess = toast.type === "success";
@@ -46,7 +46,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 animation: 'toast-in 0.2s ease',
               }}
             >
-              {/* Icon */}
+              { }
               <div
                 className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold"
                 style={{
@@ -57,12 +57,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 {isSuccess ? '✓' : '✕'}
               </div>
 
-              {/* Message */}
+              { }
               <p className="flex-1 text-sm leading-snug" style={{ color: 'var(--text-primary)' }}>
                 {toast.message}
               </p>
 
-              {/* Close */}
+              { }
               <button
                 onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
                 className="shrink-0 w-5 h-5 flex items-center justify-center rounded cursor-pointer text-sm leading-none"

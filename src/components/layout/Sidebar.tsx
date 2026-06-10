@@ -20,7 +20,7 @@ export default function Sidebar({ user }: { user: any }) {
     <aside 
       className={`${isExpanded ? 'w-64' : 'w-20'} bg-[#050505] border-r-2 border-[#ff6b00] hidden md:flex flex-col h-full transition-all duration-300 ease-in-out shrink-0 z-40 relative`}
     >
-      {/* Toggle Button */}
+      { }
       <button 
         onClick={() => setIsExpanded(!isExpanded)}
         className="absolute -right-3 top-16 w-6 h-12 bg-[#ff6b00] text-black flex items-center justify-center hover:bg-white transition-colors cursor-pointer border border-[#050505]"
@@ -31,7 +31,7 @@ export default function Sidebar({ user }: { user: any }) {
         </svg>
       </button>
 
-      {/* Logo Area */}
+      { }
       <div className="h-16 flex items-center justify-center border-b-2 border-[#ff6b00] overflow-hidden whitespace-nowrap">
         {isExpanded ? (
           <h1 className="text-[#ff6b00] font-retro text-2xl tracking-widest">
@@ -42,7 +42,7 @@ export default function Sidebar({ user }: { user: any }) {
         )}
       </div>
 
-      {/* Navigation Links */}
+      { }
       <nav className="flex-1 py-8 px-3 space-y-4 overflow-hidden">
         <Link 
           href="/" 
@@ -66,7 +66,7 @@ export default function Sidebar({ user }: { user: any }) {
         </Link>
       </nav>
 
-      {/* Auth Bottom Area */}
+      { }
       <div className="p-4 border-t-2 border-[#ff6b00] overflow-hidden flex justify-center">
         {isExpanded ? (
           user ? (

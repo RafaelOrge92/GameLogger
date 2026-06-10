@@ -12,9 +12,9 @@ export async function searchGamesIGDB(query: string) {
       "Authorization": `Bearer ${process.env.IGDB_ACCESS_TOKEN!}`,
       "Accept": "application/json",
     },
-    // Traemos datos básicos: ID, nombre, carátula, plataformas y fecha de lanzamiento
-    body: `search "${query}"; fields name, cover.url, platforms.name, first_release_date; limit 10;`,
-    // Añadimos revalidate para cachear las búsquedas por 1 hora y no gastar cuota de API
+    
+    body: `search "${query}"; where (platforms.generation <= 7 | first_release_date < 1356998400) & parent_game = null; fields name, cover.url, platforms.name, first_release_date; limit 10;`,
+    
     next: { revalidate: 3600 }
   });
 
@@ -25,8 +25,8 @@ export async function searchGamesIGDB(query: string) {
 
   const data = await response.json();
   
-  // IGDB devuelve las imágenes en tamaño 'thumb' (miniatura) por defecto.
-  // Reemplazamos 't_thumb' por 't_cover_big' para tener mejor resolución en el frontend.
+  
+  
   return data.map((game: any) => ({
     id: game.id,
     name: game.name,
@@ -34,4 +34,36 @@ export async function searchGamesIGDB(query: string) {
     platforms: game.platforms?.map((p: any) => p.name) || [],
     coverUrl: game.cover?.url ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` : null
   }));
+}
+
+export async function getGameByIdIGDB(gameId: number) {
+  if (!gameId) return null;
+
+  const response = await fetch(IGDB_URL, {
+    method: "POST",
+    headers: {
+      "Client-ID": process.env.IGDB_CLIENT_ID!,
+      "Authorization": `Bearer ${process.env.IGDB_ACCESS_TOKEN!}`,
+      "Accept": "application/json",
+    },
+    body: `where id = ${gameId}; fields name, cover.url, platforms.name, first_release_date;`,
+  });
+
+  if (!response.ok) {
+    console.error("IGDB ID Lookup Error:", await response.text());
+    return null;
+  }
+
+  const data = await response.json();
+  if (data && data.length > 0) {
+    const game = data[0];
+    return {
+      id: game.id,
+      name: game.name,
+      releaseDate: game.first_release_date ? new Date(game.first_release_date * 1000).toISOString() : null,
+      platforms: game.platforms?.map((p: any) => p.name) || [],
+      coverUrl: game.cover?.url ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` : null
+    };
+  }
+  return null;
 }

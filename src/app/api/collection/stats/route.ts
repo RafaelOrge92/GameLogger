@@ -1,92 +1,106 @@
-/**
- * GET /api/collection/stats
- *
- * Returns the market value of the authenticated user's collection
- * for each of the last 12 calendar months — formatted for Recharts.
- *
- * Response shape:
- *   [
- *     { "fecha": "Jun 2025", "valorTotal": 0 },
- *     ...
- *     { "fecha": "May 2026", "valorTotal": 1340.75 }
- *   ]
- *
- * The heavy lifting (generating months, joining prices, summing) is done
- * by the `get_collection_value_history` PostgreSQL function registered in
- * schema_stats_fn.sql — a single DB round-trip for the entire 12-month series.
- */
-
-import { type NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-// ─── Route segment config ──────────────────────────────────────────────────────
-// Never cache this route — value changes whenever the cron job runs.
 export const dynamic = 'force-dynamic';
 
-// ─── Month formatter ───────────────────────────────────────────────────────────
-// Produces "jun 2025" → capitalised to "Jun 2025".
-// Using UTC so the date string from Postgres ("2025-06-01") isn't shifted by
-// the server's local timezone.
-const MONTH_FORMATTER = new Intl.DateTimeFormat('es-ES', {
-  month: 'short',
-  year: 'numeric',
-  timeZone: 'UTC',
-});
+const MONTH_NAMES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-function formatMonth(isoDate: string): string {
-  // Append time so the Date constructor treats it as UTC, not local time.
-  const d = new Date(`${isoDate}T00:00:00Z`);
-  const raw = MONTH_FORMATTER.format(d); // "jun 2025" | "may 2026"
-  return raw.charAt(0).toUpperCase() + raw.slice(1); // "Jun 2025"
-}
+export async function GET(req: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-// ─── RPC row type returned by Supabase ────────────────────────────────────────
-interface ValueHistoryRow {
-  month_start: string;   // "YYYY-MM-DD"
-  valor_total: number;   // already NUMERIC(10,2) from Postgres
-}
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    }
 
-// ─── Handler ──────────────────────────────────────────────────────────────────
-export async function GET(_req: NextRequest): Promise<Response> {
-  // 1. Validate session — the server client reads cookies automatically.
-  const supabase = await createClient();
+    const userId = user.id;
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+    
+    const { data: items, error: itemsError } = await supabase
+      .from('user_collection')
+      .select('game_id, condition_state, region, purchase_price, acquired_at')
+      .eq('user_id', userId);
 
-  if (authError || !user) {
-    return Response.json(
-      { error: 'No autenticado. Inicia sesión para ver tus estadísticas.' },
-      { status: 401 },
-    );
+    if (itemsError) {
+      console.error('Error fetching user_collection:', itemsError);
+      return NextResponse.json([]); 
+    }
+
+    if (!items || items.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    
+    const gameIds = items.map(item => item.game_id);
+    const { data: prices, error: pricesError } = await supabase
+      .from('historical_prices')
+      .select('game_id, condition_state, region, market_price_cleaned, recorded_date')
+      .in('game_id', gameIds)
+      .order('recorded_date', { ascending: true });
+
+    if (pricesError) {
+      console.error('Error fetching historical_prices:', pricesError);
+      return NextResponse.json([]); 
+    }
+
+    const pricesList = prices || [];
+
+    
+    const monthsList: Array<{ label: string; year: number; month: number; endOfDate: Date }> = [];
+    const today = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - i, 1));
+      const monthIdx = d.getUTCMonth();
+      const year = d.getUTCFullYear();
+      const label = MONTH_NAMES[monthIdx];
+      
+      const lastDay = new Date(Date.UTC(year, monthIdx + 1, 0, 23, 59, 59, 999));
+      monthsList.push({
+        label,
+        year,
+        month: monthIdx,
+        endOfDate: lastDay
+      });
+    }
+
+    
+    const result = monthsList.map(month => {
+      
+      const ownedItems = items.filter(item => new Date(item.acquired_at) <= month.endOfDate);
+
+      let valorTotal = 0;
+
+      for (const ownedItem of ownedItems) {
+        
+        let itemPrice = ownedItem.purchase_price ? Number(ownedItem.purchase_price) : 0;
+        
+        for (let pIdx = pricesList.length - 1; pIdx >= 0; pIdx--) {
+          const p = pricesList[pIdx];
+          if (
+            p.game_id === ownedItem.game_id &&
+            p.condition_state === ownedItem.condition_state &&
+            p.region === ownedItem.region &&
+            new Date(p.recorded_date + 'T23:59:59Z') <= month.endOfDate
+          ) {
+            itemPrice = Number(p.market_price_cleaned);
+            break;
+          }
+        }
+
+        valorTotal += itemPrice;
+      }
+
+      return {
+        fecha: month.label,
+        valorTotal: parseFloat(valorTotal.toFixed(2))
+      };
+    });
+
+    return NextResponse.json(result);
+
+  } catch (error) {
+    console.error('Unhandled error in collection stats route:', error);
+    return NextResponse.json([], { status: 200 }); 
   }
-
-  // 2. Call the PostgreSQL RPC — one DB round-trip for the full 12-month series.
-  const { data, error } = await supabase.rpc('get_collection_value_history', {
-    p_user_id: user.id,
-  });
-
-  if (error) {
-    console.error('[stats] RPC get_collection_value_history failed:', error);
-    return Response.json(
-      { error: 'Error al calcular el historial de valor de la colección.' },
-      { status: 500 },
-    );
-  }
-
-  // 3. Transform DB rows → Recharts-ready format.
-  const chartData = (data as ValueHistoryRow[]).map((row) => ({
-    fecha: formatMonth(row.month_start),
-    valorTotal: Number(row.valor_total), // cast from Postgres numeric string
-  }));
-
-  // 4. Return with explicit cache headers so browsers / CDN don't cache stale data.
-  return Response.json(chartData, {
-    status: 200,
-    headers: {
-      'Cache-Control': 'no-store',
-    },
-  });
 }

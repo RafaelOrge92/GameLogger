@@ -1,25 +1,25 @@
-/**
- * POST /api/cron/update-prices
- *
- * Daily cron job — updates historical_prices for every unique game in
- * user_collection. Intended to be called by Vercel Cron or an external
- * scheduler (e.g. GitHub Actions, cron-job.org).
- *
- * Security: The route is protected by a shared secret sent in the
- * "Authorization" header as a Bearer token:
- *   Authorization: Bearer <CRON_SECRET>
- *
- * Flow:
- *   1. Authenticate the request via CRON_SECRET.
- *   2. Query user_collection for all distinct (game_id, region) pairs,
- *      then fetch the game title from the `collections` table (cached title).
- *   3. For each game, fetch sold eBay ES listings.
- *   4. Classify each listing into 'loose' | 'cib' | 'sealed'.
- *   5. Apply IQR outlier filtering to each condition segment.
- *   6. Upsert one row per (game_id, condition_state, region) into
- *      historical_prices for today's date.
- *   7. Return a summary JSON so logs are easy to inspect.
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -30,12 +30,12 @@ import {
 } from '@/features/market/services/ebay-pricing';
 import { cleanPricesIQR } from '@/features/market/utils/priceStats';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+
 
 interface GameTarget {
   game_id: number;
   region: string;
-  title: string; // resolved from collections table
+  title: string; 
 }
 
 interface SegmentResult {
@@ -43,7 +43,7 @@ interface SegmentResult {
   region: string;
   condition_state: ConditionState;
   market_price_cleaned: number;
-  sample_size: number; // how many listings after IQR cleaning
+  sample_size: number; 
 }
 
 interface CronSummary {
@@ -55,17 +55,17 @@ interface CronSummary {
   errors: string[];
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+
 
 const CONDITIONS: ConditionState[] = ['loose', 'cib', 'sealed'];
 
-// Minimum number of cleaned samples needed to record a price.
-// Avoids writing a "price" from a single outlier-free listing.
+
+
 const MIN_SAMPLES = 3;
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Rounds to 2 decimal places — safe for NUMERIC(10,2) in Postgres. */
+
+ 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
@@ -87,13 +87,13 @@ function isAuthorised(req: NextRequest): boolean {
   return authHeader === `Bearer ${cronSecret}`;
 }
 
-// ─── Step 1: Resolve game targets from the DB ─────────────────────────────────
+
 
 async function resolveGameTargets(): Promise<GameTarget[]> {
   const supabase = createAdminClient();
 
-  // Pull every distinct (game_id, region) pair that any user has in their
-  // inventory — these are the market segments we need prices for today.
+  
+  
   const { data: collectionItems, error: collectionError } = await supabase
     .from('user_collection')
     .select('game_id, region');
@@ -106,7 +106,7 @@ async function resolveGameTargets(): Promise<GameTarget[]> {
     return [];
   }
 
-  // Deduplicate by (game_id, region)
+  
   const seen = new Set<string>();
   const unique: Array<{ game_id: number; region: string }> = [];
 
@@ -118,12 +118,12 @@ async function resolveGameTargets(): Promise<GameTarget[]> {
     }
   }
 
-  // Resolve titles from the `collections` table (cached titles = no IGDB calls)
+  
   const gameIds = [...new Set(unique.map((u) => u.game_id))];
 
   const { data: collectionTitles, error: titleError } = await supabase
     .from('collections')
-    // game_id in `collections` is TEXT (per existing schema)
+    
     .select('game_id, title')
     .in('game_id', gameIds.map(String));
 
@@ -131,7 +131,7 @@ async function resolveGameTargets(): Promise<GameTarget[]> {
     throw new Error(`Failed to resolve game titles: ${titleError.message}`);
   }
 
-  // Build a lookup map: game_id (number) → title string
+  
   const titleMap = new Map<number, string>();
   for (const row of collectionTitles ?? []) {
     titleMap.set(Number(row.game_id), row.title);
@@ -143,22 +143,22 @@ async function resolveGameTargets(): Promise<GameTarget[]> {
       region,
       title: titleMap.get(game_id) ?? '',
     }))
-    .filter((t) => t.title !== ''); // skip if we couldn't resolve a title
+    .filter((t) => t.title !== ''); 
 }
 
-// ─── Step 2-5: Fetch, classify, filter, average for one game ──────────────────
+
 
 async function processGame(target: GameTarget): Promise<SegmentResult[]> {
   const { game_id, region, title } = target;
 
-  // Fetch sold listings from eBay ES
+  
   const listings = await fetchSoldListings(title);
 
   if (listings.length === 0) {
     return [];
   }
 
-  // Group prices by classified condition
+  
   const grouped: Record<ConditionState, number[]> = {
     loose: [],
     cib: [],
@@ -167,7 +167,7 @@ async function processGame(target: GameTarget): Promise<SegmentResult[]> {
 
   for (const listing of listings) {
     const condition = classifyCondition(listing.title);
-    if (condition === null) continue; // unclassifiable — skip
+    if (condition === null) continue; 
     grouped[condition].push(listing.price);
   }
 
@@ -180,7 +180,7 @@ async function processGame(target: GameTarget): Promise<SegmentResult[]> {
 
     const stats = cleanPricesIQR(rawPrices);
 
-    // Skip if we don't have enough reliable data points after IQR cleaning
+    
     if (stats.cleanedPrices.length < MIN_SAMPLES) {
       console.log(
         `[cron] Skipping ${title} / ${condition} / ${region} — ` +
@@ -201,7 +201,7 @@ async function processGame(target: GameTarget): Promise<SegmentResult[]> {
   return results;
 }
 
-// ─── Step 6: Upsert into historical_prices ────────────────────────────────────
+
 
 async function upsertPrices(segments: SegmentResult[]): Promise<void> {
   if (segments.length === 0) return;
@@ -213,14 +213,14 @@ async function upsertPrices(segments: SegmentResult[]): Promise<void> {
     region,
     condition_state,
     market_price_cleaned,
-    recorded_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+    recorded_date: new Date().toISOString().split('T')[0], 
   }));
 
   const { error } = await supabase
     .from('historical_prices')
     .upsert(rows, {
       onConflict: 'game_id,condition_state,region,recorded_date',
-      ignoreDuplicates: false, // update if re-run on the same day
+      ignoreDuplicates: false, 
     });
 
   if (error) {
@@ -228,7 +228,7 @@ async function upsertPrices(segments: SegmentResult[]): Promise<void> {
   }
 }
 
-// ─── Route Handler ────────────────────────────────────────────────────────────
+
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!isAuthorised(req)) {
@@ -257,9 +257,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     console.log(`[cron] Processing ${targets.length} unique (game, region) targets.`);
 
-    // Process games sequentially to avoid slamming the eBay API rate limits.
-    // If you have a large collection and time allows, you could batch these
-    // in groups of N with Promise.allSettled.
+    
+    
+    
     for (const target of targets) {
       try {
         const segments = await processGame(target);
@@ -278,14 +278,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
         summary.games_processed++;
       } catch (gameErr) {
-        // A single game failure MUST NOT stop the entire cron run.
+        
         const msg = `Failed to process game_id=${target.game_id} "${target.title}" (${target.region}): ${String(gameErr)}`;
         console.error('[cron]', msg);
         summary.errors.push(msg);
         summary.games_failed++;
       }
 
-      // Small delay between games to be a polite eBay API citizen (~1 req/sec)
+      
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   } catch (fatalErr) {
@@ -303,9 +303,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   return NextResponse.json(summary, { status: 200 });
 }
 
-// ─── Vercel Cron config ───────────────────────────────────────────────────────
-// This tells Vercel to call this route every day at 03:00 UTC.
-// Vercel will automatically inject the CRON_SECRET as a Bearer token.
-// See: https://vercel.com/docs/cron-jobs
+
+
+
+
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 minutes — increase if your collection is large
+export const maxDuration = 300; 
