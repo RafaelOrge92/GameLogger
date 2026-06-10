@@ -3,7 +3,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Gamepad2, Search, ArrowLeftRight } from "lucide-react";
+import { Gamepad2, Search, ArrowLeftRight, MoreHorizontal, Bookmark, Image } from "lucide-react";
+import { addGameToWishlist } from "@/features/collection/actions";
+import TradeProposalModal from "@/components/TradeProposalModal";
+import GameGalleryModal from "@/components/GameGalleryModal";
+import { useToast } from "@/context/ToastContext";
+import { createClient } from "@/lib/supabase/client";
 
 const REGIONS = ["all", "PAL-ES", "NTSC-U", "NTSC-J", "PAL-UK", "PAL-FR", "PAL-DE"];
 
@@ -32,11 +37,41 @@ export default function MarketplacePage() {
   // Real Data & Loading States
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
+  const { showToast } = useToast();
+
+  // Modals and Active Menus States
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [selectedTradeOffer, setSelectedTradeOffer] = useState(null);
+  const [selectedGalleryOffer, setSelectedGalleryOffer] = useState(null);
 
   // Filter States
   const [offerType, setOfferType] = useState("all"); // all, sell, trade, both
   const [condition, setCondition] = useState("all"); // all, loose, cib, sealed
   const [region, setRegion] = useState("all"); // all, PAL-ES, NTSC-U, etc.
+
+  // Fetch currentUser session
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setCurrentUser(user);
+      }
+    });
+  }, []);
+
+  // Close menus on click outside
+  useEffect(() => {
+    function closeMenus() {
+      setActiveMenuId(null);
+    }
+    if (activeMenuId !== null) {
+      window.addEventListener("click", closeMenus);
+    }
+    return () => {
+      window.removeEventListener("click", closeMenus);
+    };
+  }, [activeMenuId]);
 
   // Fetch offers dynamically based on chosen filters
   useEffect(() => {
@@ -255,6 +290,94 @@ export default function MarketplacePage() {
                     </span>
                   </div>
 
+                  {/* Options Button */}
+                  {currentUser && currentUser.id !== offer.user_id && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setActiveMenuId(activeMenuId === offer.id ? null : offer.id);
+                      }}
+                      type="button"
+                      className={`absolute top-2.5 right-2.5 z-20 transition-opacity duration-205 cursor-pointer flex items-center justify-center w-7 h-7 text-gray-400 hover:text-white bg-gray-950/80 hover:bg-gray-900 border border-gray-800 rounded-md backdrop-blur-xs shadow-lg ${
+                        activeMenuId === offer.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      }`}
+                      aria-label="Opciones"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  {/* Dropdown Menu */}
+                  {activeMenuId === offer.id && (
+                    <div
+                      className="absolute top-11 right-2.5 w-48 bg-[#18191b] border border-gray-850 rounded-lg shadow-2xl py-1 z-30 animate-[fadeIn_0.1s_ease-out]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuId(null);
+                          setSelectedTradeOffer({
+                            gameId: offer.game_id,
+                            title: offer.title,
+                            platform: offer.platform,
+                            coverUrl: offer.coverUrl,
+                            ownerId: offer.user_id,
+                          });
+                        }}
+                        type="button"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer font-semibold"
+                      >
+                        <ArrowLeftRight className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>Proponer Intercambio</span>
+                      </button>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          setActiveMenuId(null);
+                          try {
+                            const res = await addGameToWishlist(
+                              String(offer.game_id),
+                              offer.title,
+                              offer.coverUrl,
+                              offer.platform
+                            );
+                            if (res.error) {
+                              showToast(res.error, "error");
+                            } else {
+                              showToast(`¡${offer.title} añadido a tus deseos!`, "success");
+                            }
+                          } catch (err) {
+                            showToast("Error al guardar en deseos.", "error");
+                          }
+                        }}
+                        type="button"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer border-t border-gray-800/50 font-semibold"
+                      >
+                        <Bookmark className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>Añadir a Mis Deseos</span>
+                      </button>
+                      {offer.imagesUrls && offer.imagesUrls.length > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuId(null);
+                            setSelectedGalleryOffer({
+                              title: offer.title,
+                              imagesUrls: offer.imagesUrls,
+                            });
+                          }}
+                          type="button"
+                          className="w-full flex items-center gap-2 px-4 py-2 text-xs text-gray-300 hover:bg-emerald-950/30 hover:text-emerald-400 transition-colors duration-150 text-left cursor-pointer border-t border-gray-800/50 font-semibold"
+                        >
+                          <Image className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span>Ver fotos físicas</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   {/* Bottom Floating Badges: Condition & Region */}
                   <div className="absolute bottom-3 left-3 flex gap-1.5 z-10">
                     <span className="bg-neutral-950/80 backdrop-blur-xs px-2 py-0.5 rounded text-[10px] font-bold text-white border border-neutral-800/60 uppercase">
@@ -340,6 +463,24 @@ export default function MarketplacePage() {
             );
           })}
         </div>
+      )}
+
+      {/* Modals */}
+      {selectedTradeOffer && (
+        <TradeProposalModal
+          game={selectedTradeOffer}
+          ownerId={selectedTradeOffer.ownerId}
+          currentUser={currentUser}
+          onClose={() => setSelectedTradeOffer(null)}
+        />
+      )}
+
+      {selectedGalleryOffer && (
+        <GameGalleryModal
+          images={selectedGalleryOffer.imagesUrls}
+          gameTitle={selectedGalleryOffer.title}
+          onClose={() => setSelectedGalleryOffer(null)}
+        />
       )}
     </div>
   );

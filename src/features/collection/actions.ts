@@ -6,7 +6,7 @@ export async function addGameToCollection(
   gameId: string,
   title: string,
   platform: string,
-  status: "owned" | "playing" | "completed" | "plan_to_play" | "dropped" = "owned",
+  status: "collection" | "wishlist" = "collection",
   condition: "sealed" | "cib" | "box_and_game" | "loose" | "digital" = "cib",
   purchasePrice: number | null = null,
   notes: string | null = null,
@@ -48,31 +48,33 @@ export async function addGameToCollection(
     return { error: "Hubo un error al guardar el juego en tu colección." };
   }
 
-  // Insertar en user_collection para que alimente las estadísticas del Dashboard
-  const gameIdInt = parseInt(gameId);
-  if (!isNaN(gameIdInt)) {
-    let conditionState = 'cib';
-    if (condition === 'sealed') {
-      conditionState = 'sealed';
-    } else if (condition === 'loose') {
-      conditionState = 'loose';
-    }
+  if (status === "collection") {
+    // Insertar en user_collection para que alimente las estadísticas del Dashboard
+    const gameIdInt = parseInt(gameId);
+    if (!isNaN(gameIdInt)) {
+      let conditionState = 'cib';
+      if (condition === 'sealed') {
+        conditionState = 'sealed';
+      } else if (condition === 'loose') {
+        conditionState = 'loose';
+      }
 
-    const { error: userColError } = await supabase
-      .from('user_collection')
-      .insert([
-        {
-          user_id: user.id,
-          game_id: gameIdInt,
-          condition_state: conditionState,
-          region: region,
-          purchase_price: purchasePrice,
-          acquired_at: new Date().toISOString()
-        }
-      ]);
+      const { error: userColError } = await supabase
+        .from('user_collection')
+        .insert([
+          {
+            user_id: user.id,
+            game_id: gameIdInt,
+            condition_state: conditionState,
+            region: region,
+            purchase_price: purchasePrice,
+            acquired_at: new Date().toISOString()
+          }
+        ]);
 
-    if (userColError) {
-      console.error("Error al insertar en user_collection:", userColError);
+      if (userColError) {
+        console.error("Error al insertar en user_collection:", userColError);
+      }
     }
   }
 
@@ -142,7 +144,7 @@ export async function removeGameFromCollection(id: string) {
 
 export async function updateGameInCollection(
   id: string,
-  status: "owned" | "playing" | "completed" | "plan_to_play" | "dropped",
+  status: "collection" | "wishlist",
   condition: "sealed" | "cib" | "box_and_game" | "loose" | "digital",
   purchasePrice: number | null,
   notes: string | null,
@@ -185,26 +187,49 @@ export async function updateGameInCollection(
   if (gameInfo) {
     const gameIdInt = parseInt(gameInfo.game_id);
     if (!isNaN(gameIdInt)) {
-      let conditionState = "cib";
-      if (condition === "sealed") {
-        conditionState = "sealed";
-      } else if (condition === "loose") {
-        conditionState = "loose";
-      }
+      if (status === "wishlist") {
+        await supabase
+          .from("user_collection")
+          .delete()
+          .eq("game_id", gameIdInt)
+          .eq("user_id", user.id);
+      } else {
+        let conditionState = "cib";
+        if (condition === "sealed") {
+          conditionState = "sealed";
+        } else if (condition === "loose") {
+          conditionState = "loose";
+        }
 
-      // Update in user_collection
-      const { error: userColError } = await supabase
-        .from("user_collection")
-        .update({
-          condition_state: conditionState,
-          region,
-          purchase_price: purchasePrice
-        })
-        .eq("game_id", gameIdInt)
-        .eq("user_id", user.id);
+        const { data: existingCol } = await supabase
+          .from("user_collection")
+          .select("id")
+          .eq("game_id", gameIdInt)
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (userColError) {
-        console.error("Error updating user_collection:", userColError);
+        if (existingCol) {
+          await supabase
+            .from("user_collection")
+            .update({
+              condition_state: conditionState,
+              region,
+              purchase_price: purchasePrice
+            })
+            .eq("game_id", gameIdInt)
+            .eq("user_id", user.id);
+        } else {
+          await supabase
+            .from("user_collection")
+            .insert({
+              user_id: user.id,
+              game_id: gameIdInt,
+              condition_state: conditionState,
+              region,
+              purchase_price: purchasePrice,
+              acquired_at: new Date().toISOString()
+            });
+        }
       }
     }
   }
@@ -226,14 +251,16 @@ export async function addGameToWishlist(
   }
 
   const { error } = await supabase
-    .from("wishlists")
+    .from("collections")
     .insert([
       {
         user_id: user.id,
         game_id: gameId.toString(),
         title: title,
         cover_url: coverUrl,
-        platform: platform || "PC"
+        platform: platform || "PC",
+        status: "wishlist",
+        condition: "cib"
       }
     ]);
 

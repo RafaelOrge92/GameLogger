@@ -126,22 +126,24 @@ export async function GET(req: NextRequest) {
     const uniqueUserIds = Array.from(new Set(offers.map((offer: any) => offer.user_id)));
 
     const platformMap = new Map<string, string>(); // Key: "userId_gameId", Value: platform
+    const imagesMap = new Map<string, string[]>(); // Key: "userId_gameId", Value: images_urls
 
     if (uniqueGameIdsStr.length > 0 && uniqueUserIds.length > 0) {
       try {
         const { data: collections, error: collError } = await supabase
           .from("collections")
-          .select("user_id, game_id, platform")
+          .select("user_id, game_id, platform, images_urls")
           .in("game_id", uniqueGameIdsStr)
           .in("user_id", uniqueUserIds);
 
         if (!collError && collections) {
           collections.forEach((c: any) => {
             platformMap.set(`${c.user_id}_${c.game_id}`, c.platform);
+            imagesMap.set(`${c.user_id}_${c.game_id}`, c.images_urls || []);
           });
         }
       } catch (err) {
-        console.error("Error retrieving platforms from user collections:", err);
+        console.error("Error retrieving details from user collections:", err);
       }
     }
 
@@ -165,6 +167,8 @@ export async function GET(req: NextRequest) {
         }
       }
 
+      const imagesUrls = imagesMap.get(collectionKey) || [];
+
       return {
         id: offer.id,
         game_id: gameIdNum,
@@ -176,6 +180,8 @@ export async function GET(req: NextRequest) {
         offer_type: offer.offer_type,
         price_wanted: offer.price_wanted !== null ? Number(offer.price_wanted) : null,
         created_at: offer.created_at,
+        user_id: offer.user_id,
+        imagesUrls: imagesUrls,
         user: {
           username: profile?.username || "Usuario",
           avatar_url: profile?.avatar_url || null,
