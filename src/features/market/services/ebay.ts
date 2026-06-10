@@ -176,7 +176,7 @@ export async function searchEbayListings(query: string, region: "ES" | "US" = "E
     const processGroup = (group: any[]) => {
       return group
         .sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
-        .slice(0, 2);
+        .slice(0, 15);
     };
 
     
