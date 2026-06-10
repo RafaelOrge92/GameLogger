@@ -123,10 +123,7 @@ export default function Navbar({ user }: { user: any }) {
       <nav className="sticky top-0 z-50 w-full" style={{ backgroundColor: "var(--bg-surface)", borderBottom: "1px solid var(--border)" }}>
         <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105" style={{ backgroundColor: "var(--accent)", color: "#0d1117" }}>
-              <Gamepad2 className="w-4 h-4" strokeWidth={2.5} />
-            </div>
-            <span className="font-bold text-lg tracking-tight" style={{ color: "var(--accent)" }}>RetroLogger</span>
+            <img src="/logo.png" alt="RetroLogger Logo" className="h-7 w-auto object-contain transition-transform group-hover:scale-105" />
           </Link>
           <Link href="/login" className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 border" style={{ color: "var(--accent)", borderColor: "transparent" }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(67,185,79,0.2)"; (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(67,185,79,0.08)"; }}
@@ -156,15 +153,7 @@ export default function Navbar({ user }: { user: any }) {
 
             { }
             <Link href="/" className="flex items-center gap-2 shrink-0 group">
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:scale-110 group-hover:shadow-[0_0_14px_rgba(67,185,79,0.45)]"
-                style={{ backgroundColor: "var(--accent)", color: "#0d1117" }}
-              >
-                <Gamepad2 className="w-4 h-4" strokeWidth={2.5} />
-              </div>
-              <span className="font-bold text-[15px] hidden sm:block tracking-tight" style={{ color: "var(--text-primary)" }}>
-                Retro<span style={{ color: "var(--accent)" }}>Logger</span>
-              </span>
+              <img src="/logo.png" alt="RetroLogger Logo" className="h-7 w-auto object-contain transition-transform group-hover:scale-105" />
             </Link>
 
             { }
