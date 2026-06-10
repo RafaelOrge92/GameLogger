@@ -196,14 +196,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        { }
-        <div
-          className="mt-6 pt-5 text-xs text-center space-y-0.5"
-          style={{ borderTop: '1px solid var(--border)', color: 'var(--text-muted)' }}
-        >
-          <p className="font-medium" style={{ color: 'var(--text-secondary)' }}>Cuenta de prueba</p>
-          <p>admin@admin.com · Ad1234</p>
-        </div>
+
       </div>
     </div>
   );
