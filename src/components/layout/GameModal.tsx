@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { getGameMarketData, getGamePriceHistory } from "@/features/market/actions";
+import { getGameMarketData } from "@/features/market/actions";
 import { addGameToCollection } from "@/features/collection/actions";
-import DataPipelineDiagram from "@/components/layout/DataPipelineDiagram";
 import { useToast } from "@/context/ToastContext";
 
 import ImageUploaderWithAI from "@/components/ImageUploaderWithAI";
@@ -34,14 +33,6 @@ function seedRandom(seedStr: string) {
   };
 }
 
-interface HistoricalSale {
-  id: string;
-  date: Date;
-  price: number;
-  condition: "loose" | "cib" | "sealed";
-  platform: string;
-}
-
 export default function GameModal({ game, onClose, onSuccess }: GameModalProps) {
   const [marketData, setMarketData] = useState<{
     cheapsharkDeals: any[];
@@ -58,86 +49,29 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
   const [notes, setNotes] = useState("");
   const [region, setRegion] = useState("PAL-ES");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPipeline, setShowPipeline] = useState(false);
-  const [selectedRange, setSelectedRange] = useState<number>(6); 
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
-  const [sales, setSales] = useState<HistoricalSale[]>([]);
-  const [isLoadingSales, setIsLoadingSales] = useState(false);
+  // eBay Region and Pagination States
+  const [activeRegionTab, setActiveRegionTab] = useState<"ES" | "US">("ES");
+  const [currentPage, setCurrentPage] = useState(1);
 
+  // Filter listings by active region
+  const filteredListings = useMemo(() => {
+    return marketData.ebayListings.filter(item => {
+      const region = item.marketRegion || "ES";
+      return region === activeRegionTab;
+    });
+  }, [marketData.ebayListings, activeRegionTab]);
+
+  // Paginated listings slice (10 items per page, exactly 2 columns of 5 items)
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredListings.length / itemsPerPage) || 1;
   
-  useEffect(() => {
-    if (!game) return;
+  const paginatedListings = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredListings.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredListings, currentPage]);
 
-    const gameId = game.id;
-    const gameName = game.name;
-    const platform = selectedPlatform || (game.platforms && game.platforms[0]) || "PC";
-
-    async function loadHistory() {
-      setIsLoadingSales(true);
-      try {
-        const query = `${gameName} ${platform}`;
-        const data = await getGamePriceHistory(gameId, query, platform);
-        
-        
-        const mappedSales = data.map((item: any) => ({
-          ...item,
-          date: new Date(item.date)
-        }));
-        
-        setSales(mappedSales);
-      } catch (error) {
-        console.error("Error loading price history:", error);
-      } finally {
-        setIsLoadingSales(false);
-      }
-    }
-
-    loadHistory();
-  }, [game, selectedPlatform]);
-
-  
-  const availableRanges = useMemo(() => {
-    if (sales.length === 0) {
-      return [1, 3]; 
-    }
-
-    const oldestDate = new Date(Math.min(...sales.map(s => s.date.getTime())));
-    const ageInMs = Date.now() - oldestDate.getTime();
-    const ageInMonths = ageInMs / (1000 * 60 * 60 * 24 * 30.43);
-
-    const ranges = [1, 3];
-    if (ageInMonths >= 6) {
-      ranges.push(6);
-    }
-    if (ageInMonths >= 12) {
-      ranges.push(12);
-    }
-    return ranges;
-  }, [sales]);
-
-  
-  useEffect(() => {
-    if (!availableRanges.includes(selectedRange)) {
-      setSelectedRange(Math.max(...availableRanges));
-    }
-  }, [availableRanges, selectedRange]);
-
-  
-  const filteredSales = useMemo(() => {
-    const cutoffDate = new Date();
-    cutoffDate.setMonth(cutoffDate.getMonth() - selectedRange);
-    return sales.filter(s => s.date >= cutoffDate);
-  }, [sales, selectedRange]);
-
-  
-  const salesAverage = useMemo(() => {
-    if (filteredSales.length === 0) return 0;
-    const sum = filteredSales.reduce((acc, s) => acc + s.price, 0);
-    return sum / filteredSales.length;
-  }, [filteredSales]);
-
-  
   useEffect(() => {
     if (game && game.platforms && game.platforms.length > 0) {
       setSelectedPlatform(game.platforms[0]);
@@ -146,7 +80,6 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
     }
   }, [game]);
 
-  
   useEffect(() => {
     if (!game) return;
 
@@ -156,7 +89,6 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
     async function loadMarket() {
       setIsLoadingMarket(true);
       try {
-        
         const query = gamePlatforms && gamePlatforms.length > 0
           ? `${gameName} ${gamePlatforms[0]}`
           : gameName;
@@ -280,7 +212,6 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                 <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent)' }} />
                 <h4 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Precios de Mercado</h4>
               </div>
-
               {isLoadingMarket ? (
                 <div
                   className="p-6 text-center text-sm rounded-lg"
@@ -290,196 +221,122 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                 </div>
               ) : (
                 <div className="space-y-3">
-                  { }
+                  {/* eBay - Mercado Físico */}
                   <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
-                    <div className="flex items-center justify-between mb-3" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 pb-2 gap-2" style={{ borderBottom: '1px solid var(--border)' }}>
                       <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>eBay — Mercado Físico</span>
-                      <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{process.env.NEXT_PUBLIC_EBAY_MARKETPLACE || "EBAY_ES"}</span>
+                      
+                      {/* Region Selector Tabs */}
+                      <div className="flex rounded-md p-0.5" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveRegionTab("ES");
+                            setCurrentPage(1);
+                          }}
+                          className={`text-[10px] px-2.5 py-1 rounded-sm cursor-pointer transition-all ${
+                            activeRegionTab === "ES" 
+                              ? "btn-primary font-medium" 
+                              : "text-slate-400 hover:text-slate-200"
+                          }`}
+                          style={activeRegionTab === "ES" ? {} : { color: 'var(--text-secondary)', background: 'transparent', border: 'none' }}
+                        >
+                          eBay España (ES)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveRegionTab("US");
+                            setCurrentPage(1);
+                          }}
+                          className={`text-[10px] px-2.5 py-1 rounded-sm cursor-pointer transition-all ${
+                            activeRegionTab === "US" 
+                              ? "btn-primary font-medium" 
+                              : "text-slate-400 hover:text-slate-200"
+                          }`}
+                          style={activeRegionTab === "US" ? {} : { color: 'var(--text-secondary)', background: 'transparent', border: 'none' }}
+                        >
+                          eBay Estados Unidos (USA)
+                        </button>
+                      </div>
                     </div>
 
-                    {marketData.ebayListings.length === 0 ? (
+                    {filteredListings.length === 0 ? (
                       <p className="text-xs py-1" style={{ color: 'var(--text-muted)' }}>
-                        No se encontraron artículos en eBay.
+                        No se encontraron artículos en eBay para esta región.
                       </p>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {marketData.ebayListings.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex gap-2 p-2 rounded-md hover:border-gray-750 transition-colors"
-                            style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
-                          >
-                            {item.imageUrl ? (
-                              <img src={item.imageUrl} alt={item.title} className="w-9 h-9 object-cover rounded shrink-0" />
-                            ) : (
-                              <div className="w-9 h-9 rounded shrink-0 flex items-center justify-center text-[8px]" style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>?</div>
-                            )}
-                            <div className="min-w-0 flex-1 flex flex-col justify-between">
-                              <a
-                                href={item.itemUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[10px] truncate hover:text-emerald-400 transition-colors"
-                                style={{ color: 'var(--text-secondary)' }}
-                                title={item.title}
-                              >
-                                {item.title}
-                              </a>
-                              <div className="flex items-center justify-between mt-1">
-                                <button
-                                  type="button"
-                                  onClick={() => setPurchasePrice(item.price)}
-                                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded cursor-pointer btn-accent-dim"
-                                >
-                                  €{item.price} — usar
-                                </button>
-                                <span className={`text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
-                                  item.condition === 'sealed' ? 'text-amber-400 border-amber-500/20 bg-amber-950/20' :
-                                  item.condition === 'cib' ? 'text-cyan-400 border-cyan-500/20 bg-cyan-950/20' :
-                                  'text-rose-400 border-rose-500/20 bg-rose-950/20'
-                                }`}>
-                                  {item.condition === 'sealed' ? 'Precintado' : item.condition === 'cib' ? 'Completo' : 'Cartucho/Disco'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- }
-
-                  { }
-                  <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-                      <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Historial de Ventas</span>
-                      <div className="flex gap-1">
-                        {availableRanges.map((m) => (
-                          <button
-                            key={m}
-                            type="button"
-                            onClick={() => setSelectedRange(m)}
-                            className={`text-[10px] px-2 py-0.5 rounded cursor-pointer transition-all ${
-                              selectedRange === m ? "btn-primary" : "btn-secondary"
-                            }`}
-                          >
-                            {m === 12 ? "1 año" : `${m}m`}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {isLoadingSales ? (
-                      <div className="text-center py-8 text-xs" style={{ color: 'var(--text-muted)' }}>
-                        Cargando historial de ventas...
-                      </div>
-                    ) : (
                       <>
-                        { }
-                        <div className="grid grid-cols-2 gap-2 mb-3 p-3 rounded-md text-center" style={{ backgroundColor: 'var(--bg-surface)' }}>
-                          <div>
-                            <p className="text-[9px] uppercase mb-0.5" style={{ color: 'var(--text-muted)' }}>Ventas</p>
-                            <p className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>{filteredSales.length}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] uppercase mb-0.5" style={{ color: 'var(--text-muted)' }}>Precio medio</p>
-                            <p className="text-base font-semibold" style={{ color: 'var(--accent)' }}>€{salesAverage.toFixed(2)}</p>
-                          </div>
-                        </div>
-
-                        { }
-                        <div className="max-h-40 overflow-y-auto space-y-1.5">
-                          {filteredSales.map((sale) => (
-                            <div key={sale.id} className="flex items-center justify-between p-2 rounded text-xs" style={{ backgroundColor: 'var(--bg-surface)' }}>
-                              <div className="flex items-center gap-2">
-                                <span style={{ color: 'var(--text-muted)' }}>
-                                  {sale.date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })}
-                                </span>
-                                <span
-                                  className="text-[9px] px-1 py-0.5 rounded uppercase font-medium"
-                                  style={{
-                                    backgroundColor: sale.condition === "sealed" ? 'rgba(251,191,36,0.1)' : sale.condition === "loose" ? 'rgba(248,113,113,0.1)' : 'rgba(76,168,212,0.1)',
-                                    color: sale.condition === "sealed" ? '#fbbf24' : sale.condition === "loose" ? '#f87171' : '#4ca8d4',
-                                  }}
+                        {/* 2-Column Results Grid (each page fits exactly 10 items) */}
+                        <div className="grid grid-cols-2 gap-2">
+                          {paginatedListings.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex gap-2 p-2 rounded-md hover:border-gray-750 transition-colors"
+                              style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+                            >
+                              {item.imageUrl ? (
+                                <img src={item.imageUrl} alt={item.title} className="w-9 h-9 object-cover rounded shrink-0" />
+                              ) : (
+                                <div className="w-9 h-9 rounded shrink-0 flex items-center justify-center text-[8px]" style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>?</div>
+                              )}
+                              <div className="min-w-0 flex-1 flex flex-col justify-between">
+                                <a
+                                  href={item.itemUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] truncate hover:text-emerald-400 transition-colors"
+                                  style={{ color: 'var(--text-secondary)' }}
+                                  title={item.title}
                                 >
-                                  {sale.condition === "sealed" ? "Precintado" : sale.condition === "loose" ? "Loose" : "CIB"}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold" style={{ color: 'var(--accent)' }}>€{sale.price.toFixed(2)}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => setPurchasePrice(sale.price.toString())}
-                                  className="text-[9px] px-1.5 py-0.5 rounded cursor-pointer font-medium btn-accent-dim"
-                                >
-                                  usar
-                                </button>
+                                  {item.title}
+                                </a>
+                                <div className="flex items-center justify-between mt-1">
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--accent-dim)', color: 'var(--accent)' }}>
+                                    €{item.price}
+                                  </span>
+                                  <span className={`text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
+                                    item.condition === 'sealed' ? 'text-amber-400 border-amber-500/20 bg-amber-950/20' :
+                                    item.condition === 'cib' ? 'text-cyan-400 border-cyan-500/20 bg-cyan-950/20' :
+                                    'text-rose-400 border-rose-500/20 bg-rose-950/20'
+                                  }`}>
+                                    {item.condition === 'sealed' ? 'Precintado' : item.condition === 'cib' ? 'Completo' : 'Cartucho/Disco'}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           ))}
-                          {filteredSales.length === 0 && (
-                            <p className="text-center text-xs py-3" style={{ color: 'var(--text-muted)' }}>No hay ventas en este período.</p>
-                          )}
                         </div>
+
+                        {/* Pagination Section */}
+                        {totalPages > 1 && (
+                          <div className="flex items-center justify-between mt-3 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                            <button
+                              type="button"
+                              disabled={currentPage === 1}
+                              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                              className="text-[10px] px-2.5 py-1 rounded cursor-pointer font-medium btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Retroceder
+                            </button>
+                            
+                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                              Página {currentPage} de {totalPages}
+                            </span>
+
+                            <button
+                              type="button"
+                              disabled={currentPage === totalPages}
+                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                              className="text-[10px] px-2.5 py-1 rounded cursor-pointer font-medium btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Avanzar
+                            </button>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
-
-                  { }
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setShowPipeline(!showPipeline)}
-                      className="text-xs px-3 py-1.5 rounded-md cursor-pointer font-medium btn-secondary"
-                    >
-                      {showPipeline ? "Ocultar análisis IQR" : "Ver pipeline outliers (IQR)"}
-                    </button>
-                  </div>
-
-                  {showPipeline && (
-                    <div className="mt-4">
-                      { }
-                      <DataPipelineDiagram 
-                        rawPricesInput={marketData.ebayListings.map(item => parseFloat(item.price)).filter(p => !isNaN(p))} 
-                      />
-                    </div>
-                  )}
                 </div>
               )}
             </div>
