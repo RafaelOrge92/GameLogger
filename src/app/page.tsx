@@ -80,11 +80,13 @@ const TRENDING_GAMES = [
   }
 ];
 
-export default async function Home() {
+export default async function Home(props: { searchParams: Promise<any> }) {
+  const searchParams = await props.searchParams;
+  const showLanding = searchParams?.landing === "true";
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (!user || showLanding) {
     return (
       <div className="py-12 md:py-24 space-y-20 md:space-y-32">
         { }

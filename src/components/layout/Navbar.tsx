@@ -122,7 +122,7 @@ export default function Navbar({ user }: { user: any }) {
     return (
       <nav className="sticky top-0 z-50 w-full" style={{ backgroundColor: "var(--bg-surface)", borderBottom: "1px solid var(--border)" }}>
         <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href="/?landing=true" className="flex items-center gap-2.5 group">
             <img src="/logo.png" alt="RetroLogger Logo" className="h-7 w-auto object-contain transition-transform group-hover:scale-105" />
           </Link>
           <Link href="/login" className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 border" style={{ color: "var(--accent)", borderColor: "transparent" }}
@@ -152,7 +152,7 @@ export default function Navbar({ user }: { user: any }) {
           <div className="flex items-center gap-4 h-[58px]">
 
             { }
-            <Link href="/" className="flex items-center gap-2 shrink-0 group">
+            <Link href="/?landing=true" className="flex items-center gap-2 shrink-0 group">
               <img src="/logo.png" alt="RetroLogger Logo" className="h-7 w-auto object-contain transition-transform group-hover:scale-105" />
             </Link>
 
