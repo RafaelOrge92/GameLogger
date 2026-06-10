@@ -254,37 +254,54 @@ export default async function Home(props: { searchParams: Promise<any> }) {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Evolución Histórica (1 año)</h4>
-                    <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Super Mario Sunshine (CIB, PAL-ES)</p>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Evolución Histórica y Comparativa (1 año)</h4>
+                    <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Super Mario Sunshine (Historial por Estado de Conservación)</p>
                   </div>
-                  <span className="text-[10px] font-semibold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">Media: €34.00</span>
+                  <div className="flex gap-3 text-[9px] font-bold">
+                    <span className="flex items-center gap-1 text-[#fbbf24]"><span className="w-1.5 h-1.5 rounded-full bg-[#fbbf24]"/>Sealed</span>
+                    <span className="flex items-center gap-1 text-[#10b981]"><span className="w-1.5 h-1.5 rounded-full bg-[#10b981]"/>CIB</span>
+                    <span className="flex items-center gap-1 text-[#06b6d4]"><span className="w-1.5 h-1.5 rounded-full bg-[#06b6d4]"/>Loose</span>
+                  </div>
                 </div>
                 
                 { }
                 <div className="h-40 w-full flex items-end">
                   <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
                     <defs>
-                      <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#43b94f" stopOpacity="0.4"/>
-                        <stop offset="100%" stopColor="#43b94f" stopOpacity="0.0"/>
+                      <linearGradient id="gradSealed" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.08"/>
+                        <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.0"/>
+                      </linearGradient>
+                      <linearGradient id="gradCIB" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.08"/>
+                        <stop offset="100%" stopColor="#10b981" stopOpacity="0.0"/>
+                      </linearGradient>
+                      <linearGradient id="gradLoose" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.08"/>
+                        <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0"/>
                       </linearGradient>
                     </defs>
-                    { }
-                    <path 
-                      d="M0 40 L0 30 L15 28 L30 32 L45 25 L60 20 L75 24 L90 14 L100 12 L100 40 Z" 
-                      fill="url(#chartGrad)" 
-                    />
-                    { }
-                    <path 
-                      d="M0 30 L15 28 L30 32 L45 25 L60 20 L75 24 L90 14 L100 12" 
-                      fill="none" 
-                      stroke="#43b94f" 
-                      strokeWidth="1.5" 
-                      strokeLinecap="round"
-                    />
-                    { }
-                    <circle cx="60" cy="20" r="1.5" fill="#43b94f" />
-                    <circle cx="100" cy="12" r="1.5" fill="#43b94f" />
+                    
+                    <line x1="0" y1="10" x2="100" y2="10" stroke="#ffffff" strokeOpacity="0.03" strokeWidth="0.5" />
+                    <line x1="0" y1="20" x2="100" y2="20" stroke="#ffffff" strokeOpacity="0.03" strokeWidth="0.5" />
+                    <line x1="0" y1="30" x2="100" y2="30" stroke="#ffffff" strokeOpacity="0.03" strokeWidth="0.5" />
+
+                    <path d="M0 40 L0 10 L15 8 L30 9 L45 6 L60 5 L75 7 L90 4 L100 3 L100 40 Z" fill="url(#gradSealed)" />
+                    <path d="M0 40 L0 22 L15 20 L30 23 L45 18 L60 15 L75 17 L90 12 L100 10 L100 40 Z" fill="url(#gradCIB)" />
+                    <path d="M0 40 L0 32 L15 31 L30 33 L45 29 L60 28 L75 30 L90 26 L100 25 L100 40 Z" fill="url(#gradLoose)" />
+
+                    <path d="M0 10 L15 8 L30 9 L45 6 L60 5 L75 7 L90 4 L100 3" fill="none" stroke="#fbbf24" strokeWidth="1.2" strokeLinecap="round" />
+                    <path d="M0 22 L15 20 L30 23 L45 18 L60 15 L75 17 L90 12 L100 10" fill="none" stroke="#10b981" strokeWidth="1.2" strokeLinecap="round" />
+                    <path d="M0 32 L15 31 L30 33 L45 29 L60 28 L75 30 L90 26 L100 25" fill="none" stroke="#06b6d4" strokeWidth="1.2" strokeLinecap="round" />
+
+                    <circle cx="60" cy="5" r="1" fill="#fbbf24" />
+                    <circle cx="100" cy="3" r="1" fill="#fbbf24" />
+                    
+                    <circle cx="60" cy="15" r="1" fill="#10b981" />
+                    <circle cx="100" cy="10" r="1" fill="#10b981" />
+
+                    <circle cx="60" cy="28" r="1" fill="#06b6d4" />
+                    <circle cx="100" cy="25" r="1" fill="#06b6d4" />
                   </svg>
                 </div>
                 <div className="flex justify-between text-[9px] text-[var(--text-muted)] pt-2 border-t border-[var(--border)]">
