@@ -79,6 +79,55 @@ export function classifyCondition(title: string): ConditionState | null {
   return null;
 }
 
+export function isGameTitle(title: string): boolean {
+  const lower = title.toLowerCase();
+  const forbidden = [
+    "amiibo",
+    "figura",
+    "figure",
+    "figurine",
+    "statue",
+    "estatua",
+    "guia",
+    "guide",
+    "poster",
+    "soundtrack",
+    "banda sonora",
+    "controller",
+    "mando",
+    "caja vacia",
+    "caja vacía",
+    "empty box",
+    "box only",
+    "solo caja",
+    "solo manual",
+    "manual only",
+    "sin juego",
+    "no game",
+    "no disc",
+    "sin disco",
+    "sin cartucho",
+    "no cartridge",
+    "case only",
+    "solo caratula",
+    "solo portada",
+    "acrylic case",
+    "caja acrilica",
+    "funda protectora",
+    "protector",
+    "moneda",
+    "coin",
+    "llavero",
+    "keychain",
+    "peluche",
+    "plush",
+    "console",
+    "consola",
+    "joystick"
+  ];
+  return !forbidden.some(word => lower.includes(word));
+}
+
 // ─── Finding API — fetch completed/sold items ─────────────────────────────────
 
 /**
@@ -184,7 +233,7 @@ export async function fetchSoldListings(
       const price = parseFloat(priceRaw?.['__value__'] ?? '0');
       const date = item.listingInfo?.[0]?.endTime?.[0] ?? new Date().toISOString();
 
-      if (!title || isNaN(price) || price <= 0) continue;
+      if (!title || !isGameTitle(title) || isNaN(price) || price <= 0) continue;
 
       listings.push({ title, price, date });
     }

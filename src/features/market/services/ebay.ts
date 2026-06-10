@@ -1,6 +1,6 @@
 "use server";
 
-import { classifyCondition } from "./ebay-pricing";
+import { classifyCondition, isGameTitle } from "./ebay-pricing";
 
 // Cache token in memory during the execution lifecycle
 let cachedToken: string | null = null;
@@ -121,7 +121,7 @@ export async function searchEbayListings(query: string): Promise<EbayListing[]> 
 
     // Build search request
     // Request up to 50 items (balance between speed and search accuracy)
-    const searchUrl = `${baseUrl}/item_summary/search?q=${encodeURIComponent(cleanedQuery)}&limit=50`;
+    const searchUrl = `${baseUrl}/item_summary/search?q=${encodeURIComponent(cleanedQuery)}&category_ids=1249&limit=50`;
 
     const response = await fetch(searchUrl, {
       method: "GET",
@@ -149,19 +149,21 @@ export async function searchEbayListings(query: string): Promise<EbayListing[]> 
       return [];
     }
 
-    const items: EbayListing[] = data.itemSummaries.map((item: any) => {
-      // Classify condition based on title
-      const cond = classifyCondition(item.title) || "cib";
-      return {
-        id: item.itemId,
-        title: item.title,
-        price: item.price?.value || "0.00",
-        currency: item.price?.currency || "EUR",
-        itemUrl: item.itemWebUrl,
-        imageUrl: item.image?.imageUrl || null,
-        condition: cond,
-      };
-    });
+    const items: EbayListing[] = data.itemSummaries
+      .filter((item: any) => item.title && isGameTitle(item.title))
+      .map((item: any) => {
+        // Classify condition based on title
+        const cond = classifyCondition(item.title) || "cib";
+        return {
+          id: item.itemId,
+          title: item.title,
+          price: item.price?.value || "0.00",
+          currency: item.price?.currency || "EUR",
+          itemUrl: item.itemWebUrl,
+          imageUrl: item.image?.imageUrl || null,
+          condition: cond,
+        };
+      });
 
     // Group items by condition
     const looseGroup = items.filter(i => i.condition === "loose");
