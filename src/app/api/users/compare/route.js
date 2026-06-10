@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+// Normalization function to clean game titles for semantic matching
+const normalizeTitle = (title) => {
+  if (!title) return "";
+  return title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remove accents and diacritics
+    .trim()
+    .replace(/[^a-z0-9]/g, ""); // Keep only alphanumeric characters
+};
+
 export async function POST(request) {
   try {
     const supabase = await createClient();
@@ -54,23 +65,23 @@ export async function POST(request) {
 
     const collB = allItemsB.filter(isCollection);
 
-    // Create Sets of game_id for O(1) lookups, converting keys to String for safety
-    const setAColl = new Set(collA.map((item) => String(item.game_id)));
-    const setBColl = new Set(collB.map((item) => String(item.game_id)));
-    const setAWish = new Set(wishlistA.map((item) => String(item.game_id)));
+    // Create Sets of normalized titles for O(1) lookups
+    const setAColl = new Set(collA.map((item) => normalizeTitle(item.title)));
+    const setBColl = new Set(collB.map((item) => normalizeTitle(item.title)));
+    const setAWish = new Set(wishlistA.map((item) => normalizeTitle(item.title)));
 
-    // Crossing logic under simplified rules:
+    // Crossing logic under simplified rules matching strictly by normalized title:
     // 1. coincidencias: Games both users have in 'collection'
-    const coincidencias = collA.filter((item) => setBColl.has(String(item.game_id)));
+    const coincidencias = collA.filter((item) => setBColl.has(normalizeTitle(item.title)));
 
     // 2. soloMios: Games Authenticated A has in 'collection' but B does NOT
-    const soloMios = collA.filter((item) => !setBColl.has(String(item.game_id)));
+    const soloMios = collA.filter((item) => !setBColl.has(normalizeTitle(item.title)));
 
     // 3. soloSuyos: Games Target B has in 'collection' but A does NOT
-    const soloSuyos = collB.filter((item) => !setAColl.has(String(item.game_id)));
+    const soloSuyos = collB.filter((item) => !setAColl.has(normalizeTitle(item.title)));
 
     // 4. matchDeseados: Games B has in 'collection' that A has in 'wishlist'
-    const matchDeseados = collB.filter((item) => setAWish.has(String(item.game_id)));
+    const matchDeseados = collB.filter((item) => setAWish.has(normalizeTitle(item.title)));
 
     return NextResponse.json({
       coincidencias: coincidencias || [],
