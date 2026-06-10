@@ -241,7 +241,8 @@ export async function addGameToWishlist(
   gameId: string,
   title: string,
   coverUrl: string | null,
-  platform: string | null
+  platform: string | null,
+  targetUserId?: string | null
 ) {
   const supabase = await createClient();
 
@@ -270,6 +271,37 @@ export async function addGameToWishlist(
     }
     console.error("Error al añadir a deseos:", error);
     return { error: "Hubo un error al guardar el juego en tus deseos." };
+  }
+
+  // Send a want/interest notification to target user if specified
+  if (targetUserId && targetUserId !== user.id) {
+    try {
+      const { data: senderProfile } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .single();
+      
+      const senderUsername = senderProfile?.username || user.email?.split("@")[0] || "coleccionista";
+
+      const { error: notifError } = await supabase
+        .from("notifications")
+        .insert([
+          {
+            user_id: targetUserId,
+            type: "want",
+            sender_username: senderUsername,
+            game_title: title,
+            is_read: false
+          }
+        ]);
+
+      if (notifError) {
+        console.error("Error creating want notification:", notifError);
+      }
+    } catch (err) {
+      console.error("Failed to insert want notification:", err);
+    }
   }
 
   return { success: true };
