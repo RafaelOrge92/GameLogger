@@ -5,7 +5,7 @@ import Link from "next/link";
 import { TrendingUp, Gamepad2, Sliders, BarChart3 } from "lucide-react";
 import DashboardCollection from "@/components/DashboardCollection";
 
-// Status helpers
+
 const STATUS_META: Record<string, { label: string; color: string }> = {
   playing:      { label: "Jugando",       color: "var(--status-playing)" },
   completed:    { label: "Completado",    color: "var(--status-completed)" },
@@ -87,7 +87,7 @@ export default async function Home() {
   if (!user) {
     return (
       <div className="py-12 md:py-24 space-y-20 md:space-y-32">
-        {/* Hero Section */}
+        { }
         <div className="max-w-4xl mx-auto text-center space-y-8 px-4">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase border border-emerald-500/30 bg-emerald-950/20 text-emerald-400">
             <BarChart3 className="w-3.5 h-3.5" /> El control financiero de tu colección
@@ -112,7 +112,7 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Trending Section (Top Buscados) */}
+        { }
         <div className="max-w-5xl mx-auto px-4 space-y-6 overflow-hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
@@ -124,38 +124,38 @@ export default async function Home() {
             <span className="text-xs text-[var(--text-muted)] font-medium">Posa el ratón para pausar</span>
           </div>
 
-          {/* Marquee Train */}
+          { }
           <div className="relative w-full overflow-hidden">
-            {/* Fade Out Edge Overlays */}
+            { }
             <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[var(--bg-base)] to-transparent z-10 pointer-events-none" />
             <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[var(--bg-base)] to-transparent z-10 pointer-events-none" />
 
             <div className="animate-marquee py-2 select-none">
-              {/* Set 1 */}
+              { }
               {TRENDING_GAMES.map((game, i) => (
                 <div 
                   key={`set1-${i}`}
                   className="w-36 sm:w-44 shrink-0 group relative rounded-xl overflow-hidden border border-[var(--border)] transition-all duration-300 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(6,182,212,0.25)] hover:-translate-y-1"
                   style={{ backgroundColor: 'var(--bg-card)' }}
                 >
-                  {/* Cover */}
+                  { }
                   <div className="aspect-[3/4] relative w-full overflow-hidden bg-[var(--bg-elevated)]">
                     <img 
                       src={game.coverUrl} 
                       alt={game.title}
                       className="w-full h-full object-cover select-none pointer-events-none" 
                     />
-                    {/* Floating Trend Tag */}
+                    { }
                     <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
                       {game.trend}
                     </div>
-                    {/* Hover Value Overlay */}
+                    { }
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
                       <p className="text-[10px] text-cyan-400 font-bold tracking-wide uppercase">Valor medio</p>
                       <p className="text-sm font-black text-white">{game.value}</p>
                     </div>
                   </div>
-                  {/* Title area (below cover) */}
+                  { }
                   <div className="p-2.5 space-y-0.5">
                     <p className="text-[11px] font-semibold text-white truncate leading-tight group-hover:text-cyan-400 transition-colors" title={game.title}>
                       {game.title}
@@ -166,31 +166,31 @@ export default async function Home() {
                   </div>
                 </div>
               ))}
-              {/* Set 2 (Duplicate for infinite seamless loop) */}
+              { }
               {TRENDING_GAMES.map((game, i) => (
                 <div 
                   key={`set2-${i}`}
                   className="w-36 sm:w-44 shrink-0 group relative rounded-xl overflow-hidden border border-[var(--border)] transition-all duration-300 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(6,182,212,0.25)] hover:-translate-y-1"
                   style={{ backgroundColor: 'var(--bg-card)' }}
                 >
-                  {/* Cover */}
+                  { }
                   <div className="aspect-[3/4] relative w-full overflow-hidden bg-[var(--bg-elevated)]">
                     <img 
                       src={game.coverUrl} 
                       alt={game.title}
                       className="w-full h-full object-cover select-none pointer-events-none" 
                     />
-                    {/* Floating Trend Tag */}
+                    { }
                     <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
                       {game.trend}
                     </div>
-                    {/* Hover Value Overlay */}
+                    { }
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
                       <p className="text-[10px] text-cyan-400 font-bold tracking-wide uppercase">Valor medio</p>
                       <p className="text-sm font-black text-white">{game.value}</p>
                     </div>
                   </div>
-                  {/* Title area (below cover) */}
+                  { }
                   <div className="p-2.5 space-y-0.5">
                     <p className="text-[11px] font-semibold text-white truncate leading-tight group-hover:text-cyan-400 transition-colors" title={game.title}>
                       {game.title}
@@ -205,13 +205,13 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Dashboard Preview / Mockup Section */}
+        { }
         <div className="max-w-5xl mx-auto px-4">
           <div 
             className="rounded-2xl border p-6 md:p-8 space-y-6 md:space-y-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
             style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}
           >
-            {/* Fake Dashboard Header */}
+            { }
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[var(--border)]">
               <div>
                 <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Dashboard Resumen</p>
@@ -223,7 +223,7 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* Fake Stats */}
+            { }
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { label: "Total Juegos", value: "142", sub: "+5 este mes" },
@@ -243,9 +243,9 @@ export default async function Home() {
               ))}
             </div>
 
-            {/* Interactive/Visual Section: Market Trends & Items Mockup */}
+            { }
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Fake Trend Graph */}
+              { }
               <div 
                 className="md:col-span-2 p-5 rounded-xl border space-y-4 flex flex-col justify-between"
                 style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }}
@@ -258,7 +258,7 @@ export default async function Home() {
                   <span className="text-[10px] font-semibold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">Media: €34.00</span>
                 </div>
                 
-                {/* Simulated SVG Chart */}
+                { }
                 <div className="h-40 w-full flex items-end">
                   <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
                     <defs>
@@ -267,12 +267,12 @@ export default async function Home() {
                         <stop offset="100%" stopColor="#43b94f" stopOpacity="0.0"/>
                       </linearGradient>
                     </defs>
-                    {/* Area under the curve */}
+                    { }
                     <path 
                       d="M0 40 L0 30 L15 28 L30 32 L45 25 L60 20 L75 24 L90 14 L100 12 L100 40 Z" 
                       fill="url(#chartGrad)" 
                     />
-                    {/* Line */}
+                    { }
                     <path 
                       d="M0 30 L15 28 L30 32 L45 25 L60 20 L75 24 L90 14 L100 12" 
                       fill="none" 
@@ -280,7 +280,7 @@ export default async function Home() {
                       strokeWidth="1.5" 
                       strokeLinecap="round"
                     />
-                    {/* Circles on peak points */}
+                    { }
                     <circle cx="60" cy="20" r="1.5" fill="#43b94f" />
                     <circle cx="100" cy="12" r="1.5" fill="#43b94f" />
                   </svg>
@@ -292,7 +292,7 @@ export default async function Home() {
                 </div>
               </div>
 
-              {/* Fake Recent Items */}
+              { }
               <div 
                 className="p-5 rounded-xl border space-y-4"
                 style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }}
@@ -318,7 +318,7 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Feature Grid */}
+        { }
         <div className="max-w-5xl mx-auto px-4 space-y-12">
           <div className="text-center space-y-2">
             <h3 className="text-2xl md:text-3xl font-bold text-white">Diseñado para Coleccionistas Exigentes</h3>
@@ -366,7 +366,7 @@ export default async function Home() {
 
   const { data: games = [] } = await getCollection();
 
-  // Fetch region from user_collection to enrich games
+  
   let enrichedGames = [];
   if (user) {
     const { data: userItems } = await supabase
@@ -400,7 +400,7 @@ export default async function Home() {
   return (
     <div className="space-y-8">
 
-      {/* Page header */}
+      { }
       <div>
         <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
           Hola, {userName}
@@ -410,7 +410,7 @@ export default async function Home() {
         </p>
       </div>
 
-      {/* Quick stats — CSS hover via .stat-card class */}
+      { }
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {STATS.map((stat) => (
           <div key={stat.label} className="stat-card">
@@ -424,7 +424,7 @@ export default async function Home() {
         ))}
       </div>
 
-      {/* Collection content */}
+      { }
       <DashboardCollection initialGames={enrichedGames} />
     </div>
   );

@@ -17,14 +17,14 @@ export async function addGameToCollection(
 ) {
   const supabase = await createClient();
 
-  // Verificar sesión
+  
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
   if (authError || !user) {
     return { error: "Debes iniciar sesión para añadir juegos." };
   }
 
-  // Insertar en la base de datos (collections)
+  
   const { error } = await supabase
     .from('collections')
     .insert([
@@ -32,7 +32,7 @@ export async function addGameToCollection(
         user_id: user.id,
         game_id: gameId.toString(),
         title: title,
-        platform: platform || "PC", // Default fallback
+        platform: platform || "PC", 
         status: status,
         condition: condition,
         purchase_price: purchasePrice,
@@ -49,7 +49,7 @@ export async function addGameToCollection(
   }
 
   if (status === "collection") {
-    // Insertar en user_collection para que alimente las estadísticas del Dashboard
+    
     const gameIdInt = parseInt(gameId);
     if (!isNaN(gameIdInt)) {
       let conditionState = 'cib';
@@ -109,7 +109,7 @@ export async function removeGameFromCollection(id: string) {
     return { error: "No autenticado" };
   }
 
-  // Obtener el game_id antes de eliminar para borrar también de user_collection
+  
   const { data: gameToDelete } = await supabase
     .from("collections")
     .select("game_id")
@@ -127,7 +127,7 @@ export async function removeGameFromCollection(id: string) {
     return { error: error.message };
   }
 
-  // Eliminar también de user_collection
+  
   if (gameToDelete) {
     const gameIdInt = parseInt(gameToDelete.game_id);
     if (!isNaN(gameIdInt)) {
@@ -158,7 +158,7 @@ export async function updateGameInCollection(
     return { error: "No autenticado" };
   }
 
-  // Update in collections
+  
   const { error: collError } = await supabase
     .from("collections")
     .update({
@@ -177,7 +177,7 @@ export async function updateGameInCollection(
     return { error: "Error al actualizar los detalles en la base de datos." };
   }
 
-  // Find game_id from collections to update user_collection
+  
   const { data: gameInfo } = await supabase
     .from("collections")
     .select("game_id")
@@ -273,7 +273,7 @@ export async function addGameToWishlist(
     return { error: "Hubo un error al guardar el juego en tus deseos." };
   }
 
-  // Send a want/interest notification to target user if specified
+  
   if (targetUserId && targetUserId !== user.id) {
     try {
       const { data: senderProfile } = await supabase

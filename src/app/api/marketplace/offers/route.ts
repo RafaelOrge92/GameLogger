@@ -12,13 +12,13 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = createAdminClient();
 
-    // 1. Capture Filters from Query Params
+    
     const { searchParams } = new URL(req.url);
     const offerType = searchParams.get("offer_type");
     const conditionState = searchParams.get("condition_state");
     const region = searchParams.get("region");
 
-    // 2. Query Supabase for active marketplace offers
+    
     let query = supabase
       .from("marketplace_offers")
       .select(`
@@ -38,13 +38,13 @@ export async function GET(req: NextRequest) {
       `)
       .eq("status", "active");
 
-    // Conditionally apply filters if provided
+    
     if (offerType && offerType !== "all") {
-      // If client requests 'sell', we match both 'sell' and 'both'
+      
       if (offerType === "sell") {
         query = query.in("offer_type", ["sell", "both"]);
       } else if (offerType === "trade") {
-        // If client requests 'trade', we match both 'trade' and 'both'
+        
         query = query.in("offer_type", ["trade", "both"]);
       } else {
         query = query.eq("offer_type", offerType);
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
       query = query.eq("region", region);
     }
 
-    // Sort by newest offers first
+    
     query = query.order("created_at", { ascending: false });
 
     const { data: offers, error: dbError } = await query;
@@ -72,17 +72,17 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Return empty array early if no offers found
+    
     if (!offers || offers.length === 0) {
       return NextResponse.json([], { status: 200 });
     }
 
-    // 3. Extract unique game IDs to batch query IGDB and user collections for platforms
+    
     const uniqueGameIds = Array.from(
       new Set(offers.map((offer: any) => Number(offer.game_id)).filter((id) => !isNaN(id)))
     );
 
-    // 4. Batch query IGDB API to fetch titles and covers
+    
     const igdbGamesMap = new Map<number, IGDBGame>();
 
     if (uniqueGameIds.length > 0) {
@@ -120,13 +120,13 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 5. Query user collections to resolve platform of specific listed game items
-    // Since collections.game_id is text, convert uniqueGameIds to strings
+    
+    
     const uniqueGameIdsStr = uniqueGameIds.map(String);
     const uniqueUserIds = Array.from(new Set(offers.map((offer: any) => offer.user_id)));
 
-    const platformMap = new Map<string, string>(); // Key: "userId_gameId", Value: platform
-    const imagesMap = new Map<string, string[]>(); // Key: "userId_gameId", Value: images_urls
+    const platformMap = new Map<string, string>(); 
+    const imagesMap = new Map<string, string[]>(); 
 
     if (uniqueGameIdsStr.length > 0 && uniqueUserIds.length > 0) {
       try {
@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 6. Format and cross-reference results
+    
     const enrichedOffers = offers.map((offer: any) => {
       const gameIdNum = Number(offer.game_id);
       const igdbGame = igdbGamesMap.get(gameIdNum);
@@ -155,12 +155,12 @@ export async function GET(req: NextRequest) {
         ? offer.profiles[0]
         : offer.profiles;
 
-      // Determine platform from collection first, otherwise fall back to first IGDB platform or "Retro"
+      
       const collectionKey = `${offer.user_id}_${offer.game_id}`;
       let platform = platformMap.get(collectionKey);
       if (!platform) {
         if (igdbGame && igdbGame.platforms && igdbGame.platforms.length > 0) {
-          // Normalize names slightly or use the first one
+          
           platform = igdbGame.platforms[0];
         } else {
           platform = "Retro";

@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+ 
 "use client";
 
 import { useState, useEffect } from "react";
@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const REGIONS = ["all", "PAL-ES", "NTSC-U", "NTSC-J", "PAL-UK", "PAL-FR", "PAL-DE"];
 
-// Simple loading skeleton card to match RetroLogger design
+
 const SkeletonCard = () => (
   <div className="bg-bg-surface border border-border rounded-xl overflow-hidden animate-pulse flex flex-col h-full">
     <div className="aspect-[3/4] bg-neutral-800" />
@@ -34,23 +34,23 @@ const SkeletonCard = () => (
 );
 
 export default function MarketplacePage() {
-  // Real Data & Loading States
+  
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const { showToast } = useToast();
 
-  // Modals and Active Menus States
+  
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [selectedTradeOffer, setSelectedTradeOffer] = useState(null);
   const [selectedGalleryOffer, setSelectedGalleryOffer] = useState(null);
 
-  // Filter States
-  const [offerType, setOfferType] = useState("all"); // all, sell, trade, both
-  const [condition, setCondition] = useState("all"); // all, loose, cib, sealed
-  const [region, setRegion] = useState("all"); // all, PAL-ES, NTSC-U, etc.
+  
+  const [offerType, setOfferType] = useState("all"); 
+  const [condition, setCondition] = useState("all"); 
+  const [region, setRegion] = useState("all"); 
 
-  // Fetch currentUser session
+  
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -60,7 +60,7 @@ export default function MarketplacePage() {
     });
   }, []);
 
-  // Close menus on click outside
+  
   useEffect(() => {
     function closeMenus() {
       setActiveMenuId(null);
@@ -73,7 +73,7 @@ export default function MarketplacePage() {
     };
   }, [activeMenuId]);
 
-  // Fetch offers dynamically based on chosen filters
+  
   useEffect(() => {
     let isMounted = true;
     async function fetchOffers() {
@@ -114,7 +114,7 @@ export default function MarketplacePage() {
     };
   }, [offerType, condition, region]);
 
-  // Reset Filters handler
+  
   const handleResetFilters = () => {
     setOfferType("all");
     setCondition("all");
@@ -123,7 +123,7 @@ export default function MarketplacePage() {
 
   return (
     <div className="w-full">
-      {/* Header Section */}
+      { }
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white font-retro flex items-center gap-2">
@@ -143,9 +143,9 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      {/* Interactive Filters Panel */}
+      { }
       <div className="bg-bg-surface border border-border p-4 rounded-xl flex flex-wrap gap-4 items-center justify-between mb-8">
-        {/* Left Side: Segmented Buttons for Offer Type */}
+        { }
         <div className="flex bg-bg-base p-1 rounded-lg border border-border">
           <button
             onClick={() => setOfferType("all")}
@@ -179,9 +179,9 @@ export default function MarketplacePage() {
           </button>
         </div>
 
-        {/* Right Side: Selectors for Condition & Region */}
+        { }
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          {/* Condition Select */}
+          { }
           <div className="flex-1 sm:flex-initial">
             <select
               value={condition}
@@ -195,7 +195,7 @@ export default function MarketplacePage() {
             </select>
           </div>
 
-          {/* Region Select */}
+          { }
           <div className="flex-1 sm:flex-initial">
             <select
               value={region}
@@ -213,16 +213,16 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      {/* Main Content Area */}
+      { }
       {loading ? (
-        /* Loading Skeletons Grid */
+         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, idx) => (
             <SkeletonCard key={idx} />
           ))}
         </div>
       ) : offers.length === 0 ? (
-        /* Empty State with reset filters button */
+         
         <div className="bg-bg-surface border border-border/80 border-dashed rounded-xl p-12 text-center max-w-lg mx-auto mt-8 flex flex-col items-center">
           <Search className="w-10 h-10 text-gray-500 mb-3" />
           <h3 className="text-white font-bold text-lg mb-1">No se encontraron anuncios</h3>
@@ -237,10 +237,10 @@ export default function MarketplacePage() {
           </button>
         </div>
       ) : (
-        /* Dynamic Offers Grid */
+         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {offers.map((offer) => {
-            // Setup Badge styles for visual clarity
+            
             let offerBadgeClass = "";
             let offerBadgeText = "";
             if (offer.offer_type === "sell") {
@@ -254,7 +254,7 @@ export default function MarketplacePage() {
               offerBadgeText = "Ambos";
             }
 
-            // Setup state text representation
+            
             const conditionLabel =
               offer.condition_state === "cib"
                 ? "CIB"
@@ -267,7 +267,7 @@ export default function MarketplacePage() {
                 key={offer.id}
                 className="group bg-bg-surface border border-border rounded-xl overflow-hidden hover:border-gray-700 transition-all duration-200 flex flex-col"
               >
-                {/* Visual Cover Section */}
+                { }
                 <div className="relative aspect-[3/4] overflow-hidden bg-neutral-900 flex items-center justify-center">
                   {offer.coverUrl ? (
                     <img
@@ -283,14 +283,14 @@ export default function MarketplacePage() {
                     </div>
                   )}
 
-                  {/* Top Floating Badge: Offer Type */}
+                  { }
                   <div className="absolute top-3 left-3 z-10">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${offerBadgeClass}`}>
                       {offerBadgeText}
                     </span>
                   </div>
 
-                  {/* Options Button */}
+                  { }
                   {currentUser && currentUser.id !== offer.user_id && (
                     <button
                       onClick={(e) => {
@@ -308,7 +308,7 @@ export default function MarketplacePage() {
                     </button>
                   )}
 
-                  {/* Dropdown Menu */}
+                  { }
                   {activeMenuId === offer.id && (
                     <div
                       className="absolute top-11 right-2.5 w-48 bg-[#18191b] border border-gray-850 rounded-lg shadow-2xl py-1 z-30 animate-[fadeIn_0.1s_ease-out]"
@@ -379,7 +379,7 @@ export default function MarketplacePage() {
                     </div>
                   )}
 
-                  {/* Bottom Floating Badges: Condition & Region */}
+                  { }
                   <div className="absolute bottom-3 left-3 flex gap-1.5 z-10">
                     <span className="bg-neutral-950/80 backdrop-blur-xs px-2 py-0.5 rounded text-[10px] font-bold text-white border border-neutral-800/60 uppercase">
                       {conditionLabel}
@@ -390,20 +390,20 @@ export default function MarketplacePage() {
                   </div>
                 </div>
 
-                {/* Card Details / Info */}
+                { }
                 <div className="p-4 flex-1 flex flex-col justify-between">
                   <div>
-                    {/* Platform Tag */}
+                    { }
                     <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono">
                       {offer.platform}
                     </span>
 
-                    {/* Game Title */}
+                    { }
                     <h3 className="font-bold text-white group-hover:text-emerald-400 transition-colors truncate text-base mt-0.5 mb-2 leading-snug">
                       {offer.title}
                     </h3>
 
-                    {/* Pricing or Trade highlights */}
+                    { }
                     <div className="mt-1">
                       {offer.offer_type === "trade" ? (
                         <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-base py-0.5">
@@ -421,13 +421,13 @@ export default function MarketplacePage() {
                     </div>
                   </div>
 
-                  {/* Bottom Seller Info Row */}
+                  { }
                   <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                     <Link
                       href={`/user/${offer.user.username}`}
                       className="flex items-center gap-2 hover:text-white text-text-secondary transition-colors group/user"
                     >
-                      {/* Seller Avatar Fallback or Img */}
+                      { }
                       {offer.user.avatar_url ? (
                         <img
                           src={offer.user.avatar_url}
@@ -444,7 +444,7 @@ export default function MarketplacePage() {
                       </span>
                     </Link>
 
-                    {/* Quick Info text */}
+                    { }
                     <span className="text-[10px] text-text-muted font-medium">
                       {(() => {
                         const diff = Date.now() - new Date(offer.created_at).getTime();
@@ -466,7 +466,7 @@ export default function MarketplacePage() {
         </div>
       )}
 
-      {/* Modals */}
+      { }
       {selectedTradeOffer && (
         <TradeProposalModal
           game={selectedTradeOffer}

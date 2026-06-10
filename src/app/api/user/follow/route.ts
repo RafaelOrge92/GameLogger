@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
 
-    // 1. Authentication: Get the currently logged-in user
+    
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
     const followerId = user.id;
 
-    // 2. Input Data: Read following_id from POST body
+    
     let body;
     try {
       body = await req.json();
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Prevent a user from following themselves
+    
     if (followerId === following_id) {
       return NextResponse.json(
         { error: "No puedes seguirte a ti mismo." },
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Toggle Logic: Check if the relationship already exists
+    
     const { data: existingFollow, error: selectError } = await supabase
       .from("follows")
       .select("*")
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!existingFollow) {
-      // Caso A (No existe): Seguir (INSERT)
+      
       const { error: insertError } = await supabase
         .from("follows")
         .insert([{ follower_id: followerId, following_id: following_id }]);
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ status: "followed" });
     } else {
-      // Caso B (Sí existe): Dejar de seguir (DELETE)
+      
       const { error: deleteError } = await supabase
         .from("follows")
         .delete()

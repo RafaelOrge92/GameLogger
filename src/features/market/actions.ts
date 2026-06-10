@@ -10,9 +10,9 @@ interface MarketData {
   ebayListings: any[];
 }
 
-/**
- * Helper to wrap promises in a timeout and return a default value if exceeded.
- */
+
+
+ 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, defaultValue: T): Promise<T> {
   let timeoutId: NodeJS.Timeout;
   const timeoutPromise = new Promise<T>((resolve) => {
@@ -31,9 +31,9 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, defaultValue: T)
   ]);
 }
 
-/**
- * Fetches market prices from both CheapShark (digital) and eBay (physical) in parallel.
- */
+
+
+ 
 export async function getGameMarketData(title: string): Promise<MarketData> {
   if (!title) {
     return { cheapsharkDeals: [], ebayListings: [] };
@@ -78,7 +78,7 @@ export async function getGameMarketData(title: string): Promise<MarketData> {
 
 interface HistoricalSale {
   id: string;
-  date: string; // ISO String
+  date: string; 
   price: number;
   condition: "loose" | "cib" | "sealed";
   platform: string;
@@ -88,10 +88,10 @@ interface HistoricalSale {
 
 
 
-/**
- * Fetches historical and real-time sold prices for a game.
- * Combines database historical clean prices and live eBay sold listings.
- */
+
+
+
+ 
 export async function getGamePriceHistory(
   gameId: string,
   title: string,
@@ -102,7 +102,7 @@ export async function getGamePriceHistory(
 
   try {
     const [dbPricesResult, ebaySoldResultES, ebaySoldResultUS] = await Promise.all([
-      // 1. Fetch historical prices from Supabase
+      
       (async () => {
         const numericGameId = parseInt(gameId, 10);
         if (isNaN(numericGameId)) return [];
@@ -122,7 +122,7 @@ export async function getGamePriceHistory(
         console.error("Database price history lookup failed:", dbErr);
         return [];
       }),
-      // 2. Fetch live sold listings from eBay ES in real-time (with a 3.5s Timeout)
+      
       withTimeout(
         fetchSoldListings(title, "ES").catch((ebayErr) => {
           console.error("eBay ES sold listings real-time fetch failed:", ebayErr);
@@ -131,7 +131,7 @@ export async function getGamePriceHistory(
         3500,
         []
       ),
-      // 3. Fetch live sold listings from eBay US in real-time (with a 3.5s Timeout)
+      
       withTimeout(
         fetchSoldListings(title, "US").catch((ebayErr) => {
           console.error("eBay US sold listings real-time fetch failed:", ebayErr);
@@ -142,7 +142,7 @@ export async function getGamePriceHistory(
       )
     ]);
 
-    // Process Supabase results
+    
     if (dbPricesResult && dbPricesResult.length > 0) {
       dbPricesResult.forEach((row: any) => {
         sales.push({
@@ -156,7 +156,7 @@ export async function getGamePriceHistory(
       });
     }
 
-    // Process eBay ES results
+    
     if (ebaySoldResultES && ebaySoldResultES.length > 0) {
       ebaySoldResultES.forEach((item, index) => {
         const cond = classifyCondition(item.title);
@@ -172,7 +172,7 @@ export async function getGamePriceHistory(
       });
     }
 
-    // Process eBay US results
+    
     if (ebaySoldResultUS && ebaySoldResultUS.length > 0) {
       ebaySoldResultUS.forEach((item, index) => {
         const cond = classifyCondition(item.title);
@@ -191,6 +191,6 @@ export async function getGamePriceHistory(
     console.error("Error in parallel fetch in getGamePriceHistory:", error);
   }
 
-  // Sort combined results by date descending
+  
   return sales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }

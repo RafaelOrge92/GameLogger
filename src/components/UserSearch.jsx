@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+ 
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -15,7 +15,7 @@ export default function UserSearch() {
 
   const containerRef = useRef(null);
 
-  // Close dropdown when clicking outside the component
+  
   useEffect(() => {
     function handleClickOutside(event) {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -26,7 +26,7 @@ export default function UserSearch() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Debounced search effect
+  
   useEffect(() => {
     const trimmedQuery = query.trim();
     if (trimmedQuery.length < 2) {
@@ -38,7 +38,7 @@ export default function UserSearch() {
         const response = await fetch(`/api/users/search?q=${encodeURIComponent(trimmedQuery)}`);
         if (response.ok) {
           const data = await response.json();
-          // Assume API returns array of user objects directly
+          
           setResults(Array.isArray(data) ? data : data.results || []);
         } else {
           setResults([]);
@@ -49,12 +49,12 @@ export default function UserSearch() {
       } finally {
         setLoading(false);
       }
-    }, 300); // 300ms debounce delay
+    }, 300); 
 
     return () => clearTimeout(delayDebounceFn);
   }, [query]);
 
-  // Handle input changes, setting loading/resetting state outside the useEffect
+  
   const handleQueryChange = (e) => {
     const value = e.target.value;
     setQuery(value);
@@ -71,7 +71,7 @@ export default function UserSearch() {
     }
   };
 
-  // Handle keyboard navigation inside dropdown
+  
   const handleKeyDown = (e) => {
     if (!isOpen || results.length === 0) return;
 
@@ -100,9 +100,9 @@ export default function UserSearch() {
 
   return (
     <div className="relative w-full max-w-md" ref={containerRef}>
-      {/* Search Input Container */}
+      { }
       <div className="relative flex items-center">
-        {/* Search Icon (Magnifying Glass) */}
+        { }
         <span className="absolute left-3.5 text-gray-400">
           <svg
             className="w-4 h-4"
@@ -120,7 +120,7 @@ export default function UserSearch() {
           </svg>
         </span>
 
-        {/* Input Text Box */}
+        { }
         <input
           type="text"
           value={query}
@@ -131,7 +131,7 @@ export default function UserSearch() {
           className="w-full bg-[#212427] text-white placeholder-gray-400 text-sm rounded-lg pl-10 pr-10 py-2.5 border border-transparent focus:border-emerald-500 focus:outline-none transition-all duration-200"
         />
 
-        {/* Loading Spinner */}
+        { }
         {loading && (
           <span className="absolute right-3.5 flex h-4 w-4 items-center justify-center">
             <svg
@@ -158,7 +158,7 @@ export default function UserSearch() {
         )}
       </div>
 
-      {/* Floating Results Dropdown */}
+      { }
       {isOpen && query.trim().length >= 2 && (
         <div className="absolute top-full left-0 w-full mt-2 bg-[#18191b] border border-gray-800 rounded-lg shadow-2xl overflow-hidden z-50 animate-[fadeIn_0.15s_ease-out]">
           {loading && results.length === 0 ? (
@@ -189,13 +189,13 @@ export default function UserSearch() {
                       }`}
                       onMouseEnter={() => setSelectedIndex(index)}
                     >
-                      {/* Avatar */}
+                      { }
                       {user.avatar_url ? (
                         <img
                           src={user.avatar_url}
                           alt={user.username}
                           onError={(e) => {
-                            // If avatar fails to load, replace with fallback
+                            
                             e.target.onerror = null;
                             e.target.src = "/retro_avatar.png";
                           }}
@@ -207,7 +207,7 @@ export default function UserSearch() {
                         </div>
                       )}
 
-                      {/* Username */}
+                      { }
                       <span className={`text-sm font-semibold transition-colors ${
                         isSelected ? "text-emerald-400" : "text-white"
                       }`}>

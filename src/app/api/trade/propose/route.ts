@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
 
-    // 1. Authenticate sender securely
+    
     const {
       data: { user },
       error: authError,
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Parse request body
+    
     const body = await req.json();
     const { receiver_id, game_id, message } = body;
 
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Fetch sender username for the notification
+    
     const { data: senderProfile, error: senderError } = await supabase
       .from("profiles")
       .select("username")
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     const senderUsername = senderProfile.username || user.email?.split("@")[0] || "coleccionista";
 
-    // 4. Fetch the specific game details from the receiver's collection
+    
     const { data: collectionItem } = await supabase
       .from("collections")
       .select("title")
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     const gameTitle = collectionItem?.title || "Videojuego";
 
-    // 5. Insert Direct Trade Offer
+    
     const { data: tradeOffer, error: tradeError } = await supabase
       .from("trade_offers")
       .insert([
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 6. Automatically insert Community Alert Notification linked to this trade
+    
     const { error: notifError } = await supabase
       .from("notifications")
       .insert([

@@ -17,7 +17,7 @@ export async function GET(
     const decodedUsername = decodeURIComponent(username);
     const supabase = createAdminClient();
 
-    // 1. Fetch user profile by username
+    
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("*")
@@ -31,7 +31,7 @@ export async function GET(
       );
     }
 
-    // 2. Fetch collections and user items in parallel matching user id
+    
     const [collsRes, userItemsRes] = await Promise.all([
       supabase
         .from("collections")
@@ -47,7 +47,7 @@ export async function GET(
     const colls = collsRes.data || [];
     const userItems = userItemsRes.data || [];
 
-    // 3. Extract unique IGDB game IDs (collection, favorite, and crown jewel)
+    
     const uniqueIds = new Set<number>();
     
     if (profile.favorite_game_id) {
@@ -71,7 +71,7 @@ export async function GET(
       }
     });
 
-    // 4. Batch query IGDB API with compiled unique IDs
+    
     const igdbGamesMap = new Map<number, IGDBGame>();
 
     if (uniqueIds.size > 0) {
@@ -109,7 +109,7 @@ export async function GET(
       }
     }
 
-    // Helper function to resolve details from map, falling back to db cache
+    
     const getGameDetails = (gameId: number, cachedTitle?: string, cachedCover?: string) => {
       const igdbGame = igdbGamesMap.get(gameId);
       if (igdbGame) {
@@ -128,7 +128,7 @@ export async function GET(
       };
     };
 
-    // 5. Resolve Highlighted Games
+    
     let favoriteGame = null;
     if (profile.favorite_game_id) {
       const cachedMatch = colls.find((c) => Number(c.game_id) === Number(profile.favorite_game_id));
@@ -149,7 +149,7 @@ export async function GET(
       );
     }
 
-    // 6. Enrich collection items
+    
     const itemMap = new Map(userItems.map((ui) => [String(ui.game_id), ui]));
 
     const enrichedCollection = colls.map((c) => {
@@ -168,7 +168,7 @@ export async function GET(
       };
     });
 
-    // 7. Calculate real-time statistics
+    
     const totalGames = enrichedCollection.length;
     const totalValue = enrichedCollection.reduce(
       (sum, item) => sum + (item.purchasePrice ? Number(item.purchasePrice) : 0),
@@ -177,7 +177,7 @@ export async function GET(
     const completedCount = enrichedCollection.filter((item) => item.status === "completed").length;
     const completedPercentage = totalGames > 0 ? Math.round((completedCount / totalGames) * 100) : 0;
     
-    // comunidadDeseados calculation based on total collection items
+    
     const comunidadDeseados = Math.round(totalGames * 1.8) || 12;
 
     const stats = {
@@ -189,7 +189,7 @@ export async function GET(
       comunidadDeseados,
     };
 
-    // 8. Return unified enriched payload
+    
     return NextResponse.json({
       profile: {
         id: profile.id,

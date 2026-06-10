@@ -17,12 +17,12 @@ export default async function UserProfilePage({ params }) {
   const { username } = await params;
   const decodedUsername = decodeURIComponent(username);
 
-  // Admin client: bypasses RLS to read any user's public data
+  
   const adminSupabase = createAdminClient();
-  // Cookie client: only used to identify the current visitor's session
+  
   const sessionSupabase = await createClient();
 
-  // 1. Fetch user profile by username (public, via admin)
+  
   const { data: profile, error: profileError } = await adminSupabase
     .from("profiles")
     .select("*")
@@ -38,12 +38,12 @@ export default async function UserProfilePage({ params }) {
   let followerCount = 0;
   let currentUser = null;
 
-  // Fetch current visitor session (does NOT expose collection data, just identity)
+  
   const { data: { user: sessionUser } } = await sessionSupabase.auth.getUser();
   currentUser = sessionUser;
 
   if (profileError || !profile) {
-    // FALLBACK TO MOCK DATA (For local environment or not found profiles)
+    
     console.log(`Profile for user '${decodedUsername}' not found or error occurred, using mock data.`);
     
     displayProfile = {
@@ -94,39 +94,39 @@ export default async function UserProfilePage({ params }) {
       platforms: ["PlayStation"]
     };
     
-    // Simulate isFollowing state locally
+    
     isFollowing = false;
     followerCount = 42;
   } else {
-    // REAL PROFILE RESOLVED
+    
     displayProfile = profile;
 
-    // Check if the authenticated user follows this user
+    
     if (currentUser) {
       isFollowing = await checkFollowStatus(profile.id);
     }
 
-    // Fetch follower count using admin client (bypasses RLS)
+    
     const { count: followsCount } = await adminSupabase
       .from("follows")
       .select("*", { count: "exact", head: true })
       .eq("following_id", profile.id);
     followerCount = followsCount || 0;
 
-    // 2. Fetch collections (status, platform, title, cover_url) — admin bypass for public view
+    
     const { data: colls } = await adminSupabase
       .from("collections")
       .select("*")
       .eq("user_id", profile.id)
       .order("added_at", { ascending: false });
 
-    // 3. Fetch user_collection (condition_state, region, purchase_price) — admin bypass
+    
     const { data: userItems } = await adminSupabase
       .from("user_collection")
       .select("*")
       .eq("user_id", profile.id);
 
-    // Merge collections data and physical condition data in memory
+    
     const collList = colls || [];
     const itemMap = new Map(userItems?.map(ui => [String(ui.game_id), ui]) || []);
 
@@ -149,7 +149,7 @@ export default async function UserProfilePage({ params }) {
       };
     });
 
-    // Calculate real stats
+    
     const totalGames = displayCollection.length;
     const totalValue = displayCollection.reduce(
       (sum, item) => sum + (item.purchasePrice ? Number(item.purchasePrice) : 0), 
@@ -168,11 +168,11 @@ export default async function UserProfilePage({ params }) {
       comunidadDeseados: Math.round(totalGames * 1.8) || 12
     };
 
-    // 4. Resolve Featured Games (favorite_game_id and crown_jewel_id)
+    
     const promises = [];
 
     if (profile.favorite_game_id) {
-      // Find in local collections first to avoid network requests
+      
       const match = displayCollection.find(c => String(c.gameId) === String(profile.favorite_game_id));
       if (match) {
         displayFav = {
@@ -191,7 +191,7 @@ export default async function UserProfilePage({ params }) {
     }
 
     if (profile.crown_jewel_id) {
-      // Find in local collections first
+      
       const match = displayCollection.find(c => String(c.gameId) === String(profile.crown_jewel_id));
       if (match) {
         displayCrown = {

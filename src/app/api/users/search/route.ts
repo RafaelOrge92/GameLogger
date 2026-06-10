@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
 
-    // 1. Authentication Check (Optional, but recommended for API routes)
+    
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 2. Read query parameter
+    
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q");
 
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
     const trimmedQuery = query.trim();
 
-    // 3. Query profiles matching the username pattern (case-insensitive)
+    
     const { data: profiles, error } = await supabase
       .from("profiles")
       .select("id, username, avatar_url, favorite_console")

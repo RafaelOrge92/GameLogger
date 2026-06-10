@@ -12,9 +12,9 @@ export async function searchGamesIGDB(query: string) {
       "Authorization": `Bearer ${process.env.IGDB_ACCESS_TOKEN!}`,
       "Accept": "application/json",
     },
-    // Traemos datos básicos de juegos retro principales (generación <= 7 o lanzados antes de 2013, excluyendo hacks/mods)
+    
     body: `search "${query}"; where (platforms.generation <= 7 | first_release_date < 1356998400) & parent_game = null; fields name, cover.url, platforms.name, first_release_date; limit 10;`,
-    // Añadimos revalidate para cachear las búsquedas por 1 hora y no gastar cuota de API
+    
     next: { revalidate: 3600 }
   });
 
@@ -25,8 +25,8 @@ export async function searchGamesIGDB(query: string) {
 
   const data = await response.json();
   
-  // IGDB devuelve las imágenes en tamaño 'thumb' (miniatura) por defecto.
-  // Reemplazamos 't_thumb' por 't_cover_big' para tener mejor resolución en el frontend.
+  
+  
   return data.map((game: any) => ({
     id: game.id,
     name: game.name,

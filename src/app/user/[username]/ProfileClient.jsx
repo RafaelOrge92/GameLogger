@@ -10,7 +10,7 @@ import TradeProposalModal from "@/components/TradeProposalModal";
 
 
 
-// Status configuration matching page.tsx
+
 const STATUS_META = {
   collection:   { label: "En colección",  color: "var(--status-owned)", bg: "rgba(251, 146, 60, 0.1)" },
   wishlist:     { label: "En deseados",    color: "var(--status-plan)", bg: "rgba(167, 139, 250, 0.1)" },
@@ -21,7 +21,7 @@ const STATUS_META = {
   owned:        { label: "En colección",  color: "var(--status-owned)", bg: "rgba(251, 146, 60, 0.1)" },
 };
 
-// Condition badge style configuration
+
 const CONDITION_META = {
   loose:  { label: "Loose",  color: "text-rose-400 border-rose-500/30 bg-rose-950/20" },
   cib:    { label: "CIB",    color: "text-cyan-400 border-cyan-500/30 bg-cyan-950/20" },
@@ -48,15 +48,15 @@ export default function ProfileClient({
 
   const isOwnProfile = currentUser && currentUser.id === profile.id;
 
-  // Comparison states
-  const [profileTab, setProfileTab] = useState("coleccion"); // "coleccion" | "comparar"
+  
+  const [profileTab, setProfileTab] = useState("coleccion"); 
   const [compareData, setCompareData] = useState(null);
   const [isComparing, setIsComparing] = useState(false);
-  const [compareSubTab, setCompareSubTab] = useState("comun"); // "comun" | "suyos" | "deseados"
+  const [compareSubTab, setCompareSubTab] = useState("comun"); 
   const [wishlistSearchQuery, setWishlistSearchQuery] = useState("");
   const [selectedTradeGame, setSelectedTradeGame] = useState(null);
 
-  // Fetch comparison data when comparison tab is opened
+  
   useEffect(() => {
     if (profileTab === "comparar" && !compareData && !isComparing) {
       async function runComparison() {
@@ -104,7 +104,7 @@ export default function ProfileClient({
     addedAt: dbItem.added_at
   });
 
-  // Sync state if collection changes from page props
+  
   useEffect(() => {
     setLocalCollection(collection);
   }, [collection]);
@@ -147,7 +147,7 @@ export default function ProfileClient({
     const prevIsFollowing = isFollowing;
     const prevCount = followerCount;
 
-    // Optimistic Update
+    
     setIsFollowing(!prevIsFollowing);
     setFollowerCount(prevIsFollowing ? Math.max(0, prevCount - 1) : prevCount + 1);
 
@@ -169,7 +169,7 @@ export default function ProfileClient({
           setIsFollowing(false);
           showToast(`Dejaste de seguir a ${profile.username || "este usuario"}`, "success");
         } else {
-          // Revert on unexpected status
+          
           setIsFollowing(prevIsFollowing);
           setFollowerCount(prevCount);
           showToast(data.error || "Ocurrió un error.", "error");
@@ -186,7 +186,7 @@ export default function ProfileClient({
       setFollowerCount(prevCount);
       showToast("Error de conexión al procesar la acción.", "error");
     } finally {
-      // Disable the button for exactly 1 second to prevent double clicks
+      
       setTimeout(() => {
         setIsLoadingFollow(false);
       }, 1000);
@@ -196,19 +196,19 @@ export default function ProfileClient({
   return (
     <div className="space-y-10 animate-[fadeIn_0.5s_ease-out]">
       
-      {/* 1. Cabecera del Perfil (Hero de Bienvenida) */}
+      { }
       <div 
         className="w-full relative rounded-2xl border p-6 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
         style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}
       >
-        {/* Background Ambient Glow */}
+        { }
         <div className="absolute top-0 right-0 w-80 h-80 bg-[var(--accent)] opacity-[0.03] rounded-full blur-[100px] pointer-events-none" />
         
-        {/* Profile Picture */}
+        { }
         <div className="relative group shrink-0">
           <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-[var(--accent)] bg-[#141517] flex items-center justify-center shadow-[0_0_20px_rgba(67,185,79,0.15)] transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(67,185,79,0.3)]">
             {profile.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
+              
               <img
                 src={profile.avatar_url}
                 alt={profile.username}
@@ -218,7 +218,7 @@ export default function ProfileClient({
                 }}
               />
             ) : (
-              // eslint-disable-next-line @next/next/no-img-element
+              
               <img
                 src="/retro_avatar.png"
                 alt="Avatar Default"
@@ -226,11 +226,11 @@ export default function ProfileClient({
               />
             )}
           </div>
-          {/* Active indicator dot */}
+          { }
           <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full border-4 border-[var(--bg-surface)] bg-[var(--accent)] shadow-md" />
         </div>
 
-        {/* Profile details */}
+        { }
         <div className="flex-1 text-center md:text-left space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
@@ -239,7 +239,7 @@ export default function ProfileClient({
                   {profile.username || "Coleccionista"}
                 </h1>
                 
-                {/* Console tag */}
+                { }
                 {profile.favorite_console && (
                   <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/35 text-emerald-400 flex items-center gap-1.5 shadow-sm">
                     <Gamepad2 className="w-3.5 h-3.5 text-emerald-400" /> {profile.favorite_console}
@@ -253,7 +253,7 @@ export default function ProfileClient({
               </p>
             </div>
 
-            {/* Social Button */}
+            { }
             <div>
               {isOwnProfile ? (
                 <Link
@@ -287,7 +287,7 @@ export default function ProfileClient({
             </div>
           </div>
 
-          {/* Bio text */}
+          { }
           <div className="max-w-2xl bg-[#141517]/40 rounded-xl p-3.5 border border-[var(--border)]/60 text-left">
             <p className="text-sm font-medium leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               {profile.bio || "Este coleccionista aún no ha escrito su biografía en RetroLogger."}
@@ -296,10 +296,10 @@ export default function ProfileClient({
         </div>
       </div>
 
-      {/* 2. Fila de Mini-Estadísticas */}
+      { }
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
-        {/* Stat Card 1 */}
+        { }
         <div className="stat-card flex items-center justify-between p-5 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-500/10 transition-all duration-300" />
           <div className="space-y-1">
@@ -314,7 +314,7 @@ export default function ProfileClient({
           </div>
         </div>
 
-        {/* Stat Card 2 */}
+        { }
         <div className="stat-card flex items-center justify-between p-5 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-cyan-500/10 transition-all duration-300" />
           <div className="space-y-1">
@@ -333,7 +333,7 @@ export default function ProfileClient({
           </div>
         </div>
 
-        {/* Stat Card 3: Interés de la Comunidad */}
+        { }
         <div className="stat-card flex items-center justify-between p-5 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-orange-500/10 transition-all duration-300" />
           <div className="space-y-1.5 text-left">
@@ -354,7 +354,7 @@ export default function ProfileClient({
 
       </div>
 
-      {/* 3. El Escaparate de Destacados (Vitrina de Honor) */}
+      { }
       <div className="space-y-4">
         <h3 className="text-base font-bold text-white tracking-tight uppercase flex items-center gap-1.5">
           <Sparkles className="w-4 h-4 text-amber-400" /> Vitrina de Honor
@@ -362,17 +362,17 @@ export default function ProfileClient({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* Tarjeta A: Mi Juego Favorito */}
+          { }
           <div 
             className="rounded-xl border p-5 flex flex-col sm:flex-row gap-5 relative overflow-hidden transition-all duration-300 hover:border-emerald-500/30"
             style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}
           >
-            {/* Background Glow */}
+            { }
             <div className="absolute top-0 right-0 w-44 h-44 bg-emerald-500/5 rounded-full blur-[60px] pointer-events-none" />
             
             <div className="aspect-[3/4] w-full sm:w-28 h-40 shrink-0 rounded-lg overflow-hidden bg-[#141517] border border-[var(--border)] shadow-lg relative group">
               {favoriteGame?.coverUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
+                
                 <img 
                   src={favoriteGame.coverUrl} 
                   alt={favoriteGame.name} 
@@ -423,17 +423,17 @@ export default function ProfileClient({
             </div>
           </div>
 
-          {/* Tarjeta B: La Joya de la Corona */}
+          { }
           <div 
             className="rounded-xl border p-5 flex flex-col sm:flex-row gap-5 relative overflow-hidden transition-all duration-300 hover:border-amber-500/30"
             style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}
           >
-            {/* Background Glow */}
+            { }
             <div className="absolute top-0 right-0 w-44 h-44 bg-amber-500/5 rounded-full blur-[60px] pointer-events-none" />
             
             <div className="aspect-[3/4] w-full sm:w-28 h-40 shrink-0 rounded-lg overflow-hidden bg-[#141517] border border-[var(--border)] shadow-lg relative group">
               {crownJewel?.coverUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
+                
                 <img 
                   src={crownJewel.coverUrl} 
                   alt={crownJewel.name} 
@@ -487,7 +487,7 @@ export default function ProfileClient({
         </div>
       </div>
 
-      {/* Tab Switcher for Public Profile Visitor */}
+      { }
       {!isOwnProfile && currentUser && (
         <div className="flex border-b border-gray-800/80 pb-0.5 gap-6">
           <button
@@ -521,7 +521,7 @@ export default function ProfileClient({
             (item) => item.status === "collection" || item.status === "owned" || item.status === "playing" || item.status === "completed" || !item.status
           );
           return (
-            /* 4. La Cuadrícula de la Colección */
+             
             <div className="space-y-4">
               <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-3">
                 <h3 className="text-base font-bold text-white tracking-tight uppercase flex items-center gap-1.5">
@@ -569,7 +569,7 @@ export default function ProfileClient({
           );
         })()
       ) : (
-        /* Comparador de Colecciones Tab */
+         
         <div className="space-y-6">
           <div className="flex flex-col gap-4 border-b border-[var(--border)] pb-4">
             <div>
@@ -579,7 +579,7 @@ export default function ProfileClient({
               <p className="text-xs text-gray-400 mt-1">Comparando tu colección con la de @{profile.username || "este usuario"}</p>
             </div>
 
-            {/* Sub Tabs Switcher */}
+            { }
             {compareData && (
               <div className="flex gap-2 p-1 bg-[#141517] rounded-lg border border-gray-800 max-w-md">
                 <button
@@ -619,7 +619,7 @@ export default function ProfileClient({
             )}
           </div>
 
-          {/* Loading Skeleton */}
+          { }
           {(isComparing || !compareData) ? (
             <div className="space-y-4 animate-pulse">
               <div className="h-6 w-48 bg-gray-800 rounded"></div>
@@ -631,7 +631,7 @@ export default function ProfileClient({
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Live search input specifically for Deseados sub-tab */}
+              { }
               {compareSubTab === "deseados" && (
                 <div className="relative max-w-xs">
                   <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -647,7 +647,7 @@ export default function ProfileClient({
                 </div>
               )}
 
-              {/* Sub tab lists */}
+              { }
               {compareSubTab === "comun" && (
                 compareData.coincidencias.length === 0 ? (
                   <p className="text-sm text-gray-500 italic">No tienen ningún juego en común en sus colecciones.</p>
@@ -745,7 +745,7 @@ export default function ProfileClient({
         </div>
       )}
 
-      {/* Trade Proposal Modal for comparison view */}
+      { }
       {selectedTradeGame && (
         <TradeProposalModal
           game={selectedTradeGame}

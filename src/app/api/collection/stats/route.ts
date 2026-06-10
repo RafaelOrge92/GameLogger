@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
     const userId = user.id;
 
-    // 1. Fetch user's inventory
+    
     const { data: items, error: itemsError } = await supabase
       .from('user_collection')
       .select('game_id, condition_state, region, purchase_price, acquired_at')
@@ -24,14 +24,14 @@ export async function GET(req: NextRequest) {
 
     if (itemsError) {
       console.error('Error fetching user_collection:', itemsError);
-      return NextResponse.json([]); // Graceful fallback to avoid breaking the frontend
+      return NextResponse.json([]); 
     }
 
     if (!items || items.length === 0) {
       return NextResponse.json([]);
     }
 
-    // 2. Fetch all historical prices for the games in the collection
+    
     const gameIds = items.map(item => item.game_id);
     const { data: prices, error: pricesError } = await supabase
       .from('historical_prices')
@@ -41,12 +41,12 @@ export async function GET(req: NextRequest) {
 
     if (pricesError) {
       console.error('Error fetching historical_prices:', pricesError);
-      return NextResponse.json([]); // Graceful fallback to avoid breaking the frontend
+      return NextResponse.json([]); 
     }
 
     const pricesList = prices || [];
 
-    // 3. Generate last 12 months in UTC to avoid timezone issues
+    
     const monthsList: Array<{ label: string; year: number; month: number; endOfDate: Date }> = [];
     const today = new Date();
     for (let i = 11; i >= 0; i--) {
@@ -64,15 +64,15 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // 4. Calculate total portfolio value for each month
+    
     const result = monthsList.map(month => {
-      // Find games owned in this month (comparison is done via epoch timestamps, timezone-independent)
+      
       const ownedItems = items.filter(item => new Date(item.acquired_at) <= month.endOfDate);
 
       let valorTotal = 0;
 
       for (const ownedItem of ownedItems) {
-        // Find latest price in pricesList on or before this month's endOfDate
+        
         let itemPrice = ownedItem.purchase_price ? Number(ownedItem.purchase_price) : 0;
         
         for (let pIdx = pricesList.length - 1; pIdx >= 0; pIdx--) {
@@ -101,6 +101,6 @@ export async function GET(req: NextRequest) {
 
   } catch (error) {
     console.error('Unhandled error in collection stats route:', error);
-    return NextResponse.json([], { status: 200 }); // Graceful fallback
+    return NextResponse.json([], { status: 200 }); 
   }
 }

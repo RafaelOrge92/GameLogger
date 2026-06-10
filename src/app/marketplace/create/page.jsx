@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+ 
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -20,7 +20,7 @@ const OFFER_TYPES = [
   { value: "both",  label: "Ambos",       icon: Zap, desc: "Venta o intercambio" },
 ];
 
-// Loading skeleton for collection items
+
 const SkeletonItem = () => (
   <div className="flex items-center gap-3 p-3 rounded-lg bg-bg-elevated border border-border animate-pulse">
     <div className="w-10 h-14 rounded bg-neutral-800 shrink-0" />
@@ -35,7 +35,7 @@ export default function CreateOfferPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  // Image Upload & Vision AI Audit States
+  
   const [photo, setPhoto] = useState(null);
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditError, setAuditError] = useState(null);
@@ -44,7 +44,7 @@ export default function CreateOfferPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Read file as base64
+    
     const reader = new FileReader();
     reader.onload = async () => {
       const base64 = reader.result;
@@ -69,7 +69,7 @@ export default function CreateOfferPage() {
         if (res.ok && data.success) {
           if (data.isAllowed) {
             setPhoto(data.publicUrl || base64);
-            // Autofill the game from collection if recognized
+            
             if (data.recognizedGame) {
               const matchedGame = collection.find((item) =>
                 item.title.toLowerCase().includes(data.recognizedGame.gameTitle.toLowerCase())
@@ -99,24 +99,24 @@ export default function CreateOfferPage() {
   };
 
 
-  // Collection state
+  
   const [collection, setCollection]     = useState([]);
   const [loadingCollection, setLoadingCollection] = useState(true);
   const [collectionError, setCollectionError]     = useState(null);
   const [gameSearch, setGameSearch]               = useState("");
   const [selectedGame, setSelectedGame]           = useState(null);
 
-  // Form fields
+  
   const [condition, setCondition] = useState("");
   const [region, setRegion]       = useState("");
   const [offerType, setOfferType] = useState("");
   const [price, setPrice]         = useState("");
 
-  // Submission
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError]   = useState(null);
 
-  // Fetch user's collection on mount
+  
   useEffect(() => {
     setLoadingCollection(true);
     fetch("/api/collection/list")
@@ -132,7 +132,7 @@ export default function CreateOfferPage() {
       .finally(() => setLoadingCollection(false));
   }, []);
 
-  // Filtered collection by search query
+  
   const filteredCollection = useMemo(() => {
     if (!gameSearch.trim()) return collection;
     const q = gameSearch.toLowerCase();
@@ -190,7 +190,7 @@ export default function CreateOfferPage() {
         return;
       }
 
-      // Success — go back to marketplace
+      
       router.push("/marketplace");
       router.refresh();
     } catch {
@@ -202,7 +202,7 @@ export default function CreateOfferPage() {
 
   return (
     <div className="w-full max-w-2xl mx-auto py-8 px-4">
-      {/* Header */}
+      { }
       <div className="mb-8">
         <Link
           href="/marketplace"
@@ -223,7 +223,7 @@ export default function CreateOfferPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* ── Step 0 — Upload photo for AI audit and auto-detection ── */}
+        { }
         <div className="bg-bg-surface border border-border rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <Upload className="w-4 h-4 text-emerald-400" />
@@ -294,7 +294,7 @@ export default function CreateOfferPage() {
           )}
         </div>
 
-        {/* ── Step 1 — Pick from your collection ── */}
+        { }
         <div className="bg-bg-surface border border-border rounded-xl p-5">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
             <span className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">1</span>
@@ -302,7 +302,7 @@ export default function CreateOfferPage() {
           </h2>
 
           {selectedGame ? (
-            /* Selected game preview card */
+             
             <div className="flex items-center gap-4 p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/20">
               {selectedGame.cover_url ? (
                 <img
@@ -333,9 +333,9 @@ export default function CreateOfferPage() {
               </button>
             </div>
           ) : (
-            /* Collection browser */
+             
             <div className="space-y-3">
-              {/* Search filter */}
+              { }
               <div className="relative">
                 <svg
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted pointer-events-none"
@@ -353,7 +353,7 @@ export default function CreateOfferPage() {
                 />
               </div>
 
-              {/* Collection list */}
+              { }
               {loadingCollection ? (
                 <div className="space-y-2">
                   {Array.from({ length: 4 }).map((_, i) => <SkeletonItem key={i} />)}
@@ -419,7 +419,7 @@ export default function CreateOfferPage() {
           )}
         </div>
 
-        {/* ── Step 2 — Condition ── */}
+        { }
         <div className="bg-bg-surface border border-border rounded-xl p-5">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
             <span className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">2</span>
@@ -446,7 +446,7 @@ export default function CreateOfferPage() {
           </div>
         </div>
 
-        {/* ── Step 3 — Region ── */}
+        { }
         <div className="bg-bg-surface border border-border rounded-xl p-5">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
             <span className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">3</span>
@@ -470,7 +470,7 @@ export default function CreateOfferPage() {
           </div>
         </div>
 
-        {/* ── Step 4 — Offer type ── */}
+        { }
         <div className="bg-bg-surface border border-border rounded-xl p-5">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
             <span className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">4</span>
@@ -498,7 +498,7 @@ export default function CreateOfferPage() {
           </div>
         </div>
 
-        {/* ── Step 5 — Price (conditional) ── */}
+        { }
         {needsPrice && (
           <div className="bg-bg-surface border border-border rounded-xl p-5">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -523,14 +523,14 @@ export default function CreateOfferPage() {
           </div>
         )}
 
-        {/* Error */}
+        { }
         {submitError && (
           <div className="bg-red-950/30 border border-red-500/30 text-red-400 rounded-lg px-4 py-3 text-sm flex items-center gap-1.5">
             <AlertTriangle className="w-4 h-4 text-red-400" /> {submitError}
           </div>
         )}
 
-        {/* Submit */}
+        { }
         <div className="flex items-center justify-end gap-3 pt-2">
           <Link
             href="/marketplace"

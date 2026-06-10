@@ -44,14 +44,14 @@ export default function TabsDashboard() {
     { id: "backlog", label: "Backlog" },
   ];
 
-  // Client-side mount check to prevent SSR hydration issues with Recharts
+  
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   const activeRange = rangoEvolucion;
 
-  // Fetch stats when filters or range changes
+  
   useEffect(() => {
     async function fetchStats() {
       setIsLoading(true);
@@ -100,13 +100,13 @@ export default function TabsDashboard() {
   return (
     <div className="bg-[#18191b] rounded-xl border border-gray-800 p-5 md:p-6 w-full shadow-2xl transition-all duration-300">
       
-      {/* Upper Filters Bar */}
+      { }
       <div className="flex flex-wrap items-center gap-3 mb-5 p-3 bg-[#0f0f10]/60 rounded-lg border border-gray-800/60">
         <div className="flex items-center gap-2">
           <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Filtros:</span>
         </div>
         
-        {/* Platform Dropdown */}
+        { }
         <select
           value={filtroPlataforma}
           onChange={(e) => setFiltroPlataforma(e.target.value)}
@@ -121,7 +121,7 @@ export default function TabsDashboard() {
           <option value="Game Boy">Game Boy</option>
         </select>
 
-        {/* Region Dropdown */}
+        { }
         <select
           value={filtroRegion}
           onChange={(e) => setFiltroRegion(e.target.value)}
@@ -134,7 +134,7 @@ export default function TabsDashboard() {
           <option value="NTSC-J">NTSC-J</option>
         </select>
 
-        {/* Clear Filters Button */}
+        { }
         {(filtroPlataforma || filtroRegion) && (
           <button
             onClick={() => {
@@ -148,7 +148,7 @@ export default function TabsDashboard() {
         )}
       </div>
 
-      {/* Header and Tabs Navigation */}
+      { }
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-800/80">
         <div>
           <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
@@ -158,7 +158,7 @@ export default function TabsDashboard() {
           <p className="text-xs text-gray-400 mt-0.5">Echa un vistazo al valor y distribución de tu catálogo</p>
         </div>
 
-        {/* Tab Buttons */}
+        { }
         <div className="flex bg-[#0f0f10] p-1 rounded-lg border border-gray-800/60 self-start sm:self-auto overflow-x-auto max-w-full">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -182,7 +182,7 @@ export default function TabsDashboard() {
         </div>
       </div>
 
-      {/* Main Tab Content */}
+      { }
       <div className="pt-6 min-h-[340px] flex flex-col justify-center">
         {isEmpty ? (
           <div className="border border-dashed border-gray-800 rounded-xl bg-[#0f0f10]/20 p-8 text-center flex flex-col items-center justify-center min-h-[260px] animate-[fadeIn_0.3s_ease-out]">
@@ -193,10 +193,10 @@ export default function TabsDashboard() {
         ) : (
           <div className="w-full flex-1 flex flex-col justify-between">
             
-            {/* Pestaña: Evolución */}
+            { }
             {activeTab === "evolucion" && (
               <div className="space-y-6 animate-[fadeIn_0.3s_ease-out] w-full">
-                {/* Stats recap */}
+                { }
                 {statsData.evolucion?.length > 0 && (
                   <div className="flex flex-wrap items-end justify-between gap-3">
                     <div>
@@ -211,7 +211,7 @@ export default function TabsDashboard() {
                       </div>
                     </div>
 
-                    {/* Range Selector Button Group */}
+                    { }
                     <div className="flex bg-[#0f0f10] p-0.5 rounded border border-gray-800/80">
                       <button
                         onClick={() => setRangoEvolucion("30d")}
@@ -236,7 +236,7 @@ export default function TabsDashboard() {
                     </div>
                   </div>
                 )}
-                {/* Recharts AreaChart */}
+                { }
                 <div className="w-full">
                   <ResponsiveContainer width="100%" height={240}>
                     <AreaChart data={statsData.evolucion} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
@@ -270,7 +270,7 @@ export default function TabsDashboard() {
               </div>
             )}
 
-            {/* Pestaña: Comparativa — Portfolio Performance Simulator */}
+            { }
             {activeTab === "comparativa" && (
               <PortfolioChart
                 platformFilter={filtroPlataforma}
@@ -278,11 +278,11 @@ export default function TabsDashboard() {
               />
             )}
 
-            {/* Pestaña: Región */}
+            { }
             {activeTab === "region" && (
               <div className="space-y-6 animate-[fadeIn_0.3s_ease-out] w-full">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                  {/* Recharts PieChart (Donut) */}
+                  { }
                   <div className="md:col-span-2 flex justify-center">
                     <ResponsiveContainer width="100%" height={220}>
                       <PieChart>
@@ -308,7 +308,7 @@ export default function TabsDashboard() {
                     </ResponsiveContainer>
                   </div>
                   
-                  {/* Colored Legend */}
+                  { }
                   <div className="space-y-2 max-h-56 overflow-y-auto pr-2 scrollbar-none">
                     {statsData.region.map((item: any, index: number) => (
                       <div key={item.name} className="flex items-center justify-between p-2 bg-[#0f0f10] border border-gray-800/80 rounded-md">
@@ -324,10 +324,10 @@ export default function TabsDashboard() {
               </div>
             )}
 
-            {/* Pestaña: Sistemas */}
+            { }
             {activeTab === "sistemas" && (
               <div className="space-y-6 animate-[fadeIn_0.3s_ease-out] w-full">
-                {/* Recharts Horizontal BarChart */}
+                { }
                 <div className="w-full">
                   <ResponsiveContainer width="100%" height={240}>
                     <BarChart
@@ -353,11 +353,11 @@ export default function TabsDashboard() {
               </div>
             )}
 
-            {/* Pestaña: Estado */}
+            { }
             {activeTab === "estado" && (
               <div className="space-y-6 animate-[fadeIn_0.3s_ease-out] w-full">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                  {/* Recharts RadarChart */}
+                  { }
                   <div className="md:col-span-2 flex justify-center">
                     <ResponsiveContainer width="100%" height={220}>
                       <RadarChart cx="50%" cy="50%" outerRadius="75%" data={statsData.estado}>
@@ -369,7 +369,7 @@ export default function TabsDashboard() {
                     </ResponsiveContainer>
                   </div>
                   
-                  {/* Summary list */}
+                  { }
                   <div className="space-y-3">
                     {statsData.estado.map((item: any) => (
                       <div key={item.subject} className="p-3 bg-[#0f0f10] border border-gray-800 rounded-lg text-center md:text-left">
@@ -383,12 +383,12 @@ export default function TabsDashboard() {
               </div>
             )}
 
-            {/* Pestaña: Backlog */}
+            { }
             {activeTab === "backlog" && (
               <div className="space-y-6 animate-[fadeIn_0.3s_ease-out] w-full">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                   
-                  {/* Backlog Donut Chart */}
+                  { }
                   <div className="md:col-span-2 flex justify-center">
                     <ResponsiveContainer width="100%" height={220}>
                       <PieChart>
@@ -414,7 +414,7 @@ export default function TabsDashboard() {
                     </ResponsiveContainer>
                   </div>
                   
-                  {/* Legend list */}
+                  { }
                   <div className="space-y-2 max-h-56 overflow-y-auto pr-2 scrollbar-none">
                     {statsData.backlog.map((item: any, index: number) => (
                       <div key={item.name} className="flex items-center justify-between p-2 bg-[#0f0f10] border border-gray-800/80 rounded-md">
@@ -456,7 +456,7 @@ function getEmptyData() {
 function SkeletonLoader() {
   return (
     <div className="bg-[#18191b] rounded-xl border border-gray-800 p-5 md:p-6 w-full shadow-2xl animate-pulse space-y-6">
-      {/* Filters bar skeleton */}
+      { }
       <div className="h-12 w-full bg-[#0f0f10]/60 rounded-lg border border-gray-800/60"></div>
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-800/80">

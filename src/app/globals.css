@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Backloggd-inspired dark palette - Fintech slate variation */
+   
   --bg-base:       #18191b;
   --bg-surface:    #202226;
   --bg-elevated:   #2a2c31;
@@ -63,38 +63,38 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar */
+ 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-base); }
 ::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-/* Focus ring */
+ 
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* Utility: card surface */
+ 
 .card {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
 
-/* Smooth transitions globally */
+ 
 a, button {
   transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
 }
 
-/* Status badge colors */
+ 
 .status-playing   { color: var(--status-playing); }
 .status-completed { color: var(--status-completed); }
 .status-plan      { color: var(--status-plan); }
 .status-dropped   { color: var(--status-dropped); }
 .status-owned     { color: var(--status-owned); }
 
-/* Game card — CSS-only hover (used in Server Components) */
+ 
 .game-card {
   position: relative;
   border-radius: 8px;
@@ -129,7 +129,7 @@ a, button {
   opacity: 1;
 }
 
-/* Stat card hover */
+ 
 .stat-card {
   border-radius: 8px;
   padding: 1rem;
@@ -141,7 +141,7 @@ a, button {
   border-color: var(--border-hover);
 }
 
-/* Nav link hover */
+ 
 .nav-link {
   transition: color 0.15s ease, background-color 0.15s ease;
 }
@@ -149,7 +149,7 @@ a, button {
   color: var(--text-primary);
 }
 
-/* Toast entrance animation */
+ 
 @keyframes toast-in {
   from {
     opacity: 0;
@@ -161,7 +161,7 @@ a, button {
   }
 }
 
-/* Button hover feedback utilities & micro-interactions */
+ 
 .btn-primary {
   background-color: var(--accent);
   color: #0d1117;
@@ -238,7 +238,7 @@ a, button {
   transform: scale(0.98);
 }
 
-/* Infinite Marquee Slider for Trending Game Cards */
+ 
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(calc(-50% - 0.5rem)); }
@@ -255,7 +255,7 @@ a, button {
   animation-play-state: paused;
 }
 
-/* Scrollbar-none utility */
+ 
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
@@ -264,7 +264,7 @@ a, button {
   scrollbar-width: none;
 }
 
-/* Fade-in animation for tab transitions */
+ 
 @keyframes fadeIn {
   from {
     opacity: 0;

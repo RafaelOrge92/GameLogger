@@ -13,7 +13,7 @@ export default async function StatsPage() {
 
   return (
     <div className="space-y-8 animate-[fadeIn_0.4s_ease-out]">
-      {/* Page Header */}
+      { }
       <div>
         <h1 className="text-xl font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
           <span>Estadísticas & Tasación</span>
@@ -24,7 +24,7 @@ export default async function StatsPage() {
         </p>
       </div>
 
-      {/* Main Tabs Dashboard */}
+      { }
       <div className="w-full">
         <TabsDashboard />
       </div>

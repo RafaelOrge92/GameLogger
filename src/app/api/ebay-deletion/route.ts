@@ -23,7 +23,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Concatenation order: challengeCode + verificationToken + endpointUrl
+    
     const hashString = challengeCode + verificationToken + endpointUrl;
 
     const challengeResponse = crypto
@@ -42,15 +42,15 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    // Log the deletion request body
+    
     const body = await req.json();
     console.log('[eBay Webhook] Received Account Deletion Notification payload:', JSON.stringify(body, null, 2));
 
-    // Return 200 OK as required by eBay
+    
     return new NextResponse('OK', { status: 200 });
   } catch (error) {
     console.error('[eBay Webhook] POST Error:', error);
-    // Return 200 even on parsing errors so eBay doesn't get stuck retrying
+    
     return new NextResponse('OK', { status: 200 });
   }
 }

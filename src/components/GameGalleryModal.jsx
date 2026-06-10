@@ -23,12 +23,12 @@ export default function GameGalleryModal({ images = [], gameTitle, onClose, onEd
       onClick={onClose}
       className="fixed inset-0 bg-black/90 backdrop-blur-md z-[10000] flex flex-col items-center justify-center p-4 animate-[fadeIn_0.20s_ease-out]"
     >
-      {/* Modal Container */}
+      { }
       <div
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-3xl flex flex-col items-center relative"
       >
-        {/* Edit Button */}
+        { }
         {onEdit && (
           <button
             onClick={onEdit}
@@ -41,7 +41,7 @@ export default function GameGalleryModal({ images = [], gameTitle, onClose, onEd
           </button>
         )}
 
-        {/* Close Button */}
+        { }
         <button
           onClick={onClose}
           type="button"
@@ -51,7 +51,7 @@ export default function GameGalleryModal({ images = [], gameTitle, onClose, onEd
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header Title */}
+        { }
         <div className="absolute -top-12 left-0 text-left text-white">
           <h3 className="text-sm font-extrabold truncate max-w-md">
             Fotos de {gameTitle}
@@ -61,16 +61,16 @@ export default function GameGalleryModal({ images = [], gameTitle, onClose, onEd
           </p>
         </div>
 
-        {/* Main Image View */}
+        { }
         <div className="relative w-full aspect-[4/3] max-h-[60vh] bg-[#121314] rounded-lg border border-gray-800 overflow-hidden flex items-center justify-center shadow-2xl group">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
           <img
             src={images[activeIndex]}
             alt={`Foto de estado ${activeIndex + 1}`}
             className="w-full h-full object-contain"
           />
 
-          {/* Carousel Arrows */}
+          { }
           {images.length > 1 && (
             <>
               <button
@@ -91,7 +91,7 @@ export default function GameGalleryModal({ images = [], gameTitle, onClose, onEd
           )}
         </div>
 
-        {/* Thumbnails list below */}
+        { }
         {images.length > 1 && (
           <div className="flex justify-center gap-2 mt-4 overflow-x-auto max-w-full pb-2">
             {images.map((img, idx) => (
@@ -105,7 +105,7 @@ export default function GameGalleryModal({ images = [], gameTitle, onClose, onEd
                     : "border-gray-800 hover:border-gray-750 opacity-60 hover:opacity-100"
                 }`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+                { }
                 <img
                   src={img}
                   alt={`Miniatura ${idx + 1}`}

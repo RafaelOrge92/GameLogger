@@ -4,12 +4,12 @@ import { useState } from "react";
 import { updateGameInCollection, removeGameFromCollection } from "@/features/collection/actions";
 import { X, Gamepad2, Tag, Calendar, DollarSign, Edit3, Trash2, Save, Globe, Award, Image } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
-// @ts-ignore
+
 import GameGalleryModal from "@/components/GameGalleryModal";
 
 const GalleryModal = GameGalleryModal as any;
 
-// @ts-ignore
+
 import ImageUploaderWithAI from "@/components/ImageUploaderWithAI";
 
 const Uploader = ImageUploaderWithAI as any;
@@ -135,9 +135,9 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-[fadeIn_0.2s_ease-out]">
-      {/* Modal Wrapper */}
+      { }
       <div className="w-full max-w-3xl bg-[#18191b] border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        {/* Header */}
+        { }
         <div className="px-5 py-4 border-b border-gray-800/60 flex items-center justify-between">
           <h3 className="font-bold text-sm uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
             <Gamepad2 className="w-4 h-4 text-emerald-400" /> Detalles de mi Juego
@@ -150,9 +150,9 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
           </button>
         </div>
 
-        {/* Content body */}
+        { }
         <div className="flex-1 overflow-y-auto p-5 md:p-6 min-h-0 flex flex-col md:flex-row gap-6">
-          {/* Left Column: Game Cover art */}
+          { }
           <div className="w-full md:w-48 shrink-0 flex flex-col items-center md:items-start space-y-4">
             <div className="aspect-[3/4] relative w-40 md:w-full rounded-lg overflow-hidden bg-[#141517] border border-gray-800 shadow-md">
               {game.cover_url ? (
@@ -197,13 +197,13 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
             </div>
           </div>
 
-          {/* Right Column: Editable Details or View Details */}
+          { }
           <div className="flex-1 border-t md:border-t-0 md:border-l border-gray-800/60 pt-5 md:pt-0 md:pl-6 min-h-0">
             {isEditing ? (
-              /* Edit Form Mode */
+               
               <form onSubmit={handleSave} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Status */}
+                  { }
                   <div>
                     <label className="block text-xs font-semibold text-gray-400 mb-1.5">Estado en biblioteca</label>
                     <select
@@ -216,7 +216,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                     </select>
                   </div>
 
-                  {/* Region */}
+                  { }
                   <div>
                     <label className="block text-xs font-semibold text-gray-400 mb-1.5">Región de la copia</label>
                     <select
@@ -234,7 +234,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Purchase Price */}
+                  { }
                   <div>
                     <label className="block text-xs font-semibold text-gray-400 mb-1.5">Precio de compra (€)</label>
                     <div className="relative flex items-center">
@@ -252,7 +252,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                   </div>
                 </div>
 
-                {/* Edition */}
+                { }
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 mb-1.5">Edición</label>
                   <input
@@ -264,7 +264,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                   />
                 </div>
 
-                {/* Notes */}
+                { }
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 mb-1.5">Notas personales / Comentarios</label>
                   <textarea
@@ -276,7 +276,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                   />
                 </div>
 
-                {/* Fotos del estado real */}
+                { }
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 mb-1.5">Fotos del estado real (opcional)</label>
                   <Uploader
@@ -285,7 +285,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                   />
                 </div>
 
-                {/* Save and Cancel buttons */}
+                { }
                 <div className="flex justify-end gap-2 pt-2">
                   <button
                     type="button"
@@ -311,12 +311,12 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                 </div>
               </form>
             ) : (
-              /* View Details Mode */
+               
               <div className="space-y-6 flex flex-col h-full justify-between">
                 <div className="space-y-4">
-                  {/* Grid details */}
+                  { }
                   <div className="grid grid-cols-3 gap-4">
-                    {/* Status card */}
+                    { }
                     <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80 col-span-1">
                       <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Estado</p>
                       <div className="flex items-center gap-1.5 mt-1">
@@ -328,7 +328,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                       </div>
                     </div>
 
-                    {/* Region card */}
+                    { }
                     <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80 col-span-1">
                       <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider flex items-center gap-1">
                         <Globe className="w-3 h-3 text-gray-500" /> Región original
@@ -336,7 +336,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                       <p className="text-sm font-bold text-white mt-1 uppercase">{game.region || "PAL-ES"}</p>
                     </div>
 
-                    {/* Purchase Price card */}
+                    { }
                     <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80 col-span-1">
                       <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider flex items-center gap-1">
                         <DollarSign className="w-3 h-3 text-gray-500" /> Adquisición
@@ -347,7 +347,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                     </div>
                   </div>
 
-                  {/* Edition info */}
+                  { }
                   {game.edition && (
                     <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80">
                       <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider flex items-center gap-1">
@@ -357,7 +357,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                     </div>
                   )}
 
-                  {/* Notes info */}
+                  { }
                   <div className="p-3 bg-[#0f0f10]/40 rounded-lg border border-gray-800/80">
                     <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Notas personales</p>
                     <p className="text-xs text-gray-400 mt-1 leading-relaxed whitespace-pre-line font-medium italic">
@@ -366,9 +366,9 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                   </div>
                 </div>
 
-                {/* Edit and delete control bar */}
+                { }
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-800/60 mt-4">
-                  {/* Delete button */}
+                  { }
                   <button
                     onClick={handleDeleteClick}
                     className="px-3.5 py-2 rounded-lg text-xs font-bold text-red-400 bg-red-950/20 hover:bg-red-950/30 border border-red-500/20 hover:border-red-500/40 flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -377,7 +377,7 @@ export default function MyGameDetailsModal({ game, onClose, onUpdate, onDelete }
                     <span>Eliminar juego</span>
                   </button>
 
-                  {/* Edit button */}
+                  { }
                   <button
                     onClick={() => setIsEditing(true)}
                     className="px-4 py-2 rounded-lg text-xs font-bold bg-[#0f0f10] hover:bg-gray-850 text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/40 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-md"

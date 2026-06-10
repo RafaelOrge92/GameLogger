@@ -5,7 +5,7 @@ import { getGameMarketData, getGamePriceHistory } from "@/features/market/action
 import { addGameToCollection } from "@/features/collection/actions";
 import DataPipelineDiagram from "@/components/layout/DataPipelineDiagram";
 import { useToast } from "@/context/ToastContext";
-// @ts-ignore
+
 import ImageUploaderWithAI from "@/components/ImageUploaderWithAI";
 
 const Uploader = ImageUploaderWithAI as any;
@@ -22,7 +22,7 @@ interface GameModalProps {
   onSuccess: () => void;
 }
 
-// Deterministic pseudo-random generator based on a string seed
+
 function seedRandom(seedStr: string) {
   let hash = 0;
   for (let i = 0; i < seedStr.length; i++) {
@@ -59,13 +59,13 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
   const [region, setRegion] = useState("PAL-ES");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPipeline, setShowPipeline] = useState(false);
-  const [selectedRange, setSelectedRange] = useState<number>(6); // Range in months: 1, 3, 6, 12
+  const [selectedRange, setSelectedRange] = useState<number>(6); 
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const [sales, setSales] = useState<HistoricalSale[]>([]);
   const [isLoadingSales, setIsLoadingSales] = useState(false);
 
-  // Load real price history when game or selected platform changes
+  
   useEffect(() => {
     if (!game) return;
 
@@ -79,7 +79,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
         const query = `${gameName} ${platform}`;
         const data = await getGamePriceHistory(gameId, query, platform);
         
-        // Map ISO string dates back to Date objects for UI calculations
+        
         const mappedSales = data.map((item: any) => ({
           ...item,
           date: new Date(item.date)
@@ -96,10 +96,10 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
     loadHistory();
   }, [game, selectedPlatform]);
 
-  // Determine available range options dynamically based on the age of the oldest sale
+  
   const availableRanges = useMemo(() => {
     if (sales.length === 0) {
-      return [1, 3]; // default to 1 and 3 months while there's no data
+      return [1, 3]; 
     }
 
     const oldestDate = new Date(Math.min(...sales.map(s => s.date.getTime())));
@@ -116,28 +116,28 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
     return ranges;
   }, [sales]);
 
-  // Sync selected range with available ranges
+  
   useEffect(() => {
     if (!availableRanges.includes(selectedRange)) {
       setSelectedRange(Math.max(...availableRanges));
     }
   }, [availableRanges, selectedRange]);
 
-  // Filter sales based on the selected range of months
+  
   const filteredSales = useMemo(() => {
     const cutoffDate = new Date();
     cutoffDate.setMonth(cutoffDate.getMonth() - selectedRange);
     return sales.filter(s => s.date >= cutoffDate);
   }, [sales, selectedRange]);
 
-  // Calculate the average (media) price of filtered sales
+  
   const salesAverage = useMemo(() => {
     if (filteredSales.length === 0) return 0;
     const sum = filteredSales.reduce((acc, s) => acc + s.price, 0);
     return sum / filteredSales.length;
   }, [filteredSales]);
 
-  // Initialize selected platform
+  
   useEffect(() => {
     if (game && game.platforms && game.platforms.length > 0) {
       setSelectedPlatform(game.platforms[0]);
@@ -146,7 +146,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
     }
   }, [game]);
 
-  // Load market prices when game changes
+  
   useEffect(() => {
     if (!game) return;
 
@@ -156,7 +156,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
     async function loadMarket() {
       setIsLoadingMarket(true);
       try {
-        // Search by name + platform or just name
+        
         const query = gamePlatforms && gamePlatforms.length > 0
           ? `${gameName} ${gamePlatforms[0]}`
           : gameName;
@@ -215,12 +215,12 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}>
-      {/* Modal Card */}
+      { }
       <div
         className="w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] rounded-xl"
         style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-hover)', boxShadow: '0 25px 50px rgba(0,0,0,0.6)' }}
       >
-        {/* Header */}
+        { }
         <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
           <h3 className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>Detalles del juego</h3>
           <button
@@ -234,10 +234,10 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
           </button>
         </div>
 
-        {/* Modal Content */}
+        { }
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden p-5 gap-5 min-h-0">
 
-          {/* Column 1: Cover & IGDB Details */}
+          { }
           <div className="w-full md:w-56 flex flex-col space-y-4 shrink-0">
             <div
               className="aspect-[3/4] rounded-lg overflow-hidden flex items-center justify-center"
@@ -273,7 +273,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
             </div>
           </div>
 
-          {/* Column 2: Market Prices & Form (Scrollable on desktop) */}
+          { }
           <div className="flex-1 overflow-y-auto space-y-5 min-h-0" style={{ borderLeft: '1px solid var(--border)', paddingLeft: '1.25rem' }}>
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -290,7 +290,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {/* eBay Listings */}
+                  { }
                   <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
                     <div className="flex items-center justify-between mb-3" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
                       <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>eBay — Mercado Físico</span>
@@ -348,44 +348,44 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                     )}
                   </div>
 
-                  {/* CheapShark (Digital PC Deals) - Desactivado en el modal
-                  <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
-                    <div className="mb-3" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-                      <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>CheapShark — Digital PC</span>
-                    </div>
+                  {
 
-                    {marketData.cheapsharkDeals.length === 0 ? (
-                      <p className="text-xs py-1" style={{ color: 'var(--text-muted)' }}>No se encontraron ofertas digitales para PC.</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {marketData.cheapsharkDeals.slice(0, 3).map((deal) => (
-                          <div key={deal.gameID} className="flex items-center justify-between p-2 rounded-md text-xs" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
-                            <span className="truncate pr-2" style={{ color: 'var(--text-secondary)' }}>{game.name}</span>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <button
-                                  type="button"
-                                  onClick={() => setPurchasePrice(deal.cheapest)}
-                                  className="font-semibold px-1.5 py-0.5 rounded cursor-pointer text-[10px] btn-accent-dim"
-                              >
-                                ${deal.cheapest} — usar
-                              </button>
-                              <a
-                                href={`https://www.cheapshark.com/redirect?dealID=${deal.cheapestDealID}`}
-                                target="_blank"
-                                  rel="noopener noreferrer"
-                                className="text-[10px] font-medium px-2 py-0.5 rounded btn-cyan"
-                              >
-                                Ver deal
-                              </a>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  */}
 
-                  {/* Historical Sales Analysis */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ }
+
+                  { }
                   <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
                       <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Historial de Ventas</span>
@@ -411,7 +411,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                       </div>
                     ) : (
                       <>
-                        {/* Stats summary */}
+                        { }
                         <div className="grid grid-cols-2 gap-2 mb-3 p-3 rounded-md text-center" style={{ backgroundColor: 'var(--bg-surface)' }}>
                           <div>
                             <p className="text-[9px] uppercase mb-0.5" style={{ color: 'var(--text-muted)' }}>Ventas</p>
@@ -423,7 +423,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                           </div>
                         </div>
 
-                        {/* Sales List */}
+                        { }
                         <div className="max-h-40 overflow-y-auto space-y-1.5">
                           {filteredSales.map((sale) => (
                             <div key={sale.id} className="flex items-center justify-between p-2 rounded text-xs" style={{ backgroundColor: 'var(--bg-surface)' }}>
@@ -461,7 +461,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                     )}
                   </div>
 
-                  {/* Toggle Diagram Button */}
+                  { }
                   <div className="flex justify-end">
                     <button
                       type="button"
@@ -474,7 +474,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
 
                   {showPipeline && (
                     <div className="mt-4">
-                      {/* Calculate raw numeric prices from current search results */}
+                      { }
                       <DataPipelineDiagram 
                         rawPricesInput={marketData.ebayListings.map(item => parseFloat(item.price)).filter(p => !isNaN(p))} 
                       />
@@ -484,12 +484,12 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
               )}
             </div>
 
-            {/* Form Input for saving */}
+            { }
             <form onSubmit={handleSubmit} className="space-y-4" style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
               <h4 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Registrar en colección</h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Platform */}
+                { }
                 <div>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Plataforma</label>
                   <select
@@ -510,7 +510,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                   </select>
                 </div>
 
-                {/* Edition */}
+                { }
                 <div>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Edición</label>
                   <input
@@ -527,7 +527,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Status */}
+                { }
                 <div>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Estado</label>
                   <select
@@ -543,7 +543,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                   </select>
                 </div>
 
-                {/* Region */}
+                { }
                 <div>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Región</label>
                   <select
@@ -563,7 +563,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                   </select>
                 </div>
 
-                {/* Purchase Price */}
+                { }
                 <div>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Precio (€)</label>
                   <input
@@ -580,7 +580,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                 </div>
               </div>
 
-              {/* Notes */}
+              { }
               <div>
                 <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Notas personales</label>
                 <textarea
@@ -595,7 +595,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                 />
               </div>
 
-              {/* Fotos del estado real */}
+              { }
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Fotos del estado real (opcional)</label>
                 <Uploader
@@ -604,7 +604,7 @@ export default function GameModal({ game, onClose, onSuccess }: GameModalProps) 
                 />
               </div>
 
-              {/* Submit */}
+              { }
               <div>
                 <button
                   type="submit"

@@ -16,16 +16,16 @@ export async function GET(req: NextRequest) {
 
     const userId = user.id;
 
-    // Get optional query filters and range
+    
     const { searchParams } = new URL(req.url);
     const regionFilter = searchParams.get("region");
     const platformFilter = searchParams.get("platform");
     const range = searchParams.get("range") || "1y";
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // STEP 1 — Single bulk query: user_collection joined with collections.
-    // Avoids two round-trips and the N+1 per-game pattern entirely.
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
+    
     const [
       { data: items, error: itemsError },
       { data: colls, error: collsError }
@@ -52,9 +52,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(getEmptyResponse());
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // STEP 2 — Build a lookup map from collections and enrich items in memory.
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
     const collMap = new Map((colls ?? []).map(c => [String(c.game_id), c]));
 
     const enrichedItems = items.map(item => {
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // Apply filters in memory — no extra DB round-trip.
+    
     const filteredItems = enrichedItems.filter(item => {
       if (regionFilter && item.region !== regionFilter) return false;
       if (platformFilter && item.platform !== platformFilter) return false;
@@ -78,10 +78,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(getEmptyResponse());
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // STEP 3 — Single bulk query for historical prices.
-    // One query for ALL relevant game_ids — no N+1, no external APIs.
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
+    
     const gameIds = Array.from(new Set(filteredItems.map(item => item.game_id)));
 
     const { data: prices, error: pricesError } = await supabase
@@ -95,14 +95,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(getEmptyResponse());
     }
 
-    // pricesList is sorted ascending by recorded_date.
+    
     const pricesList = prices ?? [];
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helper: find the latest market price for an item at or before `cutoff`.
-    // Iterates from the end of the sorted array — O(n) worst case but very
-    // fast in practice because the array is already sorted ascending.
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
+    
+    
     function latestPriceAt(
       item: { game_id: number | string; condition_state: string; region: string; purchase_price: any },
       cutoff: Date
@@ -122,9 +122,9 @@ export async function GET(req: NextRequest) {
       return fallback;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // STEP 4 — Build the time-series date points.
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
     const dataPointsList: Array<{ label: string; year: number; month: number; date: number; endOfDate: Date }> = [];
     const today = new Date();
 
@@ -148,7 +148,7 @@ export async function GET(req: NextRequest) {
         });
       }
     } else {
-      // Default: last 12 calendar months
+      
       for (let i = 11; i >= 0; i--) {
         const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - i, 1));
         const monthIdx = d.getUTCMonth();
@@ -163,9 +163,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CHART A — Evolución: portfolio value vs. total investment over time.
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
     const evolucion = dataPointsList.map(point => {
       const itemsOwnedAtPoint = filteredItems.filter(
         item => new Date(item.acquired_at) <= point.endOfDate
@@ -186,19 +186,19 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Pre-compute current market price for each item once — reused by
-    // CHART C (sistemas) and CHART E (comparativa).
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
+    
     const now = new Date();
     const itemsWithCurrentPrice = filteredItems.map(item => ({
       ...item,
       currentPrice: latestPriceAt(item, now)
     }));
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CHART B — Región: count of items per market region.
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
     const regionCounts = filteredItems.reduce<Record<string, number>>((acc, item) => {
       const r = item.region || "Desconocida";
       acc[r] = (acc[r] || 0) + 1;
@@ -207,9 +207,9 @@ export async function GET(req: NextRequest) {
 
     const region = Object.entries(regionCounts).map(([name, value]) => ({ name, value }));
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CHART C — Sistemas: value and count per platform.
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
     const platformGroups = itemsWithCurrentPrice.reduce<Record<string, { valor: number; cantidad: number }>>(
       (acc, item) => {
         const platform = item.platform || "Desconocido";
@@ -227,9 +227,9 @@ export async function GET(req: NextRequest) {
       cantidad: data.cantidad
     }));
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CHART D — Estado: radar percentages per physical condition.
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
     const totalCount = filteredItems.length;
     const conditionCounts = filteredItems.reduce<Record<string, number>>((acc, item) => {
       const c = item.condition_state || "loose";
@@ -244,8 +244,8 @@ export async function GET(req: NextRequest) {
     }));
 
     // ─────────────────────────────────────────────────────────────────────────
-    // CHART E — Backlog: count of items per play status.
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
     const STATUS_MAP: Record<string, string> = {
       playing: "Jugando",
       completed: "Completados",
@@ -264,13 +264,13 @@ export async function GET(req: NextRequest) {
       .map(([name, value]) => ({ name, value }))
       .filter(item => item.value > 0);
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CHART F — Comparativa: portfolio value over the selected range window.
-    // 100 % pure Supabase data — no IGDB, no eBay, no external calls.
-    // Reuses the same `pricesList` bulk-fetched above via `latestPriceAt`.
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
+    
+    
     const comparativaEvolucion = dataPointsList.map(point => {
-      // Only count items already in the collection at this point in time
+      
       const ownedAtPoint = filteredItems.filter(
         item => new Date(item.acquired_at) <= point.endOfDate
       );

@@ -20,7 +20,7 @@ export default function SettingsPage() {
   const { showToast } = useToast();
   const supabase = createClient();
 
-  // Form states
+  
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [favoriteConsole, setFavoriteConsole] = useState("");
@@ -28,7 +28,7 @@ export default function SettingsPage() {
   const [favoriteGame, setFavoriteGame] = useState<GameHighlight | null>(null);
   const [crownJewel, setCrownJewel] = useState<GameHighlight | null>(null);
 
-  // Search autocomplete states
+  
   const [searchFavQuery, setSearchFavQuery] = useState("");
   const [searchCrownQuery, setSearchCrownQuery] = useState("");
   const [favResults, setFavResults] = useState<any[]>([]);
@@ -38,7 +38,7 @@ export default function SettingsPage() {
   const [showFavDropdown, setShowFavDropdown] = useState(false);
   const [showCrownDropdown, setShowCrownDropdown] = useState(false);
 
-  // App state
+  
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("editar");
@@ -48,15 +48,15 @@ export default function SettingsPage() {
   const [currentUserState, setCurrentUserState] = useState<any>(null);
   const [isValuePublic, setIsValuePublic] = useState(false);
 
-  // Debounced values for search queries
+  
   const debouncedFavQuery = useDebounce(searchFavQuery, 500);
   const debouncedCrownQuery = useDebounce(searchCrownQuery, 500);
 
-  // Dropdown refs for click-outside closure
+  
   const favDropdownRef = useRef<HTMLDivElement>(null);
   const crownDropdownRef = useRef<HTMLDivElement>(null);
 
-  // 1. Fetch user and profile data on mount
+  
   useEffect(() => {
     async function loadProfile() {
       setIsLoadingProfile(true);
@@ -89,7 +89,7 @@ export default function SettingsPage() {
           setBio(profile.bio || "");
           setIsValuePublic(profile.is_value_public || false);
 
-          // Resolve game highlights from IGDB in parallel
+          
           const promises = [];
           if (profile.favorite_game_id) {
             promises.push(
@@ -106,7 +106,7 @@ export default function SettingsPage() {
             );
           }
 
-          // Fetch collection items
+          
           promises.push(
             getCollection().then(async (colRes) => {
               const rawColls = colRes.success ? colRes.data : [];
@@ -146,7 +146,7 @@ export default function SettingsPage() {
     loadProfile();
   }, [router, supabase, showToast]);
 
-  // 2. Close dropdowns on outside click
+  
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (favDropdownRef.current && !favDropdownRef.current.contains(e.target as Node)) {
@@ -160,7 +160,7 @@ export default function SettingsPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 3. Search Favorite Game logic
+  
   useEffect(() => {
     async function searchFav() {
       if (!debouncedFavQuery.trim()) {
@@ -182,7 +182,7 @@ export default function SettingsPage() {
     searchFav();
   }, [debouncedFavQuery]);
 
-  // 4. Search Crown Jewel Game logic
+  
   useEffect(() => {
     async function searchCrown() {
       if (!debouncedCrownQuery.trim()) {
@@ -204,7 +204,7 @@ export default function SettingsPage() {
     searchCrown();
   }, [debouncedCrownQuery]);
 
-  // 5. Save action
+  
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSaving) return;
@@ -249,7 +249,7 @@ export default function SettingsPage() {
 
   if (isLoadingProfile) {
     return <SettingsSkeleton />;
-  }  // Calculate statistics for preview
+  }  
   const totalGames = myCollection.length;
   const totalValue = myCollection.reduce(
     (sum, item) => sum + (item.purchasePrice ? Number(item.purchasePrice) : 0),
@@ -286,7 +286,7 @@ export default function SettingsPage() {
         <p className="text-xs text-gray-400 mt-0.5 font-medium">Personaliza tu perfil, avatar y catálogo destacado</p>
       </div>
 
-      {/* Tabs Switcher */}
+      { }
       <div className="flex border-b border-gray-800/80 pb-0.5 gap-4">
         <button
           type="button"
@@ -315,12 +315,12 @@ export default function SettingsPage() {
       {activeTab === "editar" ? (
         <form onSubmit={handleSave} className="bg-[#18191b] border border-gray-800 rounded-xl p-6 sm:p-8 flex flex-col md:flex-row gap-8 shadow-2xl transition-all duration-300">
           
-          {/* Left Column: Avatar Section */}
+          { }
           <div className="flex flex-col items-center gap-4 w-full md:w-1/3 shrink-0">
             <div className="relative group">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-gray-800 bg-[#0f0f10] flex items-center justify-center shadow-lg relative">
                 {avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
+                  
                   <img
                     src={avatarUrl}
                     alt="Avatar"
@@ -357,10 +357,10 @@ export default function SettingsPage() {
             </span>
           </div>
 
-          {/* Right Column: Form Fields */}
+          { }
           <div className="flex-1 space-y-5">
             
-            {/* Username & Favorite Console Row */}
+            { }
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Nombre de Usuario</label>
@@ -385,7 +385,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Bio Field */}
+            { }
             <div className="space-y-1.5 relative">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Biografía</label>
@@ -403,19 +403,19 @@ export default function SettingsPage() {
               />
             </div>
 
-            {/* Autocomplete Highlights Grid */}
+            { }
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
-              {/* Highlight: Favorite Game */}
+              { }
               <div className="space-y-1.5 relative" ref={favDropdownRef}>
                 <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Juego Favorito</label>
                 
                 {favoriteGame ? (
-                  /* Selected Game Card */
+                   
                   <div className="bg-[#0f0f10] border border-emerald-500/10 rounded-lg p-2.5 flex items-center justify-between gap-3 shadow-md animate-[fadeIn_0.2s_ease-out]">
                     <div className="flex items-center gap-3 min-w-0">
                       {favoriteGame.coverUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
+                        
                         <img src={favoriteGame.coverUrl} alt={favoriteGame.name} className="w-9 h-12 object-cover rounded shrink-0 border border-gray-800" />
                       ) : (
                         <div className="w-9 h-12 bg-gray-900 border border-gray-800 text-gray-600 rounded flex items-center justify-center shrink-0 text-xs">?</div>
@@ -434,7 +434,7 @@ export default function SettingsPage() {
                     </button>
                   </div>
                 ) : (
-                  /* Search Box Autocomplete */
+                   
                   <div className="relative">
                     <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -453,7 +453,7 @@ export default function SettingsPage() {
                       </div>
                     )}
 
-                    {/* Dropdown list */}
+                    { }
                     {showFavDropdown && searchFavQuery.trim() && (
                       <div className="absolute top-full left-0 mt-1 w-full bg-[#18191b] border border-gray-800 rounded-lg shadow-2xl z-50 max-h-60 overflow-y-auto divide-y divide-gray-900 scrollbar-thin">
                         {favResults.length === 0 ? (
@@ -470,7 +470,7 @@ export default function SettingsPage() {
                               className="flex items-center gap-3 p-2 hover:bg-[#0f0f10] cursor-pointer transition-colors"
                             >
                               {game.coverUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
+                                
                                 <img src={game.coverUrl} alt={game.name} className="w-7 h-9 object-cover rounded shrink-0 border border-gray-900" />
                               ) : (
                                 <div className="w-7 h-9 bg-gray-900 text-gray-600 rounded flex items-center justify-center shrink-0 text-[10px]">?</div>
@@ -490,16 +490,16 @@ export default function SettingsPage() {
                 )}
               </div>
 
-              {/* Highlight: Crown Jewel */}
+              { }
               <div className="space-y-1.5 relative" ref={crownDropdownRef}>
                 <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Joya de la Colección</label>
                 
                 {crownJewel ? (
-                  /* Selected Game Card */
+                   
                   <div className="bg-[#0f0f10] border border-emerald-500/10 rounded-lg p-2.5 flex items-center justify-between gap-3 shadow-md animate-[fadeIn_0.2s_ease-out]">
                     <div className="flex items-center gap-3 min-w-0">
                       {crownJewel.coverUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
+                        
                         <img src={crownJewel.coverUrl} alt={crownJewel.name} className="w-9 h-12 object-cover rounded shrink-0 border border-gray-800" />
                       ) : (
                         <div className="w-9 h-12 bg-gray-900 border border-gray-800 text-gray-600 rounded flex items-center justify-center shrink-0 text-xs">?</div>
@@ -518,7 +518,7 @@ export default function SettingsPage() {
                     </button>
                   </div>
                 ) : (
-                  /* Search Box Autocomplete */
+                   
                   <div className="relative">
                     <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -537,7 +537,7 @@ export default function SettingsPage() {
                       </div>
                     )}
 
-                    {/* Dropdown list */}
+                    { }
                     {showCrownDropdown && searchCrownQuery.trim() && (
                       <div className="absolute top-full left-0 mt-1 w-full bg-[#18191b] border border-gray-800 rounded-lg shadow-2xl z-50 max-h-60 overflow-y-auto divide-y divide-gray-900 scrollbar-thin">
                         {crownResults.length === 0 ? (
@@ -554,7 +554,7 @@ export default function SettingsPage() {
                               className="flex items-center gap-3 p-2 hover:bg-[#0f0f10] cursor-pointer transition-colors"
                             >
                               {game.coverUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
+                                
                                 <img src={game.coverUrl} alt={game.name} className="w-7 h-9 object-cover rounded shrink-0 border border-gray-900" />
                               ) : (
                                 <div className="w-7 h-9 bg-gray-900 text-gray-600 rounded flex items-center justify-center shrink-0 text-[10px]">?</div>
@@ -574,7 +574,7 @@ export default function SettingsPage() {
                 )}
               </div>
 
-            {/* Is Value Public Checkbox */}
+            { }
             <div className="flex items-center gap-3 bg-[#0f0f10] border border-gray-800 rounded-lg p-3">
               <input
                 type="checkbox"
@@ -591,7 +591,7 @@ export default function SettingsPage() {
 
             </div>
 
-            {/* Action Row */}
+            { }
             <div className="pt-2 flex justify-end">
               <button
                 type="submit"

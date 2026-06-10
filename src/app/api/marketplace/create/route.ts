@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
 
-    // 1. Authentication and Security
+    
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Input Data (Payload JSON)
+    
     let body;
     try {
       body = await req.json();
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     const { game_id, condition_state, region, offer_type, price_wanted } = body;
 
-    // Validation
+    
     if (game_id === undefined || game_id === null) {
       return NextResponse.json(
         { error: "El parámetro game_id es requerido." },
@@ -75,13 +75,13 @@ export async function POST(req: NextRequest) {
       }
       cleanPrice = Number(price_wanted);
     } else {
-      // For pure trade offers, price_wanted is optional and fallback to null
+      
       cleanPrice = price_wanted !== undefined && price_wanted !== null && !isNaN(Number(price_wanted))
         ? Number(price_wanted)
         : null;
     }
 
-    // 3. Validation: Verify that the user really owns this game_id in their public.collections
+    
     const { data: ownItem, error: checkError } = await supabase
       .from("collections")
       .select("id")
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Inserción: Insert into marketplace_offers table
+    
     const { data: newOffer, error: insertError } = await supabase
       .from("marketplace_offers")
       .insert([

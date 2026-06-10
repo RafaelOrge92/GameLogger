@@ -27,7 +27,7 @@ export default function GameCardWithMenu({
   const router = useRouter();
   const { showToast } = useToast();
 
-  // Close the menu when clicking outside or scrolling
+  
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -55,13 +55,13 @@ export default function GameCardWithMenu({
     e.stopPropagation();
     
     const rect = e.currentTarget.getBoundingClientRect();
-    const menuWidth = 192; // w-48 is 192px
-    const menuHeight = 90; // approximate height
+    const menuWidth = 192; 
+    const menuHeight = 90; 
 
     let x = rect.right - menuWidth;
     let y = rect.bottom + 6;
 
-    // Viewport collision checks
+    
     if (x < 10) x = 10;
     if (y + menuHeight > window.innerHeight) {
       y = rect.top - menuHeight - 6;
@@ -72,7 +72,7 @@ export default function GameCardWithMenu({
   };
 
   const handleContextMenu = (e) => {
-    if (isOwnProfile) return; // Only show context menu on other users' profiles
+    if (isOwnProfile) return; 
     e.preventDefault();
     e.stopPropagation();
 
@@ -82,7 +82,7 @@ export default function GameCardWithMenu({
     let x = e.clientX;
     let y = e.clientY;
 
-    // Collision check to prevent menu drawing off-screen
+    
     if (x + menuWidth > window.innerWidth) {
       x = window.innerWidth - menuWidth - 10;
     }
@@ -144,7 +144,7 @@ export default function GameCardWithMenu({
       onContextMenu={handleContextMenu}
       className="relative w-full h-full group select-none"
     >
-      {/* 1. El Activador Visual (Botón de 3 Puntos) */}
+      { }
       <button
         onClick={handleButtonClick}
         type="button"
@@ -154,7 +154,7 @@ export default function GameCardWithMenu({
         <MoreHorizontal className="w-4 h-4" />
       </button>
 
-      {/* 2. Tarjeta de Videojuego */}
+      { }
       <div
         className={`game-card flex flex-col overflow-hidden w-full h-full ${isOwnProfile ? 'cursor-pointer hover:border-emerald-500/50 transition-colors' : ''}`}
         style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-surface)" }}
@@ -166,10 +166,10 @@ export default function GameCardWithMenu({
           }
         }}
       >
-        {/* Cover block */}
+        { }
         <div className="aspect-[3/4] relative w-full overflow-hidden bg-[#141517]">
           {item.coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
+            
             <img
               src={item.coverUrl}
               alt={item.title}
@@ -182,7 +182,7 @@ export default function GameCardWithMenu({
             </div>
           )}
 
-          {/* Physical Condition floating Badge on Hover */}
+          { }
           <div className="absolute inset-0 bg-black/45 opacity-0 hover:opacity-100 transition-opacity duration-200 flex flex-col justify-center items-center p-2 text-center pointer-events-none">
             <span className={`px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider border ${conditionMeta.color} shadow-lg backdrop-blur-sm scale-90 group-hover:scale-100 transition-transform duration-200`}>
               {conditionMeta.label}
@@ -195,7 +195,7 @@ export default function GameCardWithMenu({
           </div>
         </div>
 
-        {/* Metadata below cover */}
+        { }
         <div className="p-3 space-y-1.5 bg-[#1f2125]/50 border-t border-[var(--border)]/55 flex-1 flex flex-col justify-between">
           <p
             className="text-xs font-bold text-white truncate leading-tight hover:text-emerald-400 transition-colors"
@@ -218,11 +218,11 @@ export default function GameCardWithMenu({
           </div>
         </div>
 
-        {/* Status bottom bar */}
+        { }
         <div className="h-1 w-full" style={{ backgroundColor: statusMeta.color }} />
       </div>
 
-      {/* 3. Menú Flotante con Coordenadas Fijas */}
+      { }
       {isOpen && (
         <div
           ref={menuRef}
@@ -290,7 +290,7 @@ export default function GameCardWithMenu({
           )}
         </div>
       )}
-      {/* 4. Modal de Propuesta de Intercambio */}
+      { }
       {isProposalModalOpen && (
         <TradeProposalModal
           game={item}
@@ -300,7 +300,7 @@ export default function GameCardWithMenu({
         />
       )}
 
-      {/* 5. Modal de Galería de Fotos */}
+      { }
       {isGalleryOpen && (
         <GameGalleryModal
           images={item.imagesUrls}

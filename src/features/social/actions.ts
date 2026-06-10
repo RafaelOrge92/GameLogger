@@ -209,7 +209,7 @@ export async function respondToTradeOffer(
     return { error: "No se pudo actualizar el estado de la propuesta." };
   }
 
-  // Mark matching notification as read
+  
   await supabase
     .from("notifications")
     .update({ is_read: true })

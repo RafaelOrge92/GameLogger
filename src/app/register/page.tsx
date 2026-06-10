@@ -21,7 +21,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError(null);
 
-    // Validate inputs
+    
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden.");
       setIsLoading(false);
@@ -34,7 +34,7 @@ export default function RegisterPage() {
       return;
     }
 
-    // Alphanumeric username check to prevent weird URLs
+    
     const usernameRegex = /^[a-zA-Z0-9_]+$/;
     if (!usernameRegex.test(username)) {
       setError("El nombre de usuario solo puede contener letras, números y guiones bajos.");
@@ -43,7 +43,7 @@ export default function RegisterPage() {
     }
 
     try {
-      // Sign up with Supabase
+      
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -60,7 +60,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Check if user needs email confirmation or is logged in immediately
+      
       if (data.session) {
         router.push("/");
         router.refresh();
@@ -84,7 +84,7 @@ export default function RegisterPage() {
           border: "1px solid var(--border)",
         }}
       >
-        {/* Header */}
+        { }
         <div className="text-center mb-8">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold mx-auto mb-4"
@@ -100,7 +100,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Success message */}
+        { }
         {success ? (
           <div className="space-y-4">
             <div
@@ -123,7 +123,7 @@ export default function RegisterPage() {
           </div>
         ) : (
           <>
-            {/* Error */}
+            { }
             {error && (
               <div
                 className="rounded-lg px-4 py-3 text-sm mb-5"
@@ -137,7 +137,7 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Form */}
+            { }
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label
@@ -245,14 +245,14 @@ export default function RegisterPage() {
               </button>
             </form>
 
-            {/* Divider */}
+            { }
             <div className="flex items-center gap-3 my-5">
               <div className="flex-1 h-px" style={{ backgroundColor: "var(--border)" }} />
               <span className="text-xs" style={{ color: "var(--text-muted)" }}>o</span>
               <div className="flex-1 h-px" style={{ backgroundColor: "var(--border)" }} />
             </div>
 
-            {/* Login Link */}
+            { }
             <div className="text-center text-xs space-y-2" style={{ color: "var(--text-muted)" }}>
               <p>
                 ¿Ya tienes una cuenta?{" "}

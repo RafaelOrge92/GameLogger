@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+
 
 interface CollectionItem {
   game_id: number;
@@ -18,18 +18,18 @@ interface PriceRecord {
   condition_state: string;
   region: string;
   market_price_cleaned: number;
-  recorded_date: string; // "YYYY-MM-DD"
+  recorded_date: string; 
 }
 
 interface PortfolioPoint {
-  date: string;      // "YYYY-MM-DD"
-  label: string;     // "1 Ene", "15 Mar", …
+  date: string;      
+  label: string;     
   inversion: number;
   valorActual: number;
   valorMedio: number;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 
 const MONTH_NAMES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
@@ -60,27 +60,27 @@ function maxPriceAt(
   // Pass 1: max of all records on or before cutoff
   let max = -Infinity;
   for (const p of records) {
-    if (p.recorded_date > cutoffIso) break; // sorted asc
+    if (p.recorded_date > cutoffIso) break; 
     const v = Number(p.market_price_cleaned);
     if (v > max) max = v;
   }
 
   if (max !== -Infinity) return max;
 
-  // Pass 2: no past data — use the earliest future record (nearest-neighbor)
-  // This happens when the cron ran today and we're plotting past days
+  
+  
   return Number(records[0].market_price_cleaned);
 }
 
-/**
- * Línea 3 — Valor Medio (AVG) por condition_state:
- * Precio más reciente disponible con la misma condition_state hasta cutoffIso.
- * Si no hay registros previos, usa el registro disponible más antiguo
- * (nearest-neighbor forward). Fallback final: purchase_price.
- *
- * NOTA: historical_prices guarda UNA fila por (game_id, condition, region, fecha)
- * ya promediada (IQR-average) por el cron. No hace falta promediar aquí.
- */
+
+
+
+
+
+
+
+
+ 
 function avgPriceForConditionAt(
   item: CollectionItem,
   cutoffIso: string,
@@ -90,28 +90,28 @@ function avgPriceForConditionAt(
   const key = `${item.game_id}::${item.condition_state}`;
   const records = pricesByGameAndCondition.get(key);
 
-  // If no records for this condition, try ANY condition for this game
-  // so we don't silently fall back to purchase_price when there IS market data
+  
+  
   const effectiveRecords = records && records.length > 0
     ? records
     : null;
 
   if (!effectiveRecords) return fallback;
 
-  // Pass 1: most recent record on or before cutoff
+  
   let latest: PriceRecord | null = null;
   for (const p of effectiveRecords) {
-    if (p.recorded_date > cutoffIso) break; // sorted asc
+    if (p.recorded_date > cutoffIso) break; 
     latest = p;
   }
 
   if (latest) return Number(latest.market_price_cleaned);
 
-  // Pass 2: no past data — use the earliest future record (nearest-neighbor)
+  
   return Number(effectiveRecords[0].market_price_cleaned);
 }
 
-// ─── Route Handler ────────────────────────────────────────────────────────────
+
 
 export async function GET(req: NextRequest) {
   try {
@@ -125,7 +125,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
     }
 
-    // ── 1. Parse query params ─────────────────────────────────────────────────
+    
     const { searchParams } = new URL(req.url);
     const rawRange = searchParams.get("range") || "30d";
     const platformFilter = searchParams.get("platform") || "";
@@ -141,7 +141,7 @@ export async function GET(req: NextRequest) {
     );
     const cutoffStartIso = isoDate(cutoffStart);
 
-    // ── 2. Fetch user_collection + collections (for platform filter) ───────────
+    
     const [
       { data: items, error: itemsError },
       { data: colls, error: collsError },
@@ -164,7 +164,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(emptyResponse());
     }
 
-    // Apply filters in memory — no extra DB round-trip
+    
     const collMap = new Map((colls ?? []).map((c) => [String(c.game_id), c]));
 
     const filteredItems = items.filter((item) => {
@@ -180,7 +180,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(emptyResponse());
     }
 
-    // ── 3. Bulk fetch historical_prices for the relevant game_ids ──────────────
+    
     const gameIds = Array.from(new Set(filteredItems.map((i) => i.game_id)));
 
     const { data: prices, error: pricesError } = await supabase
@@ -202,9 +202,9 @@ export async function GET(req: NextRequest) {
       recorded_date: p.recorded_date,
     }));
 
-    // ── 4. Build fast lookup indexes ──────────────────────────────────────────
+    
 
-    // Index A: game_id → all price records (for MAX calculation)
+    
     const pricesByGameId = new Map<number, PriceRecord[]>();
     for (const p of pricesList) {
       const list = pricesByGameId.get(p.game_id) ?? [];
@@ -212,7 +212,7 @@ export async function GET(req: NextRequest) {
       pricesByGameId.set(p.game_id, list);
     }
 
-    // Index B: "game_id::condition_state" → price records sorted ascending (for AVG)
+    
     const pricesByGameAndCondition = new Map<string, PriceRecord[]>();
     for (const p of pricesList) {
       const key = `${p.game_id}::${p.condition_state}`;
@@ -221,7 +221,7 @@ export async function GET(req: NextRequest) {
       pricesByGameAndCondition.set(key, list);
     }
 
-    // ── 5. Build day-by-day date range ────────────────────────────────────────
+    
     const datePoints: Array<{ iso: string; label: string }> = [];
     for (let i = numDays - 1; i >= 0; i--) {
       const d = new Date(
@@ -232,7 +232,7 @@ export async function GET(req: NextRequest) {
       const year = d.getUTCFullYear();
       const iso = isoDate(d);
 
-      // Tick density: show every day for 30d, every other for 60d, every 3rd for 90d
+      
       let label = "";
       if (numDays <= 30) {
         label = `${day} ${MONTH_NAMES[monthIdx]}`;
@@ -241,15 +241,15 @@ export async function GET(req: NextRequest) {
       } else if (numDays <= 90 && i % 3 === 0) {
         label = `${day} ${MONTH_NAMES[monthIdx]}`;
       } else {
-        label = ""; // hidden tick — data point still exists
+        label = ""; 
       }
 
       datePoints.push({ iso, label: label || `${day} ${MONTH_NAMES[monthIdx]}` });
     }
 
-    // ── 6. Compute the 3 series for each day ─────────────────────────────────
+    
     const chartData: PortfolioPoint[] = datePoints.map(({ iso, label }) => {
-      // Only count items already owned at this point in time
+      
       const owned = filteredItems.filter(
         (item) => item.acquired_at && item.acquired_at.slice(0, 10) <= iso
       );
@@ -274,7 +274,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // ── 7. Summary stats ─────────────────────────────────────────────────────
+    
     const last = chartData[chartData.length - 1];
     const inversionTotal = last?.inversion ?? 0;
     const valorActualActual = last?.valorActual ?? 0;

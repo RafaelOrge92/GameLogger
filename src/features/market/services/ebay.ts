@@ -2,9 +2,9 @@
 
 import { classifyCondition, isGameTitle } from "./ebay-pricing";
 
-// Cache token in memory during the execution lifecycle
+
 let cachedToken: string | null = null;
-let tokenExpiresAt: number = 0; // Epoch timestamp in ms
+let tokenExpiresAt: number = 0; 
 
 interface EbayListing {
   id: string;
@@ -17,19 +17,19 @@ interface EbayListing {
   marketRegion?: "ES" | "US";
 }
 
-/**
- * Retrieves an access token from eBay using the Client Credentials flow.
- */
+
+
+ 
 export async function getEbayAccessToken(): Promise<string> {
   const clientId = process.env.EBAY_CLIENT_ID;
   const clientSecret = process.env.EBAY_CLIENT_SECRET;
-  const environment = process.env.EBAY_ENVIRONMENT || "production"; // default to production
+  const environment = process.env.EBAY_ENVIRONMENT || "production"; 
 
   if (!clientId || !clientSecret) {
     throw new Error("eBay credentials not configured. Please check EBAY_CLIENT_ID and EBAY_CLIENT_SECRET in .env.local");
   }
 
-  // Check if cached token is still valid (with a 60-second buffer)
+  
   const now = Date.now();
   if (cachedToken && tokenExpiresAt > now + 60000) {
     return cachedToken;
@@ -49,7 +49,7 @@ export async function getEbayAccessToken(): Promise<string> {
     },
     body: new URLSearchParams({
       grant_type: "client_credentials",
-      scope: "https://api.ebay.com/oauth/api_scope", // scope for buy.browse is included in default application scopes
+      scope: "https://api.ebay.com/oauth/api_scope", 
     }),
   });
 
@@ -61,18 +61,18 @@ export async function getEbayAccessToken(): Promise<string> {
 
   const data = await response.json();
   cachedToken = data.access_token;
-  // expires_in is in seconds
+  
   tokenExpiresAt = Date.now() + (data.expires_in * 1000);
 
   return cachedToken!;
 }
 
-/**
- * Searches eBay listings for a specific game query.
- */
+
+
+ 
 function cleanQueryForEbay(query: string): string {
   let cleaned = query;
-  // Reemplazar plataformas comunes
+  
   cleaned = cleaned.replace(/nintendo wii/i, "Wii");
   cleaned = cleaned.replace(/playstation 1|playstation 1|ps1|psx/i, "PS1");
   cleaned = cleaned.replace(/playstation 2|ps2/i, "PS2");
@@ -89,9 +89,9 @@ function cleanQueryForEbay(query: string): string {
   cleaned = cleaned.replace(/nintendo ds|nds/i, "DS");
   cleaned = cleaned.replace(/nintendo 3ds|3ds/i, "3DS");
   
-  // Limpiar caracteres especiales que confunden a la API de eBay
+  
   cleaned = cleaned.replace(/[\.\:\-\,\(\)]/g, " ");
-  // Eliminar espacios múltiples
+  
   cleaned = cleaned.replace(/\s+/g, " ").trim();
   
   return cleaned;
@@ -103,7 +103,7 @@ export async function searchEbayListings(query: string, region: "ES" | "US" = "E
   const clientId = process.env.EBAY_CLIENT_ID;
   const clientSecret = process.env.EBAY_CLIENT_SECRET;
 
-  // Gracefully handle missing credentials instead of crashing
+  
   if (!clientId || !clientSecret) {
     console.warn("eBay credentials not found in environment variables. Returning empty search results.");
     return [];
@@ -120,8 +120,8 @@ export async function searchEbayListings(query: string, region: "ES" | "US" = "E
 
     const cleanedQuery = cleanQueryForEbay(query);
 
-    // Build search request
-    // Request up to 50 items (balance between speed and search accuracy)
+    
+    
     const searchUrl = `${baseUrl}/item_summary/search?q=${encodeURIComponent(cleanedQuery)}&category_ids=1249&limit=50`;
 
     const response = await fetch(searchUrl, {
@@ -131,11 +131,11 @@ export async function searchEbayListings(query: string, region: "ES" | "US" = "E
         "X-EBAY-C-MARKETPLACE-ID": marketplace,
         "Accept": "application/json",
       },
-      next: { revalidate: 1800 } // Cache searches for 30 minutes
+      next: { revalidate: 1800 } 
     });
 
     if (!response.ok) {
-      // If unauthorized or token expired, clear cache and try once more
+      
       if (response.status === 401) {
         cachedToken = null;
         tokenExpiresAt = 0;
@@ -153,7 +153,7 @@ export async function searchEbayListings(query: string, region: "ES" | "US" = "E
     const items: EbayListing[] = data.itemSummaries
       .filter((item: any) => item.title && isGameTitle(item.title))
       .map((item: any) => {
-        // Classify condition based on title
+        
         const cond = classifyCondition(item.title) || "cib";
         return {
           id: item.itemId,
@@ -167,19 +167,19 @@ export async function searchEbayListings(query: string, region: "ES" | "US" = "E
         };
       });
 
-    // Group items by condition
+    
     const looseGroup = items.filter(i => i.condition === "loose");
     const cibGroup = items.filter(i => i.condition === "cib");
     const sealedGroup = items.filter(i => i.condition === "sealed");
 
-    // Sort descending by price and take up to 2 items
+    
     const processGroup = (group: any[]) => {
       return group
         .sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
         .slice(0, 2);
     };
 
-    // Combine results: first sealed, then cib, then loose
+    
     const finalResults = [
       ...processGroup(sealedGroup),
       ...processGroup(cibGroup),

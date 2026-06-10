@@ -39,7 +39,7 @@ export default function Navbar({ user }: { user: any }) {
   const { showToast } = useToast();
   const supabase = createClient();
 
-  // Search state
+  
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<any[]>([]);
@@ -53,7 +53,7 @@ export default function Navbar({ user }: { user: any }) {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounce(query, 500);
 
-  // Close dropdowns on outside click
+  
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -67,13 +67,13 @@ export default function Navbar({ user }: { user: any }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Close mobile menu on route change
+  
   useEffect(() => {
     setMobileMenuOpen(false);
     setUserMenuOpen(false);
   }, [pathname]);
 
-  // Auto-search
+  
   useEffect(() => {
     async function performSearch() {
       if (!debouncedQuery.trim()) {
@@ -117,7 +117,7 @@ export default function Navbar({ user }: { user: any }) {
     setShowDropdown(false);
   };
 
-  // ─── Logged-out nav ──────────────────────────────────────────────────────────
+  
   if (!user) {
     return (
       <nav className="sticky top-0 z-50 w-full" style={{ backgroundColor: "var(--bg-surface)", borderBottom: "1px solid var(--border)" }}>
@@ -139,7 +139,7 @@ export default function Navbar({ user }: { user: any }) {
     );
   }
 
-  // ─── Main nav ────────────────────────────────────────────────────────────────
+  
   return (
     <>
       <nav
@@ -154,7 +154,7 @@ export default function Navbar({ user }: { user: any }) {
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 h-[58px]">
 
-            {/* ── Logo ─────────────────────────────────────────────────────── */}
+            { }
             <Link href="/" className="flex items-center gap-2 shrink-0 group">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:scale-110 group-hover:shadow-[0_0_14px_rgba(67,185,79,0.45)]"
@@ -167,7 +167,7 @@ export default function Navbar({ user }: { user: any }) {
               </span>
             </Link>
 
-            {/* ── Nav links — desktop ───────────────────────────────────────── */}
+            { }
             <div className="hidden md:flex items-center h-full gap-0.5 ml-2">
               {NAV_LINKS.map((link) => {
                 const isActive =
@@ -213,10 +213,10 @@ export default function Navbar({ user }: { user: any }) {
               })}
             </div>
 
-            {/* ── Spacer ───────────────────────────────────────────────────── */}
+            { }
             <div className="flex-1" />
 
-            {/* ── User Search (Collectors) — desktop ───────────────────────── */}
+            { }
             <div className="hidden lg:flex items-center gap-1.5 shrink-0">
               <Users className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--text-muted)" }} />
               <div className="w-44 xl:w-52">
@@ -224,7 +224,7 @@ export default function Navbar({ user }: { user: any }) {
               </div>
             </div>
 
-            {/* ── Game Search ──────────────────────────────────────────────── */}
+            { }
             <div className="relative w-44 sm:w-60 lg:w-72" ref={dropdownRef}>
               <div
                 className="relative flex items-center transition-all duration-200"
@@ -252,7 +252,7 @@ export default function Navbar({ user }: { user: any }) {
                   className="w-full bg-transparent pl-8 pr-8 py-2 text-[13px] focus:outline-none placeholder:text-[var(--text-muted)]"
                   style={{ color: "var(--text-primary)" }}
                 />
-                {/* Spinner / Clear */}
+                { }
                 <div className="absolute right-2.5 flex items-center">
                   {isSearching ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: "var(--accent)" }} />
@@ -273,7 +273,7 @@ export default function Navbar({ user }: { user: any }) {
                 </div>
               </div>
 
-              {/* Search Dropdown */}
+              { }
               {showDropdown && query.trim().length > 0 && (
                 <div
                   className="absolute top-full right-0 mt-2 w-full sm:w-96 rounded-xl overflow-hidden shadow-2xl"
@@ -283,7 +283,7 @@ export default function Navbar({ user }: { user: any }) {
                     zIndex: 100,
                   }}
                 >
-                  {/* Dropdown header */}
+                  { }
                   <div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: "var(--border)" }}>
                     <span className="text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
                       <Zap className="w-3 h-3" style={{ color: "var(--accent)" }} />
@@ -349,12 +349,12 @@ export default function Navbar({ user }: { user: any }) {
               )}
             </div>
 
-            {/* ── Notification Inbox ───────────────────────────────────────── */}
+            { }
             <div className="hidden sm:block shrink-0 mr-1">
               <NotificationInbox currentUser={user} />
             </div>
 
-            {/* ── User menu — desktop ───────────────────────────────────────── */}
+            { }
             <div className="relative hidden sm:block shrink-0" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -374,13 +374,13 @@ export default function Navbar({ user }: { user: any }) {
                   }
                 }}
               >
-                {/* Avatar */}
+                { }
                 <div
                   className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-[12px] font-bold shrink-0 ring-2 ring-emerald-500/40 ring-offset-1 ring-offset-[var(--bg-surface)] transition-all duration-200"
                   style={{}}
                 >
                   {user?.user_metadata?.avatar_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
+                    
                     <img
                       src={user.user_metadata.avatar_url}
                       alt="Avatar"
@@ -404,7 +404,7 @@ export default function Navbar({ user }: { user: any }) {
                 />
               </button>
 
-              {/* User dropdown menu */}
+              { }
               {userMenuOpen && (
                 <div
                   className="absolute right-0 top-full mt-2 w-56 rounded-xl shadow-2xl py-1.5 overflow-hidden"
@@ -414,7 +414,7 @@ export default function Navbar({ user }: { user: any }) {
                     zIndex: 100,
                   }}
                 >
-                  {/* User info header */}
+                  { }
                   <div className="px-3.5 py-2.5 border-b mb-1" style={{ borderColor: "var(--border)" }}>
                     <p className="text-[13px] font-semibold truncate" style={{ color: "var(--text-primary)" }}>{getUserName(user)}</p>
                     <p className="text-[11px] truncate mt-0.5" style={{ color: "var(--text-muted)" }}>{getUserEmail(user)}</p>
@@ -453,7 +453,7 @@ export default function Navbar({ user }: { user: any }) {
               )}
             </div>
 
-            {/* ── Mobile menu toggle ────────────────────────────────────────── */}
+            { }
             <button
               className="md:hidden p-2 rounded-lg transition-colors cursor-pointer"
               style={{
@@ -471,7 +471,7 @@ export default function Navbar({ user }: { user: any }) {
           </div>
         </div>
 
-        {/* ── Mobile drawer ──────────────────────────────────────────────────── */}
+        { }
         {mobileMenuOpen && (
           <div
             className="md:hidden border-t"
@@ -479,7 +479,7 @@ export default function Navbar({ user }: { user: any }) {
           >
             <div className="max-w-[1400px] mx-auto px-4 py-4 space-y-4">
 
-              {/* User info strip */}
+              { }
               {user && (
                 <div
                   className="flex items-center gap-3 p-3 rounded-xl"
@@ -488,7 +488,7 @@ export default function Navbar({ user }: { user: any }) {
                   <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center font-bold text-sm"
                     style={{ backgroundColor: "var(--accent)", color: "#0d1117" }}>
                     {user?.user_metadata?.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
+                      
                       <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                     ) : getInitials(user)}
                   </div>
@@ -499,7 +499,7 @@ export default function Navbar({ user }: { user: any }) {
                 </div>
               )}
 
-              {/* Collector search */}
+              { }
               <div>
                 <p className="text-[10px] uppercase font-bold tracking-widest mb-2 flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
                   <Users className="w-3 h-3" />
@@ -508,7 +508,7 @@ export default function Navbar({ user }: { user: any }) {
                 <UserSearch />
               </div>
 
-              {/* Nav links */}
+              { }
               <div className="space-y-1">
                 <p className="text-[10px] uppercase font-bold tracking-widest mb-2 flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
                   <LayoutDashboard className="w-3 h-3" />
@@ -539,7 +539,7 @@ export default function Navbar({ user }: { user: any }) {
                 })}
               </div>
 
-              {/* Settings & Logout */}
+              { }
               <div
                 className="space-y-1 pt-3 border-t"
                 style={{ borderColor: "var(--border)" }}
@@ -571,7 +571,7 @@ export default function Navbar({ user }: { user: any }) {
         )}
       </nav>
 
-      {/* ── Game detail modal ─────────────────────────────────────────────────── */}
+      { }
       {selectedGame && (
         <GameModal
           game={selectedGame}

@@ -54,12 +54,12 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
 
   const { showToast } = useToast();
 
-  // Sync state when initialGames prop changes (due to router.refresh())
+  
   useEffect(() => {
     setGames(initialGames);
   }, [initialGames]);
 
-  // Extract unique platforms and regions dynamically from the collection
+  
   const uniquePlatforms = useMemo(() => {
     return Array.from(new Set(games.map((g) => g.platform).filter(Boolean))).sort();
   }, [games]);
@@ -109,37 +109,37 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
   };
 
 
-  // Filter and sort logic
+  
   const filteredAndSortedGames = useMemo(() => {
     let result = [...games];
 
-    // Search filter
+    
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter((g) => g.title?.toLowerCase().includes(q));
     }
 
-    // Platform filter
+    
     if (platform) {
       result = result.filter((g) => g.platform === platform);
     }
 
-    // Region filter
+    
     if (region) {
       result = result.filter((g) => g.region === region);
     }
 
-    // Status filter
+    
     if (status) {
       result = result.filter((g) => g.status === status);
     }
 
-    // Condition filter
+    
     if (condition) {
       result = result.filter((g) => g.condition === condition);
     }
 
-    // Sorting
+    
     result.sort((a, b) => {
       switch (sortBy) {
         case "title-asc":
@@ -169,7 +169,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
 
   return (
     <div className="space-y-6">
-      {/* Filters and Search Bar Card */}
+      { }
       <div className="bg-[#18191b] border border-gray-800 rounded-xl p-4 md:p-5 shadow-lg space-y-4">
         <div className="flex items-center justify-between border-b border-gray-800 pb-3">
           <div className="flex items-center gap-2 text-white font-bold text-sm tracking-wide uppercase">
@@ -186,9 +186,9 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
           )}
         </div>
 
-        {/* Input grids */}
+        { }
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-          {/* Search text */}
+          { }
           <div className="relative flex items-center">
             <Search className="absolute left-3.5 w-4 h-4 text-gray-500" />
             <input
@@ -200,7 +200,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
             />
           </div>
 
-          {/* Platform Select */}
+          { }
           <select
             value={platform}
             onChange={(e) => setPlatform(e.target.value)}
@@ -214,7 +214,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
             ))}
           </select>
 
-          {/* Region Select */}
+          { }
           <select
             value={region}
             onChange={(e) => setRegion(e.target.value)}
@@ -228,7 +228,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
             ))}
           </select>
 
-          {/* Status Select */}
+          { }
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
@@ -242,7 +242,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
             ))}
           </select>
 
-          {/* Condition Select */}
+          { }
           <select
             value={condition}
             onChange={(e) => setCondition(e.target.value)}
@@ -257,7 +257,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
           </select>
         </div>
 
-        {/* Sorting and Summary Row */}
+        { }
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-800/60">
           <div className="text-xs text-gray-400 font-medium">
             Mostrando <span className="text-white font-bold">{filteredAndSortedGames.length}</span> de{" "}
@@ -283,7 +283,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
         </div>
       </div>
 
-      {/* Games Grid or Empty State */}
+      { }
       {filteredAndSortedGames.length === 0 ? (
         <div className="rounded-xl flex flex-col items-center justify-center text-center py-20 px-8 bg-[#18191b] border border-gray-800 shadow-md">
           <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 bg-[#0f0f10]">
@@ -312,7 +312,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
                 className="game-card relative overflow-hidden group cursor-pointer"
                 onClick={() => setSelectedGameForDetails(game)}
               >
-                {/* Cover image */}
+                { }
                 <div className="aspect-[3/4] bg-[#141517] w-full overflow-hidden">
                   {game.cover_url ? (
                     <img
@@ -328,9 +328,9 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
                   )}
                 </div>
 
-                {/* Hover overlay */}
+                { }
                 <div className="game-card-overlay absolute inset-0 bg-neutral-950/80 backdrop-blur-xs p-3 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  {/* Delete button top-right */}
+                  { }
                   <div className="flex justify-end">
                     <button
                       onClick={(e) => {
@@ -349,7 +349,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
                     </button>
                   </div>
 
-                  {/* Info bottom */}
+                  { }
                   <div className="space-y-1.5">
                     <p
                       className="text-[11px] font-bold leading-tight text-white line-clamp-2"
@@ -371,7 +371,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
                       )}
                     </div>
                     
-                    {/* Platform & Region row */}
+                    { }
                     <div className="flex flex-wrap gap-1 mt-1">
                       {game.platform && (
                         <span className="inline-block text-[9px] px-1.5 py-0.5 rounded bg-[#0f0f10] border border-gray-800 text-gray-400 font-mono uppercase">
@@ -387,7 +387,7 @@ export default function DashboardCollection({ initialGames }: DashboardCollectio
                   </div>
                 </div>
 
-                {/* Status indicator strip */}
+                { }
                 <div
                   className="absolute bottom-0 left-0 right-0 h-0.5"
                   style={{ backgroundColor: statusInfo.color }}

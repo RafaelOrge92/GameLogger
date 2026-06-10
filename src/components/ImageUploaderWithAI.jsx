@@ -37,13 +37,13 @@ export default function ImageUploaderWithAI({ images = [], onChange, onRecognize
         const data = await res.json();
         if (res.ok && data.success) {
           if (data.isAllowed) {
-            // Append photo to current array (prefer server-optimized public URL, fallback to base64)
+            
             const photoUrl = data.publicUrl || base64;
             const updatedImages = [...images, photoUrl];
             onChange(updatedImages);
             showToast("Foto validada por IA con éxito.", "success");
 
-            // Prefill title callback if gameTitle recognized
+            
             if (data.recognizedGame && data.recognizedGame.gameTitle && onRecognized) {
               onRecognized(data.recognizedGame.gameTitle);
             }
@@ -72,7 +72,7 @@ export default function ImageUploaderWithAI({ images = [], onChange, onRecognize
 
   return (
     <div className="space-y-3">
-      {/* Area de Subida / Dropzone */}
+      { }
       <div className="relative">
         {isAuditing ? (
           <div className="flex flex-col items-center justify-center border-2 border-dashed border-emerald-500/40 rounded-lg p-6 bg-emerald-950/5 min-h-[100px] text-center space-y-2">
@@ -100,7 +100,7 @@ export default function ImageUploaderWithAI({ images = [], onChange, onRecognize
         )}
       </div>
 
-      {/* Mensaje de error de auditoría */}
+      { }
       {auditError && (
         <div className="flex items-center gap-1.5 bg-red-950/20 border border-red-500/30 text-red-400 rounded-md px-3 py-2 text-[11px] animate-[fadeIn_0.15s_ease-out]">
           <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0" />
@@ -108,7 +108,7 @@ export default function ImageUploaderWithAI({ images = [], onChange, onRecognize
         </div>
       )}
 
-      {/* Grid de Miniaturas */}
+      { }
       {images.length > 0 && (
         <div className="grid grid-cols-4 gap-2 mt-3">
           {images.map((img, idx) => (
@@ -116,7 +116,7 @@ export default function ImageUploaderWithAI({ images = [], onChange, onRecognize
               key={idx}
               className="relative aspect-square w-full rounded border border-gray-800 overflow-hidden bg-gray-950 group"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img
                 src={img}
                 alt={`Miniatura ${idx + 1}`}

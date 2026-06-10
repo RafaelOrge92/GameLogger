@@ -68,7 +68,7 @@ export default function LoginPage() {
           border: '1px solid var(--border)',
         }}
       >
-        {/* Header */}
+        { }
         <div className="text-center mb-8">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold mx-auto mb-4"
@@ -84,7 +84,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Error */}
+        { }
         {error && (
           <div
             className="rounded-lg px-4 py-3 text-sm mb-5"
@@ -98,7 +98,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Form */}
+        { }
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
@@ -158,14 +158,14 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Divider */}
+        { }
         <div className="flex items-center gap-3 my-5">
           <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border)' }} />
           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>o</span>
           <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border)' }} />
         </div>
 
-        {/* Google */}
+        { }
         <button
           type="button"
           disabled={isLoading}
@@ -188,7 +188,7 @@ export default function LoginPage() {
           Continuar con Google
         </button>
 
-        {/* Register link */}
+        { }
         <div className="mt-5 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
           ¿No tienes una cuenta?{' '}
           <Link href="/register" className="font-semibold hover:underline" style={{ color: 'var(--accent)' }}>
@@ -196,7 +196,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Test credentials */}
+        { }
         <div
           className="mt-6 pt-5 text-xs text-center space-y-0.5"
           style={{ borderTop: '1px solid var(--border)', color: 'var(--text-muted)' }}

@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-/**
- * GET /api/collection/list
- * Returns the authenticated user's collection games, enriched with
- * cached cover_url and title already stored in the collections table.
- * Used by the marketplace create-offer form to let users pick from
- * games they actually own.
- */
+
+
+
+
+
+
+ 
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -38,8 +38,8 @@ export async function GET() {
       );
     }
 
-    // Deduplicate by game_id (user may own same game on multiple platforms)
-    // Return all entries so the user can pick platform-specific
+    
+    
     return NextResponse.json(items ?? [], { status: 200 });
   } catch (error) {
     console.error("Unhandled error in collection/list:", error);

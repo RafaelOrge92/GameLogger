@@ -16,10 +16,10 @@ export async function POST(req) {
       );
     }
 
-    // Extract base64 clean data (strip data:image/jpeg;base64, if present)
+    
     const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
 
-    // Ensure Gemini API Key is configured
+    
     if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
         { error: "La clave de API de Gemini (GEMINI_API_KEY) no está configurada." },
@@ -27,7 +27,7 @@ export async function POST(req) {
       );
     }
 
-    // 2. Initialize Gemini client and perform real Vision Auditing with Structured JSON output
+    
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
@@ -75,7 +75,7 @@ export async function POST(req) {
 
     const responseText = result.response.text().trim();
     
-    // Safely parse JSON response
+    
     try {
       const cleanedResponse = responseText
         .replace(/^```json\s*/i, "")
@@ -83,7 +83,7 @@ export async function POST(req) {
         .trim();
       const parsed = JSON.parse(cleanedResponse);
       
-      // Normalize gameTitle or recognizedGame to be tolerant and match frontend expectation
+      
       const rawRecognized = parsed.gameTitle || parsed.recognizedGame || null;
       const recognizedGame = rawRecognized 
         ? (typeof rawRecognized === "string" ? { gameTitle: rawRecognized, platform: parsed.platform || null } : rawRecognized)
@@ -113,7 +113,7 @@ export async function POST(req) {
 
           if (uploadError) {
             console.warn("Storage upload failed, attempting to create bucket:", uploadError);
-            // Create bucket if it doesn't exist
+            
             await supabase.storage.createBucket("game-photos", {
               public: true
             });
@@ -146,7 +146,7 @@ export async function POST(req) {
     } catch (parseError) {
       console.error("Gemini Vision response parse error. Response was:", responseText, parseError);
       
-      // Fallback in case of parsing errors
+      
       return NextResponse.json({
         success: true,
         isAllowed: true,

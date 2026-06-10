@@ -20,7 +20,7 @@ import {
   Minus,
 } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+
 
 interface PortfolioPoint {
   date: string;
@@ -50,7 +50,7 @@ interface PortfolioChartProps {
 
 type Range = "30d" | "60d" | "90d";
 
-// ─── Custom Tooltip ───────────────────────────────────────────────────────────
+
 
 interface TooltipPayloadItem {
   name: string;
@@ -146,7 +146,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   );
 }
 
-// ─── Custom Legend ────────────────────────────────────────────────────────────
+
 
 interface LegendPayloadItem {
   value: string;
@@ -212,7 +212,7 @@ function CustomLegend({ payload }: CustomLegendProps) {
   );
 }
 
-// ─── Stat Card ────────────────────────────────────────────────────────────────
+
 
 interface StatCardProps {
   label: string;
@@ -251,7 +251,7 @@ function StatCard({
         overflow: "hidden",
       }}
     >
-      {/* Subtle glow orb */}
+      { }
       <div
         style={{
           position: "absolute",
@@ -324,7 +324,7 @@ function StatCard({
   );
 }
 
-// ─── Range Selector Button ────────────────────────────────────────────────────
+
 
 interface RangeBtnProps {
   active: boolean;
@@ -355,7 +355,7 @@ function RangeBtn({ active, onClick, children }: RangeBtnProps) {
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+
 
 export default function PortfolioChart({ platformFilter = "", regionFilter = "" }: PortfolioChartProps) {
   const [range, setRange] = useState<Range>("30d");
@@ -421,7 +421,7 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
   return (
     <div className="space-y-5 animate-[fadeIn_0.3s_ease-out] w-full">
 
-      {/* ── Header row ── */}
+      { }
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <div
@@ -463,7 +463,7 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
           </div>
         </div>
 
-        {/* Range selector */}
+        { }
         <div
           style={{
             display: "flex",
@@ -486,7 +486,7 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
         </div>
       </div>
 
-      {/* ── Stat cards ── */}
+      { }
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         <StatCard
           label="Inversión"
@@ -552,7 +552,7 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
         />
       </div>
 
-      {/* ── Chart ── */}
+      { }
       {empty ? (
         <div
           style={{
@@ -591,14 +591,14 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
               data={chartData}
               margin={{ top: 8, right: 20, left: -10, bottom: 0 }}
             >
-              {/* Subtle grid */}
+              { }
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="rgba(255,255,255,0.04)"
                 vertical={false}
               />
 
-              {/* X Axis */}
+              { }
               <XAxis
                 dataKey="label"
                 stroke="transparent"
@@ -608,7 +608,7 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
                 interval={range === "30d" ? 4 : range === "60d" ? 6 : 8}
               />
 
-              {/* Y Axis */}
+              { }
               <YAxis
                 stroke="transparent"
                 tick={{ fill: "#4b5563", fontSize: 9, fontWeight: 600 }}
@@ -622,7 +622,7 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
                 width={52}
               />
 
-              {/* Custom Tooltip */}
+              { }
               <Tooltip
                 content={<CustomTooltip />}
                 cursor={{
@@ -632,13 +632,13 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
                 }}
               />
 
-              {/* Legend top-right */}
+              { }
               <Legend
                 verticalAlign="top"
                 content={<CustomLegend />}
               />
 
-              {/* Line 1 — Inversión (grey/white, baseline cost) */}
+              { }
               <Line
                 type="monotone"
                 dataKey="inversion"
@@ -650,7 +650,7 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
                 strokeDasharray="6 3"
               />
 
-              {/* Line 2 — Valor Actual Máximo (emerald green) */}
+              { }
               <Line
                 type="monotone"
                 dataKey="valorActual"
@@ -661,7 +661,7 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
                 activeDot={{ r: 5, fill: "#10b981", strokeWidth: 0 }}
               />
 
-              {/* Line 3 — Valor Medio por Condición (electric violet) */}
+              { }
               <Line
                 type="monotone"
                 dataKey="valorMedio"
@@ -676,7 +676,7 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
         </div>
       )}
 
-      {/* ── Legend helper text ── */}
+      { }
       {!empty && (
         <div
           style={{
@@ -735,7 +735,7 @@ export default function PortfolioChart({ platformFilter = "", regionFilter = "" 
   );
 }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
 
 function PortfolioSkeleton() {
   return (

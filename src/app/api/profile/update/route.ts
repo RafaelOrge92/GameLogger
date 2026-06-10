@@ -13,7 +13,7 @@ async function handleUpdate(req: NextRequest) {
     const body = await req.json();
     const { username, avatar_url, favorite_console, bio, favorite_game_id, crown_jewel_id, is_value_public } = body;
 
-    // Validate username is not empty
+    
     if (!username || typeof username !== "string" || !username.trim()) {
       return NextResponse.json(
         { error: "El nombre de usuario no puede estar vacío." },
@@ -22,7 +22,7 @@ async function handleUpdate(req: NextRequest) {
     }
     const formattedUsername = username.trim();
 
-    // Validate bio length
+    
     if (bio && bio.length > 150) {
       return NextResponse.json(
         { error: "La biografía no puede superar los 150 caracteres." },
@@ -30,7 +30,7 @@ async function handleUpdate(req: NextRequest) {
       );
     }
 
-    // Update user profile in Supabase public.profiles table
+    
     const { error: updateError } = await supabase
       .from("profiles")
       .update({
@@ -47,7 +47,7 @@ async function handleUpdate(req: NextRequest) {
     if (updateError) {
       console.error("Error updating profile in Supabase:", updateError);
       
-      // PostgreSQL unique_violation code is '23505'
+      
       if (updateError.code === "23505") {
         return NextResponse.json(
           { error: "El nombre de usuario ya está en uso." },
@@ -61,8 +61,8 @@ async function handleUpdate(req: NextRequest) {
       );
     }
 
-    // Also update raw user metadata in auth.users if username or avatar_url changes
-    // This keeps the profile sync state clean for Navbar initials and avatar image.
+    
+    
     if (formattedUsername || avatar_url !== undefined) {
       const updateData: Record<string, any> = {};
       if (formattedUsername) updateData.full_name = formattedUsername;

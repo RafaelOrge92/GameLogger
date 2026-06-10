@@ -14,15 +14,15 @@ import { useToast } from "@/context/ToastContext";
 export default function NotificationInbox({ currentUser }) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const [activeTradeId, setActiveTradeId] = useState(null); // expanded trade offer ID
-  const [tradeDetails, setTradeDetails] = useState({}); // cached trade details
-  const [actionLoading, setActionLoading] = useState(null); // ID of operation loading
+  const [activeTradeId, setActiveTradeId] = useState(null); 
+  const [tradeDetails, setTradeDetails] = useState({}); 
+  const [actionLoading, setActionLoading] = useState(null); 
   const dropdownRef = useRef(null);
   const { showToast } = useToast();
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // Fetch notifications on mount
+  
   useEffect(() => {
     async function loadNotifications() {
       if (!currentUser) return;
@@ -38,7 +38,7 @@ export default function NotificationInbox({ currentUser }) {
     loadNotifications();
   }, [currentUser]);
 
-  // Click outside detection to close the dropdown
+  
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -77,7 +77,7 @@ export default function NotificationInbox({ currentUser }) {
   };
 
   const handleNotificationClick = async (notif) => {
-    // 1. Mark notification as read in database and UI if unread
+    
     if (!notif.is_read) {
       try {
         const res = await markNotificationAsRead(notif.id);
@@ -91,7 +91,7 @@ export default function NotificationInbox({ currentUser }) {
       }
     }
 
-    // 2. Expand/collapse trade details if linked to a trade offer
+    
     if (notif.type === "trade" && notif.trade_offer_id) {
       if (activeTradeId === notif.trade_offer_id) {
         setActiveTradeId(null);
@@ -100,7 +100,7 @@ export default function NotificationInbox({ currentUser }) {
 
       setActiveTradeId(notif.trade_offer_id);
 
-      // Load details if not already cached
+      
       if (!tradeDetails[notif.trade_offer_id]) {
         try {
           const res = await getTradeOfferDetails(notif.trade_offer_id);
@@ -151,7 +151,7 @@ export default function NotificationInbox({ currentUser }) {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* 1. El Botón del Navbar (El Activador) */}
+      { }
       <button
         onClick={handleToggle}
         type="button"
@@ -160,17 +160,17 @@ export default function NotificationInbox({ currentUser }) {
       >
         <Inbox className="w-5 h-5 text-gray-400 hover:text-white transition-colors cursor-pointer" />
         
-        {/* El Indicador Rojo */}
+        { }
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-[#18191b] animate-[pulse_2s_infinite]" />
         )}
       </button>
 
-      {/* 2. El Panel Desplegable */}
+      { }
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-[#18191b] border border-gray-800 rounded-lg shadow-2xl z-50 overflow-hidden animate-[fadeIn_0.15s_ease-out]">
           
-          {/* Header */}
+          { }
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
             <span className="text-xs font-black uppercase text-gray-400 tracking-wider">
               Actividad Reciente
@@ -186,7 +186,7 @@ export default function NotificationInbox({ currentUser }) {
             )}
           </div>
 
-          {/* List */}
+          { }
           <div className="max-h-80 overflow-y-auto divide-y divide-gray-800/40">
             {notifications.length === 0 ? (
               <div className="p-6 text-center text-xs text-gray-500 flex flex-col items-center gap-1">
@@ -205,12 +205,12 @@ export default function NotificationInbox({ currentUser }) {
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Unread indicator dot */}
+                      { }
                       {isUnread && (
                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full shrink-0 mt-1.5" />
                       )}
 
-                      {/* Notification Type Icon */}
+                      { }
                       <div className="shrink-0 mt-0.5">
                         {n.type === "trade" ? (
                           <ArrowLeftRight className="w-3.5 h-3.5 text-emerald-400" />
@@ -219,7 +219,7 @@ export default function NotificationInbox({ currentUser }) {
                         )}
                       </div>
 
-                      {/* Content */}
+                      { }
                       <div className="flex-1 text-gray-300">
                         {n.type === "trade" ? (
                           <span>
@@ -231,7 +231,7 @@ export default function NotificationInbox({ currentUser }) {
                           </span>
                         )}
                         
-                        {/* Timestamp */}
+                        { }
                         <p className="text-[10px] text-gray-500 mt-1 font-medium">
                           {n.created_at
                             ? new Date(n.created_at).toLocaleDateString("es-ES", {
@@ -243,7 +243,7 @@ export default function NotificationInbox({ currentUser }) {
                       </div>
                     </div>
 
-                    {/* 3. Direct Message Proposal Drawer */}
+                    { }
                     {n.type === "trade" && activeTradeId === n.trade_offer_id && (
                       <div
                         className="mt-3 bg-[#131415] rounded border border-gray-800/80 p-3 space-y-3 text-xs"
