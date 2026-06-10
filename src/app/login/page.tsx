@@ -188,6 +188,14 @@ export default function LoginPage() {
           Continuar con Google
         </button>
 
+        {/* Register link */}
+        <div className="mt-5 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+          ¿No tienes una cuenta?{' '}
+          <Link href="/register" className="font-semibold hover:underline" style={{ color: 'var(--accent)' }}>
+            Regístrate
+          </Link>
+        </div>
+
         {/* Test credentials */}
         <div
           className="mt-6 pt-5 text-xs text-center space-y-0.5"
