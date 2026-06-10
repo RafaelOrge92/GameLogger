@@ -4,8 +4,8 @@ import { useState } from "react";
 import { X, ArrowLeftRight, Loader2 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 
-export default function TradeProposalModal({ game, ownerId, currentUser, onClose }) {
-  const [message, setMessage] = useState("");
+export default function TradeProposalModal({ game, ownerId, currentUser, onClose, initialMessage = "" }) {
+  const [message, setMessage] = useState(initialMessage);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
 

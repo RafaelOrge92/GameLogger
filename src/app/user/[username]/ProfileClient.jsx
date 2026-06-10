@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/context/ToastContext";
 import Link from "next/link";
-import { Gamepad2, Library, Gem, Flame, Sparkles, Crown, Package, Award } from "lucide-react";
+import { Gamepad2, Library, Gem, Flame, Sparkles, Crown, Package, Award, ArrowLeftRight } from "lucide-react";
 import GameCardWithMenu from "@/components/GameCardWithMenu";
 import MyGameDetailsModal from "@/components/MyGameDetailsModal";
+import TradeProposalModal from "@/components/TradeProposalModal";
 
 
 
@@ -44,6 +45,62 @@ export default function ProfileClient({
   const { showToast } = useToast();
 
   const isOwnProfile = currentUser && currentUser.id === profile.id;
+
+  // Comparison states
+  const [profileTab, setProfileTab] = useState("coleccion"); // "coleccion" | "comparar"
+  const [compareData, setCompareData] = useState(null);
+  const [isComparing, setIsComparing] = useState(false);
+  const [compareSubTab, setCompareSubTab] = useState("comun"); // "comun" | "suyos" | "deseados"
+  const [wishlistSearchQuery, setWishlistSearchQuery] = useState("");
+  const [selectedTradeGame, setSelectedTradeGame] = useState(null);
+
+  // Fetch comparison data when comparison tab is opened
+  useEffect(() => {
+    if (profileTab === "comparar" && !compareData && !isComparing) {
+      async function runComparison() {
+        setIsComparing(true);
+        try {
+          const res = await fetch("/api/users/compare", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ targetUserId: profile.id }),
+          });
+          const json = await res.json();
+          if (res.ok) {
+            setCompareData(json);
+          } else {
+            showToast(json.error || "Error al comparar colecciones.", "error");
+            setProfileTab("coleccion");
+          }
+        } catch (err) {
+          console.error("Comparison error:", err);
+          showToast("Error de conexión al comparar colecciones.", "error");
+          setProfileTab("coleccion");
+        } finally {
+          setIsComparing(false);
+        }
+      }
+      runComparison();
+    }
+  }, [profileTab, compareData, isComparing, profile.id, showToast]);
+
+  const mapDbToCard = (dbItem) => ({
+    id: dbItem.id,
+    gameId: dbItem.game_id,
+    title: dbItem.title,
+    coverUrl: dbItem.cover_url,
+    platform: dbItem.platform,
+    status: dbItem.status,
+    condition: dbItem.condition,
+    purchasePrice: dbItem.purchase_price,
+    region: dbItem.region || "PAL-ES",
+    imagesUrls: dbItem.images_urls || [],
+    notes: dbItem.notes || "",
+    edition: dbItem.edition || "",
+    addedAt: dbItem.added_at
+  });
 
   // Sync state if collection changes from page props
   useEffect(() => {
@@ -428,51 +485,267 @@ export default function ProfileClient({
         </div>
       </div>
 
-      {/* 4. La Cuadrícula de la Colección */}
-      <div className="space-y-4">
-        <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-3">
-          <h3 className="text-base font-bold text-white tracking-tight uppercase flex items-center gap-1.5">
-            <Gamepad2 className="w-4 h-4 text-emerald-400" /> Colección Completa
-          </h3>
-          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-            {localCollection.length} juegos en propiedad
-          </span>
-        </div>
-
-        {localCollection.length === 0 ? (
-          <div 
-            className="rounded-xl flex flex-col items-center justify-center text-center py-16 px-6 border"
-            style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}
+      {/* Tab Switcher for Public Profile Visitor */}
+      {!isOwnProfile && currentUser && (
+        <div className="flex border-b border-gray-800/80 pb-0.5 gap-6">
+          <button
+            type="button"
+            onClick={() => setProfileTab("coleccion")}
+            className={`px-4 py-2 text-xs font-bold tracking-wide transition-all duration-300 cursor-pointer border-b-2 -mb-0.5 ${
+              profileTab === "coleccion"
+                ? "text-emerald-400 border-emerald-500"
+                : "text-gray-500 hover:text-white border-transparent"
+            }`}
           >
-            <Package className="w-10 h-10 text-gray-500 mb-3" />
-            <h4 className="text-sm font-bold text-white mb-1">Sin juegos públicos</h4>
-            <p className="text-xs max-w-xs" style={{ color: "var(--text-secondary)" }}>
-              Este usuario no tiene ningún juego registrado o su colección es totalmente privada.
-            </p>
+            🎮 Colección Completa
+          </button>
+          <button
+            type="button"
+            onClick={() => setProfileTab("comparar")}
+            className={`px-4 py-2 text-xs font-bold tracking-wide transition-all duration-300 cursor-pointer border-b-2 -mb-0.5 flex items-center gap-1.5 ${
+              profileTab === "comparar"
+                ? "text-emerald-400 border-emerald-500"
+                : "text-gray-500 hover:text-white border-transparent"
+            }`}
+          >
+            🔄 Comparar Colecciones
+          </button>
+        </div>
+      )}
+
+      {profileTab === "coleccion" ? (
+        /* 4. La Cuadrícula de la Colección */
+        <div className="space-y-4">
+          <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-3">
+            <h3 className="text-base font-bold text-white tracking-tight uppercase flex items-center gap-1.5">
+              <Gamepad2 className="w-4 h-4 text-emerald-400" /> Colección Completa
+            </h3>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+              {localCollection.length} juegos en propiedad
+            </span>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-            {localCollection.map((item) => {
-              const statusMeta = STATUS_META[item.status] || { label: item.status, color: "var(--text-primary)", bg: "transparent" };
-              const conditionMeta = CONDITION_META[item.condition] || { label: item.condition, color: "text-gray-400 border-gray-800" };
-              
-              return (
-                <GameCardWithMenu
-                  key={item.id}
-                  item={item}
-                  statusMeta={statusMeta}
-                  conditionMeta={conditionMeta}
-                  stats={stats}
-                  profile={profile}
-                  currentUser={currentUser}
-                  isOwnProfile={isOwnProfile}
-                  onEdit={(game) => setSelectedGameForDetails(game)}
-                />
-              );
-            })}
+
+          {localCollection.length === 0 ? (
+            <div 
+              className="rounded-xl flex flex-col items-center justify-center text-center py-16 px-6 border"
+              style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}
+            >
+              <Package className="w-10 h-10 text-gray-500 mb-3" />
+              <h4 className="text-sm font-bold text-white mb-1">Sin juegos públicos</h4>
+              <p className="text-xs max-w-xs" style={{ color: "var(--text-secondary)" }}>
+                Este usuario no tiene ningún juego registrado o su colección es totalmente privada.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+              {localCollection.map((item) => {
+                const statusMeta = STATUS_META[item.status] || { label: item.status, color: "var(--text-primary)", bg: "transparent" };
+                const conditionMeta = CONDITION_META[item.condition] || { label: item.condition, color: "text-gray-400 border-gray-800" };
+                
+                return (
+                  <GameCardWithMenu
+                    key={item.id}
+                    item={item}
+                    statusMeta={statusMeta}
+                    conditionMeta={conditionMeta}
+                    stats={stats}
+                    profile={profile}
+                    currentUser={currentUser}
+                    isOwnProfile={isOwnProfile}
+                    onEdit={(game) => setSelectedGameForDetails(game)}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Comparador de Colecciones Tab */
+        <div className="space-y-6">
+          <div className="flex flex-col gap-4 border-b border-[var(--border)] pb-4">
+            <div>
+              <h3 className="text-base font-bold text-white tracking-tight uppercase flex items-center gap-1.5">
+                🔄 Comparador de Colecciones
+              </h3>
+              <p className="text-xs text-gray-400 mt-1">Comparando tu colección con la de @{profile.username || "este usuario"}</p>
+            </div>
+
+            {/* Sub Tabs Switcher */}
+            {compareData && (
+              <div className="flex gap-2 p-1 bg-[#141517] rounded-lg border border-gray-800 max-w-md">
+                <button
+                  type="button"
+                  onClick={() => setCompareSubTab("comun")}
+                  className={`flex-1 py-1.5 text-center text-xs font-bold rounded-md transition-all cursor-pointer ${
+                    compareSubTab === "comun"
+                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      : "text-gray-400 hover:text-white border border-transparent"
+                  }`}
+                >
+                  En Común ({compareData.coincidencias.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCompareSubTab("suyos")}
+                  className={`flex-1 py-1.5 text-center text-xs font-bold rounded-md transition-all cursor-pointer ${
+                    compareSubTab === "suyos"
+                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      : "text-gray-400 hover:text-white border border-transparent"
+                  }`}
+                >
+                  Solo Él Tiene ({compareData.soloSuyos.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCompareSubTab("deseados")}
+                  className={`flex-1 py-1.5 text-center text-xs font-bold rounded-md transition-all cursor-pointer ${
+                    compareSubTab === "deseados"
+                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      : "text-gray-400 hover:text-white border border-transparent"
+                  }`}
+                >
+                  Mis Deseados ({compareData.matchDeseados.length})
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+
+          {/* Loading Skeleton */}
+          {(isComparing || !compareData) ? (
+            <div className="space-y-4 animate-pulse">
+              <div className="h-6 w-48 bg-gray-800 rounded"></div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="aspect-[3/4] bg-gray-800 rounded-lg"></div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Live search input specifically for Deseados sub-tab */}
+              {compareSubTab === "deseados" && (
+                <div className="relative max-w-xs">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={wishlistSearchQuery}
+                    onChange={(e) => setWishlistSearchQuery(e.target.value)}
+                    placeholder="Filtrar deseados por título..."
+                    className="w-full bg-[#141517] border border-gray-800 focus:border-emerald-500 focus:outline-none rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-gray-600 transition-colors"
+                  />
+                </div>
+              )}
+
+              {/* Sub tab lists */}
+              {compareSubTab === "comun" && (
+                compareData.coincidencias.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">No tienen ningún juego en común en sus colecciones.</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                    {compareData.coincidencias.map((dbItem) => {
+                      const item = mapDbToCard(dbItem);
+                      const statusMeta = STATUS_META[item.status] || { label: item.status, color: "var(--text-primary)", bg: "transparent" };
+                      const conditionMeta = CONDITION_META[item.condition] || { label: item.condition, color: "text-gray-400 border-gray-800" };
+                      return (
+                        <GameCardWithMenu
+                          key={item.id}
+                          item={item}
+                          statusMeta={statusMeta}
+                          conditionMeta={conditionMeta}
+                          stats={stats}
+                          profile={profile}
+                          currentUser={currentUser}
+                          isOwnProfile={false}
+                          onEdit={null}
+                        />
+                      );
+                    })}
+                  </div>
+                )
+              )}
+
+              {compareSubTab === "suyos" && (
+                compareData.soloSuyos.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">No tiene ningún juego que no tengas tú también.</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                    {compareData.soloSuyos.map((dbItem) => {
+                      const item = mapDbToCard(dbItem);
+                      const statusMeta = STATUS_META[item.status] || { label: item.status, color: "var(--text-primary)", bg: "transparent" };
+                      const conditionMeta = CONDITION_META[item.condition] || { label: item.condition, color: "text-gray-400 border-gray-800" };
+                      return (
+                        <GameCardWithMenu
+                          key={item.id}
+                          item={item}
+                          statusMeta={statusMeta}
+                          conditionMeta={conditionMeta}
+                          stats={stats}
+                          profile={profile}
+                          currentUser={currentUser}
+                          isOwnProfile={false}
+                          onEdit={null}
+                        />
+                      );
+                    })}
+                  </div>
+                )
+              )}
+
+              {compareSubTab === "deseados" && (() => {
+                const filtered = compareData.matchDeseados.filter((item) =>
+                  item.title.toLowerCase().includes(wishlistSearchQuery.toLowerCase())
+                );
+                return filtered.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">No se encontraron juegos deseados en común.</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                    {filtered.map((dbItem) => {
+                      const item = mapDbToCard(dbItem);
+                      const statusMeta = STATUS_META[item.status] || { label: item.status, color: "var(--text-primary)", bg: "transparent" };
+                      const conditionMeta = CONDITION_META[item.condition] || { label: item.condition, color: "text-gray-400 border-gray-800" };
+                      return (
+                        <div key={item.id} className="flex flex-col gap-2 group/trade">
+                          <GameCardWithMenu
+                            item={item}
+                            statusMeta={statusMeta}
+                            conditionMeta={conditionMeta}
+                            stats={stats}
+                            profile={profile}
+                            currentUser={currentUser}
+                            isOwnProfile={false}
+                            onEdit={null}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setSelectedTradeGame(item)}
+                            className="w-full flex items-center justify-center gap-1.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 rounded-lg text-[10px] font-black tracking-wider uppercase transition-all shadow-[0_0_10px_rgba(16,185,129,0.15)] cursor-pointer"
+                          >
+                            <ArrowLeftRight className="w-3 h-3" />
+                            <span>Proponer Intercambio</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Trade Proposal Modal for comparison view */}
+      {selectedTradeGame && (
+        <TradeProposalModal
+          game={selectedTradeGame}
+          ownerId={profile.id}
+          currentUser={currentUser}
+          onClose={() => setSelectedTradeGame(null)}
+          initialMessage={`¡Hola! He estado comparando nuestras colecciones y veo que tienes '${selectedTradeGame.title}' (${selectedTradeGame.platform}) en tu colección, el cual tengo en mi lista de deseos. ¿Te interesaría algún intercambio?`}
+        />
+      )}
 
       {selectedGameForDetails && (
         <MyGameDetailsModal
