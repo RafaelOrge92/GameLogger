@@ -14,6 +14,7 @@ interface EbayListing {
   itemUrl: string;
   imageUrl: string | null;
   condition: string;
+  marketRegion?: "ES" | "US";
 }
 
 /**
@@ -96,7 +97,7 @@ function cleanQueryForEbay(query: string): string {
   return cleaned;
 }
 
-export async function searchEbayListings(query: string): Promise<EbayListing[]> {
+export async function searchEbayListings(query: string, region: "ES" | "US" = "ES"): Promise<EbayListing[]> {
   if (!query) return [];
 
   const clientId = process.env.EBAY_CLIENT_ID;
@@ -111,7 +112,7 @@ export async function searchEbayListings(query: string): Promise<EbayListing[]> 
   try {
     const accessToken = await getEbayAccessToken();
     const environment = process.env.EBAY_ENVIRONMENT || "production";
-    const marketplace = process.env.EBAY_MARKETPLACE || "EBAY_ES"; // Default to Spain
+    const marketplace = region === "US" ? "EBAY_US" : "EBAY_ES";
 
     const baseUrl = environment === "sandbox"
       ? "https://api.sandbox.ebay.com/buy/browse/v1"
@@ -158,10 +159,11 @@ export async function searchEbayListings(query: string): Promise<EbayListing[]> 
           id: item.itemId,
           title: item.title,
           price: item.price?.value || "0.00",
-          currency: item.price?.currency || "EUR",
+          currency: item.price?.currency || (region === "US" ? "USD" : "EUR"),
           itemUrl: item.itemWebUrl,
           imageUrl: item.image?.imageUrl || null,
           condition: cond,
+          marketRegion: region,
         };
       });
 

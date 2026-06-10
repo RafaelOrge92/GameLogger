@@ -166,6 +166,7 @@ function cleanQueryForEbay(query: string): string {
 
 export async function fetchSoldListings(
   gameTitle: string,
+  region: "ES" | "US" = "ES",
   maxResults = 100,
 ): Promise<EbayRawListing[]> {
   try {
@@ -178,6 +179,9 @@ export async function fetchSoldListings(
       ? 'https://svcs.sandbox.ebay.com/services/search/FindingService/v1'
       : 'https://svcs.ebay.com/services/search/FindingService/v1';
 
+    const globalId = region === "US" ? "EBAY-US" : "EBAY-ES";
+    const locationVal = region === "US" ? "US" : "ES";
+
     const params = new URLSearchParams({
       'OPERATION-NAME': 'findCompletedItems',
       'SERVICE-VERSION': '1.13.0',
@@ -187,9 +191,9 @@ export async function fetchSoldListings(
       // Filter to only successfully sold items (not just "ended")
       'itemFilter(0).name': 'SoldItemsOnly',
       'itemFilter(0).value': 'true',
-      // eBay ES site ID = 186
+      // eBay LocatedIn
       'itemFilter(1).name': 'LocatedIn',
-      'itemFilter(1).value': 'ES',
+      'itemFilter(1).value': locationVal,
       // Video Games category (1249) keeps results tight
       'categoryId': '1249',
       'keywords': cleanedTitle,
@@ -200,7 +204,7 @@ export async function fetchSoldListings(
     const res = await fetch(`${baseUrl}?${params.toString()}`, {
       headers: {
         Authorization: `Bearer ${token}`,
-        'X-EBAY-SOA-GLOBAL-ID': 'EBAY-ES',
+        'X-EBAY-SOA-GLOBAL-ID': globalId,
       },
       next: { revalidate: 7200 }, // Cache completed listings searches for 2 hours to speed up the interface
     });

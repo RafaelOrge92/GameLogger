@@ -40,14 +40,22 @@ export async function getGameMarketData(title: string): Promise<MarketData> {
   }
 
   try {
-    const [cheapsharkDeals, ebayListings] = await Promise.all([
+    const [cheapsharkDeals, ebayListingsES, ebayListingsUS] = await Promise.all([
       searchModernGameDeals(title).catch((err) => {
         console.error("Failed to fetch CheapShark deals:", err);
         return [];
       }),
       withTimeout(
-        searchEbayListings(title).catch((err) => {
-          console.error("Failed to fetch eBay listings:", err);
+        searchEbayListings(title, "ES").catch((err) => {
+          console.error("Failed to fetch eBay ES listings:", err);
+          return [];
+        }),
+        3500,
+        []
+      ),
+      withTimeout(
+        searchEbayListings(title, "US").catch((err) => {
+          console.error("Failed to fetch eBay US listings:", err);
           return [];
         }),
         3500,
@@ -57,7 +65,7 @@ export async function getGameMarketData(title: string): Promise<MarketData> {
 
     return {
       cheapsharkDeals,
-      ebayListings
+      ebayListings: [...ebayListingsES, ...ebayListingsUS]
     };
   } catch (error) {
     console.error("Error in getGameMarketData server action:", error);
@@ -75,6 +83,7 @@ interface HistoricalSale {
   condition: "loose" | "cib" | "sealed";
   platform: string;
   isRealEbay?: boolean;
+  marketRegion?: "ES" | "US";
 }
 
 
@@ -92,7 +101,7 @@ export async function getGamePriceHistory(
   const selectedPlatform = platform || "All";
 
   try {
-    const [dbPricesResult, ebaySoldResult] = await Promise.all([
+    const [dbPricesResult, ebaySoldResultES, ebaySoldResultUS] = await Promise.all([
       // 1. Fetch historical prices from Supabase
       (async () => {
         const numericGameId = parseInt(gameId, 10);
@@ -115,8 +124,17 @@ export async function getGamePriceHistory(
       }),
       // 2. Fetch live sold listings from eBay ES in real-time (with a 3.5s Timeout)
       withTimeout(
-        fetchSoldListings(title).catch((ebayErr) => {
-          console.error("eBay sold listings real-time fetch failed:", ebayErr);
+        fetchSoldListings(title, "ES").catch((ebayErr) => {
+          console.error("eBay ES sold listings real-time fetch failed:", ebayErr);
+          return [];
+        }),
+        3500,
+        []
+      ),
+      // 3. Fetch live sold listings from eBay US in real-time (with a 3.5s Timeout)
+      withTimeout(
+        fetchSoldListings(title, "US").catch((ebayErr) => {
+          console.error("eBay US sold listings real-time fetch failed:", ebayErr);
           return [];
         }),
         3500,
@@ -133,29 +151,45 @@ export async function getGamePriceHistory(
           price: Number(row.market_price_cleaned),
           condition: row.condition_state as "loose" | "cib" | "sealed",
           platform: selectedPlatform,
+          marketRegion: (row.region && (row.region.includes("US") || row.region.includes("NTSC"))) ? "US" : "ES"
         });
       });
     }
 
-    // Process eBay results
-    if (ebaySoldResult && ebaySoldResult.length > 0) {
-      ebaySoldResult.forEach((item, index) => {
+    // Process eBay ES results
+    if (ebaySoldResultES && ebaySoldResultES.length > 0) {
+      ebaySoldResultES.forEach((item, index) => {
         const cond = classifyCondition(item.title);
         sales.push({
-          id: `ebay-${index}-${Date.now()}`,
+          id: `ebay-es-${index}-${Date.now()}`,
           date: item.date || new Date().toISOString(),
           price: item.price,
           condition: cond || "cib",
           platform: selectedPlatform,
           isRealEbay: true,
+          marketRegion: "ES"
+        });
+      });
+    }
+
+    // Process eBay US results
+    if (ebaySoldResultUS && ebaySoldResultUS.length > 0) {
+      ebaySoldResultUS.forEach((item, index) => {
+        const cond = classifyCondition(item.title);
+        sales.push({
+          id: `ebay-us-${index}-${Date.now()}`,
+          date: item.date || new Date().toISOString(),
+          price: item.price,
+          condition: cond || "cib",
+          platform: selectedPlatform,
+          isRealEbay: true,
+          marketRegion: "US"
         });
       });
     }
   } catch (error) {
     console.error("Error in parallel fetch in getGamePriceHistory:", error);
   }
-
-
 
   // Sort combined results by date descending
   return sales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
