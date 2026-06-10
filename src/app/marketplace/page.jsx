@@ -341,7 +341,8 @@ export default function MarketplacePage() {
                               String(offer.game_id),
                               offer.title,
                               offer.coverUrl,
-                              offer.platform
+                              offer.platform,
+                              offer.user_id
                             );
                             if (res.error) {
                               showToast(res.error, "error");

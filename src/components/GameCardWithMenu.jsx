@@ -123,7 +123,8 @@ export default function GameCardWithMenu({
         item.gameId,
         item.title,
         item.coverUrl,
-        item.platform
+        item.platform,
+        isOwnProfile ? null : profile?.id
       );
 
       if (result.error) {
